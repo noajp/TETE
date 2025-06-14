@@ -89,17 +89,12 @@ struct EditProfileView: View {
         }
         
         Task {
-            do {
-                await viewModel.updateProfile(
-                    username: username,
-                    displayName: displayName,
-                    bio: bio
-                )
-                dismiss()
-            } catch {
-                alertMessage = "プロフィールの更新に失敗しました"
-                showAlert = true
-            }
+            await viewModel.updateProfile(
+                username: username,
+                displayName: displayName,
+                bio: bio
+            )
+            dismiss()
         }
     }
 }

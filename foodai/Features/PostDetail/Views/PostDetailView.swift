@@ -1,5 +1,5 @@
 //======================================================================
-// MARK: - PostDetailView（iOS 17+対応完全版）
+// MARK: - PostDetailView（写真共有アプリ版）
 // Path: foodai/Features/PostDetail/Views/PostDetailView.swift
 //======================================================================
 import SwiftUI
@@ -7,21 +7,22 @@ import MapKit
 
 struct PostDetailView: View {
     let post: Post
-    @State private var cameraPosition: MapCameraPosition
+    @State private var cameraPosition: MapCameraPosition?
     
     init(post: Post) {
         self.post = post
         
-        // マップの初期位置を設定
-        let latitude = post.restaurant?.latitude ?? 35.6812
-        let longitude = post.restaurant?.longitude ?? 139.7671
-        
-        self._cameraPosition = State(initialValue: MapCameraPosition.region(
-            MKCoordinateRegion(
-                center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
-                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-            )
-        ))
+        // 位置情報がある場合のみマップの初期位置を設定
+        if let latitude = post.latitude, let longitude = post.longitude {
+            self._cameraPosition = State(initialValue: MapCameraPosition.region(
+                MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                )
+            ))
+        } else {
+            self._cameraPosition = State(initialValue: nil)
+        }
     }
     
     var body: some View {
@@ -58,22 +59,52 @@ struct PostDetailView: View {
                         Spacer()
                     }
                     
-                    // レストラン情報
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(post.restaurant?.name ?? "Unknown Restaurant")
-                            .font(.system(size: 24, weight: .bold))
-                        
-                        // 評価
-                        HStack(spacing: 4) {
-                            PreciseStarRatingView(rating: post.rating, size: 16)
-                            Text(String(format: "%.1f", post.rating))
-                                .font(.system(size: 16, weight: .medium))
+                    // アクションボタン
+                    HStack(spacing: 16) {
+                        // いいねボタン
+                        Button(action: {}) {
+                            HStack(spacing: 4) {
+                                Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(post.isLikedByMe ? .red : .black)
+                                
+                                if post.likeCount > 0 {
+                                    Text("\(post.likeCount)")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.black)
+                                }
+                            }
                         }
                         
-                        if let area = post.restaurant?.area {
-                            Text(area)
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
+                        // コメントボタン
+                        Button(action: {}) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "message")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.black)
+                                
+                                if post.commentCount > 0 {
+                                    Text("\(post.commentCount)")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.black)
+                                }
+                            }
+                        }
+                        
+                        // シェアボタン
+                        Button(action: {}) {
+                            Image(systemName: "paperplane")
+                                .font(.system(size: 24))
+                                .foregroundColor(.black)
+                        }
+                        
+                        Spacer()
+                        
+                        // ブックマークボタン
+                        Button(action: {}) {
+                            Image(systemName: post.isSavedByMe ? "bookmark.fill" : "bookmark")
+                                .font(.system(size: 24))
+                                .foregroundColor(.black)
                         }
                     }
                     
@@ -84,35 +115,39 @@ struct PostDetailView: View {
                             .padding(.vertical, 8)
                     }
                     
-                    Divider()
-                    
-                    // マップ
-                    if post.restaurant?.latitude != nil {
-                        Text("場所")
-                            .font(.system(size: 18, weight: .semibold))
-                            .padding(.top, 8)
+                    // 位置情報
+                    if let locationName = post.locationName {
+                        Divider()
                         
-                        // iOS 17+の新しいMap構文
-                        Map(position: $cameraPosition) {
-                            if let lat = post.restaurant?.latitude,
-                               let lng = post.restaurant?.longitude {
-                                Marker(
-                                    post.restaurant?.name ?? "レストラン",
-                                    coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)
-                                )
-                                .tint(.red)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label(locationName, systemImage: "location")
+                                .font(.system(size: 16))
+                                .foregroundColor(.black)
+                            
+                            // マップ（位置情報がある場合）
+                            if let cameraPosition = cameraPosition,
+                               let latitude = post.latitude,
+                               let longitude = post.longitude {
+                                
+                                Map(position: .constant(cameraPosition)) {
+                                    Marker(
+                                        locationName,
+                                        coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+                                    )
+                                    .tint(.black)
+                                }
+                                .frame(height: 200)
+                                .disabled(true)
                             }
                         }
-                        .frame(height: 200)
-                        .cornerRadius(10)
-                        
-                        if let address = post.restaurant?.address {
-                            Text(address)
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondary)
-                                .padding(.top, 4)
-                        }
+                        .padding(.top, 8)
                     }
+                    
+                    // 投稿日時
+                    Text(post.createdAt.timeAgoDisplay())
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                        .padding(.top, 8)
                 }
                 .padding()
             }

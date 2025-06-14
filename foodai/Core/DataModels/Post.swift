@@ -1,5 +1,5 @@
 //======================================================================
-// MARK: - Post.swift（Double評価対応版）
+// MARK: - Post.swift（写真共有アプリ版）
 // Path: foodai/Core/DataModels/Post.swift
 //======================================================================
 import Foundation
@@ -7,20 +7,22 @@ import Foundation
 struct Post: Identifiable, Codable {
     let id: String
     let userId: String
-    let restaurantId: String
     let mediaUrl: String
     let mediaType: MediaType
     let thumbnailUrl: String?
     let caption: String?
-    let rating: Double
-    let visitDate: Date?
+    let locationName: String?
+    let latitude: Double?
+    let longitude: Double?
+    let isPublic: Bool
     let createdAt: Date
+    
+    // 統計情報
+    let likeCount: Int
+    let commentCount: Int
     
     // リレーション（オプショナル）
     var user: UserProfile?
-    var restaurant: Restaurant?
-    var likeCount: Int = 0
-    var saveCount: Int = 0
     var isLikedByMe: Bool = false
     var isSavedByMe: Bool = false
     
@@ -32,13 +34,16 @@ struct Post: Identifiable, Codable {
     enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
-        case restaurantId = "restaurant_id"
         case mediaUrl = "media_url"
         case mediaType = "media_type"
         case thumbnailUrl = "thumbnail_url"
         case caption
-        case rating
-        case visitDate = "visit_date"
+        case locationName = "location_name"
+        case latitude
+        case longitude
+        case isPublic = "is_public"
+        case likeCount = "like_count"
+        case commentCount = "comment_count"
         case createdAt = "created_at"
     }
 }

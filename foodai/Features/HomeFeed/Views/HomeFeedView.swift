@@ -1,28 +1,24 @@
 //======================================================================
-// MARK: - HomeFeedView（クリーンアップ版）
+// MARK: - HomeFeedView（写真共有アプリ版）
 // Path: foodai/Features/HomeFeed/Views/HomeFeedView.swift
 //======================================================================
 import SwiftUI
 
-enum GridLayout {
-    case single
-    case grid
-}
-
 @MainActor
 struct HomeFeedView: View {
     @StateObject private var viewModel = HomeFeedViewModel()
-    @State private var gridLayout: GridLayout = .grid
+    @Binding var showGridMode: Bool
     
     private var columns: [GridItem] {
-        switch gridLayout {
-        case .single:
-            return [GridItem(.flexible())]
-        case .grid:
+        if showGridMode {
+            // グリッドモード（2x2）
             return [
-                GridItem(.flexible(), spacing: 8),
-                GridItem(.flexible(), spacing: 8)
+                GridItem(.flexible(), spacing: 2),
+                GridItem(.flexible(), spacing: 2)
             ]
+        } else {
+            // シングルモード（1枚表示）
+            return [GridItem(.flexible())]
         }
     }
     
@@ -43,11 +39,6 @@ struct HomeFeedView: View {
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    toolbarButtons
-                }
-            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
@@ -79,41 +70,31 @@ struct HomeFeedView: View {
     
     private var contentView: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: gridLayout == .single ? 20 : 8) {
-                ForEach(viewModel.posts) { post in
-                    NavigationLink(destination: PostDetailView(post: post)) {
-                        if gridLayout == .single {
-                            SingleCardView(post: post)
-                                .padding(.horizontal, 8)
-                        } else {
+            if showGridMode {
+                // グリッドモード
+                LazyVGrid(columns: columns, spacing: 2) {
+                    ForEach(viewModel.posts) { post in
+                        NavigationLink(destination: PostDetailView(post: post)) {
                             PinCardView(post: post)
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .buttonStyle(PlainButtonStyle())
+                }
+                .padding(2)
+            } else {
+                // シングルモード（1枚ずつ表示）
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.posts) { post in
+                        NavigationLink(destination: PostDetailView(post: post)) {
+                            SingleCardView(post: post)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 8)
         }
         .refreshable {
             viewModel.loadPosts()
-        }
-    }
-    
-    private var toolbarButtons: some View {
-        // グリッド切り替えボタンのみ
-        Button(action: toggleGridLayout) {
-            Image(systemName: gridLayout == .grid ? "square.grid.2x2" : "square")
-                .font(.system(size: 20))
-                .foregroundColor(AppEnvironment.Colors.accentGreen)
-        }
-    }
-    
-    // MARK: - Actions
-    
-    private func toggleGridLayout() {
-        withAnimation(.spring(response: 0.3)) {
-            gridLayout = gridLayout == .grid ? .single : .grid
         }
     }
 }
@@ -121,7 +102,7 @@ struct HomeFeedView: View {
 // MARK: - Preview
 struct HomeFeedView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeFeedView()
+        HomeFeedView(showGridMode: .constant(false))
     }
 }
 

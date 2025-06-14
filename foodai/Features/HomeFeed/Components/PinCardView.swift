@@ -1,5 +1,5 @@
 //======================================================================
-// MARK: - PinCardView（星評価を下に配置版）
+// MARK: - PinCardView（写真共有アプリ版）
 // Path: foodai/Features/HomeFeed/Components/PinCardView.swift
 //======================================================================
 import SwiftUI
@@ -9,41 +9,19 @@ struct PinCardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // 画像部分（シンプルに画像のみ）
+            // 画像部分
             GeometryReader { geometry in
                 RemoteImageView(imageURL: post.mediaUrl)
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: geometry.size.width) // 正方形
+                    .frame(width: geometry.size.width, height: geometry.size.width)
                     .clipped()
             }
-            .aspectRatio(1, contentMode: .fit) // 1:1の比率を強制
+            .aspectRatio(1, contentMode: .fit)
             
-            // 情報部分
-            VStack(alignment: .leading, spacing: 6) {
-                // レストラン名
-                Text(post.restaurant?.name ?? "Unknown Restaurant")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                
-                // エリア
-                Text(post.restaurant?.area ?? "エリア不明")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                
-                // 評価（星と数値）- エリアの下に配置
-                HStack(spacing: 4) {
-                    PreciseStarRatingView(rating: post.rating, size: 12)
-                    Text(String(format: "%.1f", post.rating))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.primary)
-                }
-                
-                Spacer(minLength: 0)
-                
+            // 下部の情報（シンプルに）
+            HStack {
                 // ユーザー情報
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Group {
                         if let avatarUrl = post.user?.avatarUrl {
                             RemoteImageView(imageURL: avatarUrl)
@@ -52,25 +30,39 @@ struct PinCardView: View {
                                 .fill(Color.gray.opacity(0.3))
                         }
                     }
-                    .frame(width: 16, height: 16)
+                    .frame(width: 20, height: 20)
                     .clipShape(Circle())
                     
                     Text(post.user?.username ?? "unknown")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                        .foregroundColor(.black)
                         .lineLimit(1)
+                }
+                
+                Spacer()
+                
+                // いいねボタン
+                HStack(spacing: 4) {
+                    Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                        .font(.system(size: 14))
+                        .foregroundColor(post.isLikedByMe ? .red : .black)
                     
-                    Spacer(minLength: 0)
+                    if post.likeCount > 0 {
+                        Text("\(post.likeCount)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.black)
+                    }
                 }
             }
-            .padding(10)
-            .frame(height: 100) // 情報部分の高さを固定
-            .frame(maxWidth: .infinity)
-            .background(Color(.systemBackground))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+            .background(Color.white)
         }
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+        .background(Color.white)
+        .overlay(
+            Rectangle()
+                .stroke(Color.black.opacity(0.1), lineWidth: 0.5)
+        )
     }
 }
 

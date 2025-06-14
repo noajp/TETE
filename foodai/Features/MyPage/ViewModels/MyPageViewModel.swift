@@ -31,15 +31,14 @@ class MyPageViewModel: ObservableObject {
         
         do {
             // ユーザープロフィールを取得
-            guard let userId = supabaseManager.client.auth.session?.user.id else {
-                return
-            }
+            let session = try await supabaseManager.client.auth.session
+            let userId = session.user.id
             
             // プロフィールデータを取得
             let profile: UserProfile = try await supabaseManager.client
-                .from("profiles")
+                .from("user_profiles")
                 .select()
-                .eq("id", value: userId)
+                .eq("id", value: userId.uuidString)
                 .single()
                 .execute()
                 .value
@@ -47,9 +46,9 @@ class MyPageViewModel: ObservableObject {
             self.userProfile = profile
             
             // 統計情報を取得（実装は仮）
-            self.postsCount = await getPostsCount(userId: userId)
-            self.reviewsCount = await getReviewsCount(userId: userId)
-            self.savedRestaurantsCount = await getSavedRestaurantsCount(userId: userId)
+            self.postsCount = await getPostsCount(userId: userId.uuidString)
+            self.reviewsCount = await getReviewsCount(userId: userId.uuidString)
+            self.savedRestaurantsCount = await getSavedRestaurantsCount(userId: userId.uuidString)
             
         } catch {
             errorMessage = "データの読み込みに失敗しました"
@@ -58,19 +57,18 @@ class MyPageViewModel: ObservableObject {
     }
     
     func updateProfile(username: String, displayName: String, bio: String) async {
-        guard let userId = supabaseManager.client.auth.session?.user.id else {
-            return
-        }
-        
         do {
-            let updatedProfile = try await supabaseManager.client
-                .from("profiles")
+            let session = try await supabaseManager.client.auth.session
+            let userId = session.user.id
+            
+            _ = try await supabaseManager.client
+                .from("user_profiles")
                 .update([
                     "username": username,
                     "display_name": displayName,
                     "bio": bio
                 ])
-                .eq("id", value: userId)
+                .eq("id", value: userId.uuidString)
                 .execute()
             
             await loadUserData()

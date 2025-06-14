@@ -12,28 +12,22 @@ class CreatePostViewModel: ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var selectedVideoURL: URL?
     @Published var mediaType: Post.MediaType = .photo
-    @Published var restaurantName = ""
-    @Published var restaurantArea = ""
-    @Published var restaurantAddress = ""
-    @Published var rating = 0
     @Published var caption = ""
+    @Published var locationName = ""
     @Published var isLoading = false
     @Published var showError = false
     @Published var errorMessage: String?
     @Published var isPostCreated = false
     @Published var uploadProgress: Double = 0
-    @Published var googlePlaceId: String?
     @Published var latitude: Double?
     @Published var longitude: Double?
+    @Published var isPublic = true
     
     private let postService = PostService()
     private let supabase = SupabaseManager.shared.client
     
     var canPost: Bool {
-        (selectedImage != nil || selectedVideoURL != nil) &&
-        !restaurantName.isEmpty &&
-        !restaurantArea.isEmpty &&
-        rating > 0
+        selectedImage != nil || selectedVideoURL != nil
     }
     
     func createPost() async {
@@ -49,6 +43,7 @@ class CreatePostViewModel: ObservableObject {
         
         do {
             // 1. メディアをアップロード
+            uploadProgress = 0.3
             let mediaUrl: String
             if let image = selectedImage {
                 mediaUrl = try await uploadImage(image)
@@ -58,15 +53,10 @@ class CreatePostViewModel: ObservableObject {
                 throw PostError.noMediaSelected
             }
             
-            // 2. レストランを作成または取得
-            uploadProgress = 0.5
-            let restaurantId = try await createOrGetRestaurant()
-            
-            // 3. 投稿を作成
+            // 2. 投稿を作成
             uploadProgress = 0.8
             try await createPostRecord(
                 userId: userId,
-                restaurantId: restaurantId,
                 mediaUrl: mediaUrl
             )
             
@@ -135,61 +125,27 @@ class CreatePostViewModel: ObservableObject {
         return publicUrl
     }
     
-    private func createOrGetRestaurant() async throws -> String {
-        // 既存のレストランを検索
-        let existingRestaurants: [Restaurant] = try await supabase
-            .from("restaurants")
-            .select("*")
-            .eq("name", value: restaurantName)
-            .eq("area", value: restaurantArea)
-            .execute()
-            .value
-        
-        if let existing = existingRestaurants.first {
-            return existing.id
-        }
-        
-        // 新規作成
-        struct NewRestaurant: Encodable {
-            let name: String
-            let area: String
-            let address: String?
-        }
-        
-        let newRestaurant = NewRestaurant(
-            name: restaurantName,
-            area: restaurantArea,
-            address: restaurantAddress.isEmpty ? nil : restaurantAddress
-        )
-        
-        let response: Restaurant = try await supabase
-            .from("restaurants")
-            .insert(newRestaurant)
-            .select()
-            .single()
-            .execute()
-            .value
-        
-        return response.id
-    }
-    
-    private func createPostRecord(userId: String, restaurantId: String, mediaUrl: String) async throws {
+    private func createPostRecord(userId: String, mediaUrl: String) async throws {
         struct NewPost: Encodable {
             let user_id: String
-            let restaurant_id: String
             let media_url: String
             let media_type: String
             let caption: String?
-            let rating: Int
+            let location_name: String?
+            let latitude: Double?
+            let longitude: Double?
+            let is_public: Bool
         }
         
         let newPost = NewPost(
             user_id: userId,
-            restaurant_id: restaurantId,
             media_url: mediaUrl,
             media_type: mediaType.rawValue,
             caption: caption.isEmpty ? nil : caption,
-            rating: rating
+            location_name: locationName.isEmpty ? nil : locationName,
+            latitude: latitude,
+            longitude: longitude,
+            is_public: isPublic
         )
         
         try await supabase

@@ -62,7 +62,7 @@ struct MyPageView: View {
             .task {
                 await viewModel.loadUserData()
             }
-            .onChange(of: selectedPhotoItem) { newItem in
+            .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
                     await viewModel.updateProfilePhoto(item: newItem)
                 }
@@ -85,8 +85,7 @@ struct ProfileSection: View {
                         matching: .images,
                         photoLibrary: .shared()) {
                 ZStack {
-                    if let avatarUrl = profile?.avatarUrl,
-                       let url = URL(string: avatarUrl) {
+                    if let avatarUrl = profile?.avatarUrl {
                         RemoteImageView(imageURL: avatarUrl)
                             .frame(width: 100, height: 100)
                             .clipShape(Circle())

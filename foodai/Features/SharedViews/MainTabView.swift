@@ -7,54 +7,37 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var showingCreatePost = false
+    @State private var showGridMode = false
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            // ホーム
-            HomeFeedView()
-                .tabItem {
-                    Image(systemName: selectedTab == 0 ? "house.fill" : "house")
-                }
-                .tag(0)
-            
-            // 検索
-            SearchView()
-                .tabItem {
-                    Image(systemName: selectedTab == 1 ? "magnifyingglass.circle.fill" : "magnifyingglass")
-                }
-                .tag(1)
-            
-            // 投稿（真ん中）
-            Text("")
-                .tabItem {
-                    Image(systemName: "plus.circle.fill")
-                }
-                .tag(2)
-            
-            // 地図
-            MapView()
-                .tabItem {
-                    Image(systemName: selectedTab == 3 ? "map.fill" : "map")
-                }
-                .tag(3)
-            
-            // アカウント設定
-            ProfileView()
-                .tabItem {
-                    Image(systemName: selectedTab == 4 ? "person.circle.fill" : "person.circle")
-                }
-                .tag(4)
-        }
-        .accentColor(AppEnvironment.Colors.accentGreen)
-        .onChange(of: selectedTab) { _,newValue in
-            if newValue == 2 {
-                showingCreatePost = true
-                // 元のタブに戻す
-                DispatchQueue.main.async {
-                    selectedTab = 0
+        ZStack(alignment: .bottom) {
+            // コンテンツ
+            Group {
+                switch selectedTab {
+                case 0:
+                    HomeFeedView(showGridMode: $showGridMode)
+                case 1:
+                    MessagesView()
+                case 3:
+                    MapView()
+                case 4:
+                    ProfileView()
+                default:
+                    EmptyView()
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // カスタムタブバー
+            CustomTabBar(
+                selectedTab: $selectedTab,
+                showGridMode: $showGridMode,
+                onCreatePost: {
+                    showingCreatePost = true
+                }
+            )
         }
+        .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showingCreatePost) {
             CreatePostView()
         }
