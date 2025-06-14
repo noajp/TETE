@@ -239,3 +239,4 @@ final class StorageBucketAPITests: XCTestCase {
     try await storage.emptyBucket("bucket123")
   }
 }
+

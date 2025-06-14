@@ -3,6 +3,7 @@
 // Path: foodai/Core/Utilities/AdvancedNetworkTest.swift
 //======================================================================
 import Foundation
+import Network // ネットワーク診断用
 
 class AdvancedNetworkTest {
     
@@ -12,7 +13,7 @@ class AdvancedNetworkTest {
         // 1. 基本的なインターネット接続
         await testBasicInternet()
         
-        // 2. DNS解決テスト
+        // 2. DNS解決テスト（簡略化）
         await testDNSResolution()
         
         // 3. Supabase直接アクセス
@@ -54,27 +55,27 @@ class AdvancedNetworkTest {
         }
     }
     
-    // 2. DNS解決テスト
+    // 2. DNS解決テスト（簡略化版）
     static func testDNSResolution() async {
         print("\n🌐 === DNS解決テスト ===")
         
         let host = "yccjlkcxqybxqewzchen.supabase.co"
         
-        do {
-            let hostRef = CFHostCreateWithName(nil, host as CFString).takeRetainedValue()
-            var resolved = DarwinBoolean(false)
-            CFHostStartInfoResolution(hostRef, .addresses, nil)
-            
-            if let addresses = CFHostGetAddressing(hostRef, &resolved)?.takeUnretainedValue() as? [Data], resolved.boolValue {
-                print("✅ DNS解決成功: \(host)")
-                for address in addresses {
-                    print("   IPアドレス: \(address.map { String(format: "%02x", $0) }.joined())")
+        // URLSessionを使った簡易的なDNS確認
+        if let url = URL(string: "https://\(host)") {
+            do {
+                var request = URLRequest(url: url)
+                request.httpMethod = "HEAD"
+                request.timeoutInterval = 5
+                
+                let (_, response) = try await URLSession.shared.data(for: request)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("✅ DNS解決成功: \(host) - Status: \(httpResponse.statusCode)")
                 }
-            } else {
-                print("❌ DNS解決失敗: \(host)")
+            } catch {
+                print("❌ DNS解決失敗: \(host) - \(error.localizedDescription)")
             }
-        } catch {
-            print("❌ DNS解決エラー: \(error)")
         }
     }
     
@@ -152,18 +153,29 @@ class AdvancedNetworkTest {
         print("  - HTTP最大接続数: \(config.httpMaximumConnectionsPerHost)")
         print("  - クッキー受け入れ: \(config.httpCookieAcceptPolicy.rawValue)")
         
-        // プロキシ設定
-        if let proxyDict = CFNetworkCopySystemProxySettings()?.takeRetainedValue() as? [String: Any] {
-            print("\nプロキシ設定:")
-            if let httpProxy = proxyDict["HTTPProxy"] {
-                print("  ⚠️ HTTPプロキシ: \(httpProxy)")
+        // Network frameworkを使った接続状態確認
+        let monitor = NWPathMonitor()
+        let queue = DispatchQueue(label: "NetworkMonitor")
+        
+        monitor.pathUpdateHandler = { path in
+            print("\nネットワーク状態:")
+            print("  - 接続状態: \(path.status == .satisfied ? "接続中" : "未接続")")
+            print("  - 接続タイプ: \(path.isExpensive ? "従量制" : "定額制")")
+            
+            if path.usesInterfaceType(.wifi) {
+                print("  - インターフェース: Wi-Fi")
+            } else if path.usesInterfaceType(.cellular) {
+                print("  - インターフェース: モバイルデータ")
+            } else if path.usesInterfaceType(.wiredEthernet) {
+                print("  - インターフェース: 有線LAN")
             }
-            if let httpsProxy = proxyDict["HTTPSProxy"] {
-                print("  ⚠️ HTTPSプロキシ: \(httpsProxy)")
-            }
-            if proxyDict.isEmpty || (proxyDict["HTTPProxy"] == nil && proxyDict["HTTPSProxy"] == nil) {
-                print("  ✅ プロキシなし")
-            }
+        }
+        
+        monitor.start(queue: queue)
+        
+        // 少し待機してから停止
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            monitor.cancel()
         }
     }
     

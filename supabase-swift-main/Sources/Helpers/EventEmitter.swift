@@ -135,3 +135,4 @@ package final class EventEmitter<Event: Sendable>: Sendable {
     }
   }
 }
+

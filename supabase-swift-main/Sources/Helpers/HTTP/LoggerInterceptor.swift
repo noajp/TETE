@@ -64,3 +64,4 @@ func stringfy(_ data: Data?) -> String {
     return String(data: data, encoding: .utf8) ?? "<failed>"
   }
 }
+

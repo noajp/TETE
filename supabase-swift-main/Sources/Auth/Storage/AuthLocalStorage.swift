@@ -13,3 +13,4 @@ extension AuthClient.Configuration {
     public static let defaultLocalStorage: any AuthLocalStorage = WinCredLocalStorage()
   #endif
 }
+

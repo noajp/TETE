@@ -400,3 +400,4 @@ final class FunctionsClientTests: XCTestCase {
     }
   }
 }
+

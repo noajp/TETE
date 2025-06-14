@@ -18,3 +18,4 @@ final class FunctionsErrorTests: XCTestCase {
       "Edge Function returned a non-2xx status code: 412")
   }
 }
+

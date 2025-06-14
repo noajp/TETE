@@ -604,3 +604,4 @@ public final class RealtimeClientV2: Sendable {
     url.appendingPathComponent("api/broadcast")
   }
 }
+

@@ -26,3 +26,4 @@ struct ErrorText_Previews: PreviewProvider {
     ErrorText(NSError())
   }
 }
+

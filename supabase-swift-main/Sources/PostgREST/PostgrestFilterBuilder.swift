@@ -595,3 +595,4 @@ public class PostgrestFilterBuilder: PostgrestTransformBuilder, @unchecked Senda
     wfts(column, query: query, config: config)
   }
 }
+

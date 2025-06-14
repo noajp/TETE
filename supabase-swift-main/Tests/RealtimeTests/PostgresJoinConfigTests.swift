@@ -123,3 +123,4 @@ final class PostgresJoinConfigTests: XCTestCase {
     XCTAssertNotEqual(config1.hashValue, config2.hashValue)
   }
 }
+

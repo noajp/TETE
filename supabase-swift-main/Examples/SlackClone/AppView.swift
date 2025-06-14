@@ -65,3 +65,4 @@ struct AppView: View {
 #Preview {
   AppView(model: AppViewModel())
 }
+

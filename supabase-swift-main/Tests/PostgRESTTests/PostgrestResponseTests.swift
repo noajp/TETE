@@ -51,3 +51,4 @@ class PostgrestResponseTests: XCTestCase {
     XCTAssertNil(postgrestResponse.count)
   }
 }
+

@@ -139,3 +139,4 @@ final class SupabaseClientTests: XCTestCase {
     #endif
   }
 }
+

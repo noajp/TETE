@@ -895,3 +895,4 @@ final class StorageFileAPITests: XCTestCase {
     XCTAssertEqual(response.fullPath, "bucket/file.txt")
   }
 }
+

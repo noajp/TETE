@@ -95,3 +95,4 @@ final class AsyncValueSubjectTests: XCTestCase {
     XCTAssertEqual(subject.value, 1)
   }
 }
+

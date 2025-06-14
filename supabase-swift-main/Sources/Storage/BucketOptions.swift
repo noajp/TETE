@@ -18,3 +18,4 @@ public struct BucketOptions: Sendable {
     self.allowedMimeTypes = allowedMimeTypes
   }
 }
+

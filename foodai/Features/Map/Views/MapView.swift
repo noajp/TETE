@@ -1,5 +1,5 @@
 //======================================================================
-// MARK: - MapView（地図画面）
+// MARK: - MapView（iOS 17+対応完全版）
 // Path: foodai/Features/Map/Views/MapView.swift
 //======================================================================
 import SwiftUI
@@ -7,23 +7,28 @@ import MapKit
 
 struct MapView: View {
     @StateObject private var viewModel = MapViewModel()
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671), // 東京
-        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+    @State private var cameraPosition = MapCameraPosition.region(
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+        )
     )
     
     var body: some View {
         NavigationView {
             ZStack {
-                // 地図
-                Map(coordinateRegion: $region, annotationItems: viewModel.restaurants) { restaurant in
-                    MapAnnotation(coordinate: CLLocationCoordinate2D(
-                        latitude: restaurant.latitude ?? 35.6812,
-                        longitude: restaurant.longitude ?? 139.7671
-                    )) {
-                        RestaurantMapPin(restaurant: restaurant)
+                // iOS 17+の新しいMap構文
+                Map(position: $cameraPosition) {
+                    ForEach(viewModel.restaurants) { restaurant in
+                        if let lat = restaurant.latitude,
+                           let lng = restaurant.longitude {
+                            Annotation(restaurant.name, coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)) {
+                                RestaurantMapPin(restaurant: restaurant)
+                            }
+                        }
                     }
                 }
+                .mapStyle(.standard)
                 .ignoresSafeArea(edges: .top)
                 
                 // 検索バー
@@ -48,7 +53,6 @@ struct MapView: View {
                     HStack {
                         Spacer()
                         Button(action: {
-                            // 現在地に移動
                             viewModel.centerOnCurrentLocation()
                         }) {
                             Image(systemName: "location.fill")
@@ -63,7 +67,7 @@ struct MapView: View {
                     }
                 }
             }
-            .navigationTitle("地図")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

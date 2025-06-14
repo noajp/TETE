@@ -314,3 +314,4 @@ final class _Delegate: NSObject, URLSessionDelegate, URLSessionDataDelegate, URL
     onWebSocketTaskClosed?(session, webSocketTask, closeCode.rawValue, reason)
   }
 }
+

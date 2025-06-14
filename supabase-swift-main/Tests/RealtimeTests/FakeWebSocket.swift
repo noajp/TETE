@@ -116,3 +116,4 @@ final class FakeWebSocket: WebSocket {
     return (peer1, peer2)
   }
 }
+

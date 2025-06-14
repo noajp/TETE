@@ -134,3 +134,4 @@ extension HeartbeatTimer: Equatable {
     lhs.uuid == rhs.uuid
   }
 }
+

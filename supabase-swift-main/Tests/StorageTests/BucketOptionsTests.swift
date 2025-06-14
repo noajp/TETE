@@ -23,3 +23,4 @@ final class BucketOptionsTests: XCTestCase {
     XCTAssertEqual(options.allowedMimeTypes, ["image/jpeg", "image/png"])
   }
 }
+

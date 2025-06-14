@@ -15,3 +15,4 @@ struct UserManagementApp: App {
     }
   }
 }
+

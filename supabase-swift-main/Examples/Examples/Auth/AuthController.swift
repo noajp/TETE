@@ -43,3 +43,4 @@ final class AuthController {
     observeAuthStateChangesTask?.cancel()
   }
 }
+

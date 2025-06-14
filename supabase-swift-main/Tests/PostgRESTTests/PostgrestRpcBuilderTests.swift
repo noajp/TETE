@@ -169,3 +169,4 @@ final class PostgrestRpcBuilderTests: PostgrestQueryTests {
     try await sut.rpc("hello", count: .estimated).execute()
   }
 }
+

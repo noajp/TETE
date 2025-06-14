@@ -51,3 +51,4 @@ struct UserPresence: Codable, Hashable {
   var userId: UUID
   var onlineAt: Date
 }
+

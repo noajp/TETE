@@ -423,3 +423,4 @@ final class StorageFileIntegrationTests: XCTestCase {
       .appendingPathComponent(fileName)
   }
 }
+

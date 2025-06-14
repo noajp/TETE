@@ -37,3 +37,4 @@ public class SupabaseStorageClient: StorageBucketApi, @unchecked Sendable {
     StorageFileApi(bucketId: id, configuration: configuration)
   }
 }
+

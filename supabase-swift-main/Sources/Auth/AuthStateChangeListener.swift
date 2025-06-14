@@ -23,3 +23,4 @@ public typealias AuthStateChangeListener = @Sendable (
   _ event: AuthChangeEvent,
   _ session: Session?
 ) -> Void
+

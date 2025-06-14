@@ -298,3 +298,4 @@ public enum AuthError: LocalizedError, Equatable {
     return lhs == rhs
   }
 }
+

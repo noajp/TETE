@@ -93,3 +93,4 @@ extension View {
     state: ToastState(status: .success, title: "Error", description: "Custom error description")
   )
 }
+

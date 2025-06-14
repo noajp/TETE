@@ -66,3 +66,4 @@ final class RealtimePostgresFilterTests: XCTestCase {
     XCTAssertEqual(filter.value, "column=in.(value1,value2)")
   }
 }
+

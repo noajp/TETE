@@ -190,3 +190,4 @@ public final class PostgrestQueryBuilder: PostgrestBuilder, @unchecked Sendable 
     return PostgrestFilterBuilder(self)
   }
 }
+

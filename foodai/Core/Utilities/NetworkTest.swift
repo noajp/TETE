@@ -1,5 +1,5 @@
 //======================================================================
-// MARK: - NetworkTest.swift（Supabase接続テスト改善版）
+// MARK: - NetworkTest.swift（修正版）
 // Path: foodai/Core/Utilities/NetworkTest.swift
 //======================================================================
 import Foundation
@@ -22,8 +22,8 @@ class NetworkTest {
             return
         }
         
-        // 2. Supabase URLが有効か確認
-        guard let url = URL(string: Config.supabaseURL) else {
+        // 2. Supabase URLが有効か確認（修正: urlを使用しない）
+        guard let _ = URL(string: Config.supabaseURL) else {
             print("❌ 無効なSupabase URL")
             return
         }
@@ -32,7 +32,7 @@ class NetworkTest {
         do {
             let healthUrl = URL(string: "\(Config.supabaseURL)/auth/v1/health")!
             var request = URLRequest(url: healthUrl)
-            request.timeoutInterval = 60 // タイムアウトを30秒に延長
+            request.timeoutInterval = 60
             request.setValue(Config.supabaseAnonKey, forHTTPHeaderField: "apikey")
             
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -56,13 +56,9 @@ class NetworkTest {
         }
     }
     
-    // ブラウザでSupabaseダッシュボードを開く
     static func openSupabaseDashboard() {
         if let url = URL(string: "https://app.supabase.com") {
-            #if os(iOS)
-            // UIKitをインポートする代わりに、単にURLを出力
             print("🔗 Supabaseダッシュボード: \(url)")
-            #endif
         }
     }
 }

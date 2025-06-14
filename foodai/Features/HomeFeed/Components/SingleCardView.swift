@@ -216,3 +216,4 @@ struct SingleCardView: View {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 }
+

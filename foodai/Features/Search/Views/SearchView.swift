@@ -61,3 +61,4 @@ struct SearchView: View {
         .navigationViewStyle(StackNavigationViewStyle())
     }
 }
+

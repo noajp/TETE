@@ -45,3 +45,4 @@ final class AuthClientMultipleInstancesTests: XCTestCase {
     )
   }
 }
+

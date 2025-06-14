@@ -32,3 +32,4 @@ extension HTTPResponse {
     try decoder.decode(T.self, from: data)
   }
 }
+

@@ -38,3 +38,4 @@ package enum JWT {
     return Data(base64Encoded: base64, options: .ignoreUnknownCharacters)
   }
 }
+

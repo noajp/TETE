@@ -2219,3 +2219,4 @@ enum MockData {
     contentsOf: Bundle.module.url(forResource: "anonymous-sign-in-response", withExtension: "json")!
   )
 }
+

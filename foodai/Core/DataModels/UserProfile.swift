@@ -19,3 +19,4 @@ struct UserProfile: Identifiable, Codable {
         case createdAt = "created_at"
     }
 }
+

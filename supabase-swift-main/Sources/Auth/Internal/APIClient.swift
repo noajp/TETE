@@ -138,3 +138,4 @@ struct _RawAPIErrorResponse: Decodable {
     msg ?? message ?? errorDescription ?? error ?? "Unknown"
   }
 }
+

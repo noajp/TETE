@@ -178,3 +178,4 @@ extension SupabaseClientOptions.AuthOptions {
     }
   #endif
 }
+

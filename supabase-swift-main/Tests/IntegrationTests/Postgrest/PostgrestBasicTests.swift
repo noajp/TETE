@@ -436,3 +436,4 @@ final class PostgrestBasicTests: XCTestCase {
     }
   }
 }
+

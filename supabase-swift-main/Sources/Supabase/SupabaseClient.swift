@@ -428,3 +428,4 @@ public final class SupabaseClient: Sendable {
     )
   }
 }
+

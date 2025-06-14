@@ -171,3 +171,4 @@ public class PostgrestTransformBuilder: PostgrestBuilder, @unchecked Sendable {
     return self
   }
 }
+

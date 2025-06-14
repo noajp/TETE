@@ -39,3 +39,4 @@ private func extractParams(from fragment: String) -> [URLQueryItem] {
           : nil
       }
 }
+

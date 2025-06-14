@@ -119,3 +119,4 @@ final class SessionManagerTests: XCTestCase {
     )
   }
 }
+

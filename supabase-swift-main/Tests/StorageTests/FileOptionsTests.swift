@@ -28,3 +28,4 @@ final class FileOptionsTests: XCTestCase {
     XCTAssertEqual(options.metadata?["key"], .string("value"))
   }
 }
+

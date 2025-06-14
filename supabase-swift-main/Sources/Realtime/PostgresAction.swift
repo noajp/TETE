@@ -90,3 +90,4 @@ extension HasOldRecord {
     try oldRecord.decode(as: T.self, decoder: decoder)
   }
 }
+

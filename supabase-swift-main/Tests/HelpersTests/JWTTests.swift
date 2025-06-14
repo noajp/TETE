@@ -11,3 +11,4 @@ final class JWTTests: XCTestCase {
     XCTAssertEqual(exp, 1_648_640_021)
   }
 }
+

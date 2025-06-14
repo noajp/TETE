@@ -31,3 +31,4 @@ extension PostgrestError: LocalizedError {
     message
   }
 }
+

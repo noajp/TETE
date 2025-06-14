@@ -43,3 +43,4 @@ class RestaurantRepository {
 struct FavoriteResponse: Codable {
     let id: String
 }
+

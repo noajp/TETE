@@ -415,3 +415,4 @@ public final class Presence {
     presences.map(transformer)
   }
 }
+

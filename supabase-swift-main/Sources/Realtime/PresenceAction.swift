@@ -141,3 +141,4 @@ struct PresenceActionImpl: PresenceAction {
   var leaves: [String: PresenceV2]
   var rawMessage: RealtimeMessageV2
 }
+

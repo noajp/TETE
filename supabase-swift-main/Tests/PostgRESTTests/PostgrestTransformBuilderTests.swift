@@ -416,3 +416,4 @@ final class PostgrestTransformBuilderTests: PostgrestQueryTests {
     XCTAssertTrue(explain.contains("Aggregate"))
   }
 }
+

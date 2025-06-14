@@ -14,3 +14,4 @@ struct RealtimeError: LocalizedError {
     self.errorDescription = errorDescription
   }
 }
+

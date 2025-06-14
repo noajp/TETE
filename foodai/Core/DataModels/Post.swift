@@ -42,3 +42,4 @@ struct Post: Identifiable, Codable {
         case createdAt = "created_at"
     }
 }
+

@@ -43,3 +43,4 @@ final class PKCETests: XCTestCase {
     XCTAssertTrue(encoded.contains("_"), "Should contain '_' as replacement for '/'")
   }
 }
+

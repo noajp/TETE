@@ -566,3 +566,4 @@ public final class RealtimeChannelV2: Sendable {
     push?.didReceive(status: PushStatus(rawValue: status) ?? .ok)
   }
 }
+

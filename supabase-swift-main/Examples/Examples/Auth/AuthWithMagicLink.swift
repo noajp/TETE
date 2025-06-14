@@ -73,3 +73,4 @@ struct AuthWithMagicLink: View {
 #Preview {
   AuthWithMagicLink()
 }
+

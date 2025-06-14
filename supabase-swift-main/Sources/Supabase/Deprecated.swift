@@ -24,3 +24,4 @@ extension SupabaseClient {
     _realtime.value
   }
 }
+

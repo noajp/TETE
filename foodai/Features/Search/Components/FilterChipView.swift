@@ -32,3 +32,4 @@ struct FilterChipView: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+

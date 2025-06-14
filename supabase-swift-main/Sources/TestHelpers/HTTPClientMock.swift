@@ -63,3 +63,4 @@ package actor HTTPClientMock: HTTPClientType {
     throw MockNotFound()
   }
 }
+

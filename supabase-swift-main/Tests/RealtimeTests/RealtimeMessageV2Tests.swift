@@ -77,3 +77,4 @@ final class RealtimeMessageV2Tests: XCTestCase {
     XCTAssertNil(unknownEventMessage._eventType)
   }
 }
+

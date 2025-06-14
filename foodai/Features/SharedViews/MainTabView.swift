@@ -46,7 +46,7 @@ struct MainTabView: View {
                 .tag(4)
         }
         .accentColor(AppEnvironment.Colors.accentGreen)
-        .onChange(of: selectedTab) { newValue in
+        .onChange(of: selectedTab) { _,newValue in
             if newValue == 2 {
                 showingCreatePost = true
                 // 元のタブに戻す

@@ -100,3 +100,4 @@ extension Delegated where Input == Void, Output == Void {
     call(())
   }
 }
+

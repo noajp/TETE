@@ -373,3 +373,4 @@ final class PostgrestResourceEmbeddingTests: XCTestCase {
     }
   }
 }
+

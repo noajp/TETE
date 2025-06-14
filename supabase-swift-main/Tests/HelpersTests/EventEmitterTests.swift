@@ -65,3 +65,4 @@ final class EventEmitterTests: XCTestCase {
     token.cancel()
   }
 }
+

@@ -36,3 +36,4 @@ extension Data {
       .trimmingCharacters(in: .whitespaces)
   }
 }
+

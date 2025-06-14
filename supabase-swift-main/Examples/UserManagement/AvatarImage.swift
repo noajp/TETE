@@ -53,3 +53,4 @@ extension AvatarImage {
 enum TransferError: Error {
   case importFailed
 }
+

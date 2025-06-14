@@ -30,4 +30,13 @@ enum Config {
         print("🔵 Supabase Key: \(String(key.prefix(20)))...")
         return key
     }()
+    // Google Places API Key追加
+    static let googlePlacesAPIKey: String = {
+        guard let key = secrets["GOOGLE_PLACES_API_KEY"] as? String else {
+            fatalError("GOOGLE_PLACES_API_KEY not found in Secrets.plist")
+        }
+        print("🔵 Google Places API Key loaded")
+        return key
+    }()
 }
+

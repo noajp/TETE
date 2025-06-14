@@ -54,3 +54,4 @@ package protocol HTTPClientInterceptor: Sendable {
     next: @Sendable (HTTPRequest) async throws -> HTTPResponse
   ) async throws -> HTTPResponse
 }
+

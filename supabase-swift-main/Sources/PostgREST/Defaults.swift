@@ -27,3 +27,4 @@ extension PostgrestClient.Configuration {
     "X-Client-Info": "postgrest-swift/\(version)"
   ]
 }
+

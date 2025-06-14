@@ -42,3 +42,4 @@ final class ObservationTokenTests: XCTestCase {
     XCTAssertEqual(onRemoveCallCount.value, 1)
   }
 }
+

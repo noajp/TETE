@@ -193,3 +193,4 @@ private struct MessagePayload: Decodable {
   let userId: UUID
   let channelId: Int
 }
+

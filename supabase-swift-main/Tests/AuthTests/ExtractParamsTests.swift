@@ -38,3 +38,4 @@ final class ExtractParamsTests: XCTestCase {
     XCTAssertEqual(params, ["code": "123"])
   }
 }
+

@@ -79,3 +79,4 @@ extension RealtimeChannelV2 {
   @available(*, deprecated, renamed: "RealtimeChannelStatus")
   public typealias Status = RealtimeChannelStatus
 }
+

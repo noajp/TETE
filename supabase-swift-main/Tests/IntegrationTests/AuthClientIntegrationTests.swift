@@ -416,3 +416,4 @@ final class AuthClientIntegrationTests: XCTestCase {
     token.remove()
   }
 }
+

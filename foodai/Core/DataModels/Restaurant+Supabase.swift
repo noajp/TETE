@@ -50,3 +50,4 @@ struct RestaurantImageDTO: Codable {
         case displayOrder = "display_order"
     }
 }
+

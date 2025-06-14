@@ -30,3 +30,4 @@ let supabase = SupabaseClient(
     global: SupabaseClientOptions.GlobalOptions(logger: SupaLogger())
   )
 )
+

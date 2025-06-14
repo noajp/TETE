@@ -17,12 +17,14 @@ class CreatePostViewModel: ObservableObject {
     @Published var restaurantAddress = ""
     @Published var rating = 0
     @Published var caption = ""
-    
     @Published var isLoading = false
     @Published var showError = false
     @Published var errorMessage: String?
     @Published var isPostCreated = false
     @Published var uploadProgress: Double = 0
+    @Published var googlePlaceId: String?
+    @Published var latitude: Double?
+    @Published var longitude: Double?
     
     private let postService = PostService()
     private let supabase = SupabaseManager.shared.client
@@ -197,20 +199,27 @@ class CreatePostViewModel: ObservableObject {
     }
     
     // 動画のサムネイル生成
+    // generateThumbnail関数を更新（iOS 18対応）
     func generateThumbnail(from videoURL: URL) -> UIImage? {
-        let asset = AVAsset(url: videoURL)
+        let asset = AVURLAsset(url: videoURL) // 修正: AVAsset → AVURLAsset
         let imageGenerator = AVAssetImageGenerator(asset: asset)
         imageGenerator.appliesPreferredTrackTransform = true
         
         let time = CMTime(seconds: 1, preferredTimescale: 1)
         
-        do {
-            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
-            return UIImage(cgImage: cgImage)
-        } catch {
-            print("サムネイル生成エラー: \(error)")
-            return nil
+        // iOS 18対応の非同期メソッドを使用
+        var thumbnail: UIImage?
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        imageGenerator.generateCGImageAsynchronously(for: time) { cgImage, actualTime, error in
+            if let cgImage = cgImage {
+                thumbnail = UIImage(cgImage: cgImage)
+            }
+            semaphore.signal()
         }
+        
+        semaphore.wait()
+        return thumbnail
     }
 }
 

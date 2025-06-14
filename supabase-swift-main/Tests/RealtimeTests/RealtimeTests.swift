@@ -500,3 +500,4 @@ extension WebSocketEvent {
     return try? JSONDecoder().decode(RealtimeMessageV2.self, from: Data(text.utf8))
   }
 }
+

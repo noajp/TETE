@@ -8,3 +8,4 @@ import Foundation
 class RestaurantService {
     // 将来の実装用
 }
+

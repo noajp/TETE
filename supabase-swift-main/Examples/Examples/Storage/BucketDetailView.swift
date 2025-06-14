@@ -105,3 +105,4 @@ struct BucketDetailView: View {
     )
   )
 }
+

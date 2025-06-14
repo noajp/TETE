@@ -1,13 +1,13 @@
 //======================================================================
-// MARK: - 4. RestaurantDetailView を PostDetailView に置き換え
-// Path: foodai/Features/PostDetail/Views/PostDetailView.swift (新規作成)
+// MARK: - PostDetailView（iOS 17+対応完全版）
+// Path: foodai/Features/PostDetail/Views/PostDetailView.swift
 //======================================================================
 import SwiftUI
 import MapKit
 
 struct PostDetailView: View {
     let post: Post
-    @State private var region: MKCoordinateRegion
+    @State private var cameraPosition: MapCameraPosition
     
     init(post: Post) {
         self.post = post
@@ -16,9 +16,11 @@ struct PostDetailView: View {
         let latitude = post.restaurant?.latitude ?? 35.6812
         let longitude = post.restaurant?.longitude ?? 139.7671
         
-        self._region = State(initialValue: MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
-            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        self._cameraPosition = State(initialValue: MapCameraPosition.region(
+            MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
         ))
     }
     
@@ -28,9 +30,9 @@ struct PostDetailView: View {
                 // 投稿画像
                 RemoteImageView(imageURL: post.mediaUrl)
                     .aspectRatio(contentMode: .fit)
-                    .frame(height: 400)
+                    .frame(maxHeight: 400)
                     .clipped()
-                    .background(Color.white)
+                    .background(Color.black)
                 
                 VStack(alignment: .leading, spacing: 16) {
                     // ユーザー情報
@@ -62,12 +64,10 @@ struct PostDetailView: View {
                             .font(.system(size: 24, weight: .bold))
                         
                         // 評価
-                        HStack(spacing: 2) {
-                            ForEach(0..<5) { index in
-                                Image(systemName: index < Int(post.rating) ? "star.fill" : "star")
-                                    .foregroundColor(index < Int(post.rating) ? .yellow : .gray.opacity(0.3))
-                                    .font(.system(size: 16))
-                            }
+                        HStack(spacing: 4) {
+                            PreciseStarRatingView(rating: post.rating, size: 16)
+                            Text(String(format: "%.1f", post.rating))
+                                .font(.system(size: 16, weight: .medium))
                         }
                         
                         if let area = post.restaurant?.area {
@@ -92,11 +92,16 @@ struct PostDetailView: View {
                             .font(.system(size: 18, weight: .semibold))
                             .padding(.top, 8)
                         
-                        Map(coordinateRegion: $region, annotationItems: [post.restaurant!]) { restaurant in
-                            MapMarker(coordinate: CLLocationCoordinate2D(
-                                latitude: restaurant.latitude ?? 0,
-                                longitude: restaurant.longitude ?? 0
-                            ), tint: .red)
+                        // iOS 17+の新しいMap構文
+                        Map(position: $cameraPosition) {
+                            if let lat = post.restaurant?.latitude,
+                               let lng = post.restaurant?.longitude {
+                                Marker(
+                                    post.restaurant?.name ?? "レストラン",
+                                    coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)
+                                )
+                                .tint(.red)
+                            }
                         }
                         .frame(height: 200)
                         .cornerRadius(10)
@@ -113,6 +118,5 @@ struct PostDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .ignoresSafeArea(edges: .top)
     }
 }

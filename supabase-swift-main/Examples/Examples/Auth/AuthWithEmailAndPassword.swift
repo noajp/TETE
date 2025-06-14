@@ -147,3 +147,4 @@ struct AuthWithEmailAndPassword: View {
   AuthWithEmailAndPassword()
     .environment(AuthController())
 }
+

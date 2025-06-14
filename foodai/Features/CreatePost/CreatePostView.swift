@@ -1,6 +1,6 @@
 //======================================================================
-// MARK: - CreatePostView（動画対応版）
-// Path: foodai/Features/CreatePost/Views/CreatePostView.swift
+// MARK: - CreatePostView（Google Places API対応版）
+// Path: foodai/Features/CreatePost/CreatePostView.swift
 //======================================================================
 import SwiftUI
 import PhotosUI
@@ -13,6 +13,8 @@ struct CreatePostView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showingMediaPicker = false
     @State private var selectedItem: PhotosPickerItem?
+    @State private var showingRestaurantSearch = false
+    @State private var selectedPlace: PlaceResult?
     
     var body: some View {
         NavigationView {
@@ -28,11 +30,46 @@ struct CreatePostView: View {
                     )
                     
                     // 2. レストラン情報
-                    RestaurantInputSection(
-                        restaurantName: $viewModel.restaurantName,
-                        restaurantArea: $viewModel.restaurantArea,
-                        restaurantAddress: $viewModel.restaurantAddress
-                    )
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("レストラン情報")
+                            .font(.headline)
+                            .padding(.horizontal)
+                        
+                        // レストラン検索ボタン
+                        Button(action: {
+                            showingRestaurantSearch = true
+                        }) {
+                            HStack {
+                                Image(systemName: "magnifyingglass")
+                                Text(selectedPlace?.name ?? "レストランを検索")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                            }
+                            .foregroundColor(selectedPlace != nil ? .primary : .gray)
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
+                        }
+                        .padding(.horizontal)
+                        
+                        // 選択されたレストランの詳細
+                        if let place = selectedPlace {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(place.vicinity)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                if let rating = place.rating {
+                                    HStack {
+                                        PreciseStarRatingView(rating: rating, size: 14)
+                                        Text(String(format: "%.1f", rating))
+                                            .font(.caption)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
                     
                     // 3. 評価
                     RatingSection(rating: $viewModel.rating)
@@ -92,8 +129,25 @@ struct CreatePostView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "投稿に失敗しました")
             }
+            .sheet(isPresented: $showingRestaurantSearch) {
+                RestaurantSearchModal(
+                    isPresented: $showingRestaurantSearch,
+                    selectedPlace: $selectedPlace
+                )
+            }
+            // onChange修正（iOS 17対応）
+            .onChange(of: selectedPlace) { _, newPlace in
+                if let place = newPlace {
+                    // 選択されたレストラン情報をViewModelに設定
+                    viewModel.restaurantName = place.name
+                    viewModel.restaurantArea = place.vicinity
+                    viewModel.googlePlaceId = place.placeId
+                    viewModel.latitude = place.geometry.location.lat
+                    viewModel.longitude = place.geometry.location.lng
+                }
+            }
         }
-        .onChange(of: selectedItem) { newItem in
+        .onChange(of: selectedItem) { _, newItem in
             Task {
                 guard let newItem = newItem else { return }
                 
@@ -119,7 +173,7 @@ struct CreatePostView: View {
     }
 }
 
-// メディア選択セクション
+// MARK: - メディア選択セクション（この部分が欠けていました）
 struct MediaPickerSection: View {
     @Binding var selectedImage: UIImage?
     @Binding var selectedVideoURL: URL?
@@ -186,37 +240,7 @@ struct MediaPickerSection: View {
     }
 }
 
-// レストラン情報入力セクション
-struct RestaurantInputSection: View {
-    @Binding var restaurantName: String
-    @Binding var restaurantArea: String
-    @Binding var restaurantAddress: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Text("レストラン情報")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            VStack(spacing: 15) {
-                // レストラン名
-                TextField("レストラン名", text: $restaurantName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                // エリア
-                TextField("エリア（例：東京都渋谷区）", text: $restaurantArea)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                // 住所
-                TextField("住所（任意）", text: $restaurantAddress)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
-            .padding(.horizontal)
-        }
-    }
-}
-
-// 評価セクション
+// MARK: - 評価セクション
 struct RatingSection: View {
     @Binding var rating: Int
     
@@ -241,7 +265,7 @@ struct RatingSection: View {
     }
 }
 
-// コメントセクション
+// MARK: - コメントセクション
 struct CommentSection: View {
     @Binding var caption: String
     
@@ -257,21 +281,6 @@ struct CommentSection: View {
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(10)
                 .padding(.horizontal)
-        }
-    }
-}
-
-// 動画転送用の構造体
-struct VideoTransferable: Transferable {
-    let url: URL
-    
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(contentType: .movie) { video in
-            SentTransferredFile(video.url)
-        } importing: { received in
-            let copy = URL.documentsDirectory.appending(path: "video_\(UUID().uuidString).mp4")
-            try FileManager.default.copyItem(at: received.file, to: copy)
-            return Self(url: copy)
         }
     }
 }

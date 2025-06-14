@@ -96,3 +96,4 @@ class AuthManager: ObservableObject {
         }
     }
 }
+

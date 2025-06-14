@@ -20,3 +20,4 @@ struct Restaurant: Identifiable, Codable {
         case createdAt = "created_at"
     }
 }
+

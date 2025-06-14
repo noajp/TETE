@@ -225,3 +225,4 @@ final class PostgrestBuilderTests: PostgrestQueryTests {
     XCTAssertEqual(query.mutableState.request.headers[.init("key")!], "value")
   }
 }
+

@@ -75,3 +75,4 @@ extension AuthView.Option: View {
 #Preview {
   AuthView()
 }
+

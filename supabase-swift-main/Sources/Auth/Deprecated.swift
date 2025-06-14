@@ -148,3 +148,4 @@ extension AuthAdmin {
     try await self.deleteUser(id: id, shouldSoftDelete: shouldSoftDelete)
   }
 }
+

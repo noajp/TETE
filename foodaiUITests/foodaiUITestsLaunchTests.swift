@@ -31,3 +31,4 @@ final class foodaiUITestsLaunchTests: XCTestCase {
         add(attachment)
     }
 }
+

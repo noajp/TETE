@@ -125,3 +125,4 @@ struct UpdateProfileView: View {
     )
   )
 }
+

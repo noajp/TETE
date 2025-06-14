@@ -86,3 +86,4 @@ struct SignInWithApple: View {
 #Preview {
   SignInWithApple()
 }
+

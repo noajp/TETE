@@ -25,3 +25,4 @@ extension Array where Element: FixedWidthInteger {
     return array
   }
 }
+

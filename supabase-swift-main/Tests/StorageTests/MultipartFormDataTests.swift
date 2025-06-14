@@ -32,3 +32,4 @@ final class MultipartFormDataTests: XCTestCase {
     XCTAssertTrue(formData.contentType.hasPrefix("multipart/form-data"))
   }
 }
+

@@ -57,3 +57,4 @@ class PostgrestQueryTests: XCTestCase {
     }
   }
 }
+

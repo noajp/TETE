@@ -1,5 +1,5 @@
 //======================================================================
-// MARK: - PostService.swift（完全版）
+// MARK: - PostService.swift（エラー修正版）
 // Path: foodai/Core/Services/PostService.swift
 //======================================================================
 import Foundation
@@ -52,45 +52,66 @@ class PostService {
         // 本番モード
         print("🔵 PostService: フィード投稿を取得開始")
         
-        // シンプルなクエリでテスト
-        let posts: [Post] = try await client
-            .from("posts")
-            .select("*")
-            .eq("is_public", value: true)
-            .order("created_at", ascending: false)
-            .execute()
-            .value
-        
-        print("✅ PostService: \(posts.count)件の投稿を取得")
-        
-        // 手動でユーザーとレストラン情報を取得（一時的）
-        for i in 0..<posts.count {
-            var post = posts[i]
-            
-            // ユーザー情報を取得
-            if let userProfile: UserProfile = try? await client
-                .from("user_profiles")
+        do {
+            // シンプルなクエリでテスト
+            var posts: [Post] = try await client
+                .from("posts")
                 .select("*")
-                .eq("id", value: post.userId)
-                .single()
+                .eq("is_public", value: true)
+                .order("created_at", ascending: false)
                 .execute()
-                .value {
-                post.user = userProfile
+                .value
+            
+            print("✅ PostService: \(posts.count)件の投稿を取得")
+            
+            // 手動でユーザーとレストラン情報を取得
+            for i in 0..<posts.count {
+                // ユーザー情報を取得
+                do {
+                    let userProfile: UserProfile = try await client
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", value: posts[i].userId)
+                        .single()
+                        .execute()
+                        .value
+                    posts[i].user = userProfile
+                    print("✅ ユーザー情報取得: \(userProfile.username)")
+                } catch {
+                    print("⚠️ ユーザー情報取得エラー: \(error)")
+                }
+                
+                // レストラン情報を取得
+                do {
+                    let restaurant: Restaurant = try await client
+                        .from("restaurants")
+                        .select("*")
+                        .eq("id", value: posts[i].restaurantId)
+                        .single()
+                        .execute()
+                        .value
+                    posts[i].restaurant = restaurant
+                    print("✅ レストラン情報取得: \(restaurant.name)")
+                } catch {
+                    print("⚠️ レストラン情報取得エラー: \(error)")
+                }
             }
             
-            // レストラン情報を取得
-            if let restaurant: Restaurant = try? await client
-                .from("restaurants")
-                .select("*")
-                .eq("id", value: post.restaurantId)
-                .single()
-                .execute()
-                .value {
-                post.restaurant = restaurant
+            return posts
+            
+        } catch {
+            print("❌ PostService エラー: \(error)")
+            // エラーの詳細を出力
+            if let supabaseError = error as? PostgrestError {
+                print("❌ Supabase エラー詳細:")
+                print("   - Code: \(supabaseError.code ?? "なし")")
+                print("   - Message: \(supabaseError.message)")
+                print("   - Hint: \(supabaseError.hint ?? "なし")")
             }
+            // 一般的なエラー情報も出力
+            print("❌ エラー全体: \(error.localizedDescription)")
+            throw error
         }
-        
-        return posts
     }
     
     // 特定ユーザーの投稿を取得
@@ -99,33 +120,51 @@ class PostService {
             return getMockPosts().filter { $0.userId == userId }
         }
         
-        let response: [PostResponse] = try await client
-            .from("posts")
-            .select("""
-                *,
-                user_profiles!inner(*),
-                restaurants!inner(*)
-            """)
-            .eq("user_id", value: userId)
-            .order("created_at", ascending: false)
-            .execute()
-            .value
-        
-        return response.map { res in
-            Post(
-                id: res.id,
-                userId: res.userId,
-                restaurantId: res.restaurantId,
-                mediaUrl: res.mediaUrl,
-                mediaType: Post.MediaType(rawValue: res.mediaType) ?? .photo,
-                thumbnailUrl: res.thumbnailUrl,
-                caption: res.caption,
-                rating: Double(res.rating),
-                visitDate: nil,
-                createdAt: Date(),
-                user: res.userProfiles,
-                restaurant: res.restaurants
-            )
+        do {
+            var posts: [Post] = try await client
+                .from("posts")
+                .select("*")
+                .eq("user_id", value: userId)
+                .order("created_at", ascending: false)
+                .execute()
+                .value
+            
+            // 手動でユーザーとレストラン情報を取得
+            for i in 0..<posts.count {
+                // ユーザー情報を取得
+                do {
+                    let userProfile: UserProfile = try await client
+                        .from("user_profiles")
+                        .select("*")
+                        .eq("id", value: posts[i].userId)
+                        .single()
+                        .execute()
+                        .value
+                    posts[i].user = userProfile
+                } catch {
+                    print("⚠️ ユーザー情報取得エラー: \(error)")
+                }
+                
+                // レストラン情報を取得
+                do {
+                    let restaurant: Restaurant = try await client
+                        .from("restaurants")
+                        .select("*")
+                        .eq("id", value: posts[i].restaurantId)
+                        .single()
+                        .execute()
+                        .value
+                    posts[i].restaurant = restaurant
+                } catch {
+                    print("⚠️ レストラン情報取得エラー: \(error)")
+                }
+            }
+            
+            return posts
+            
+        } catch {
+            print("❌ fetchUserPosts エラー: \(error)")
+            throw error
         }
     }
     
@@ -255,3 +294,4 @@ class PostService {
         ]
     }
 }
+

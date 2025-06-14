@@ -1029,3 +1029,4 @@ public struct ListUsersPaginatedResponse: Hashable, Sendable {
 //  public static let emailChangeCurrent = GenerateLinkType(rawValue: "email_change_current")
 //  public static let emailChangeNew = GenerateLinkType(rawValue: "email_change_new")
 //}
+

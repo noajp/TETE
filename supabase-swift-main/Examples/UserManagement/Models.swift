@@ -20,3 +20,4 @@ struct Profile: Codable {
     case avatarURL = "avatar_url"
   }
 }
+

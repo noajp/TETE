@@ -26,3 +26,4 @@ final class JSONTests: XCTestCase {
     _ = try PostgrestClient.Configuration.jsonDecoder.decode(Value.self, from: json)
   }
 }
+

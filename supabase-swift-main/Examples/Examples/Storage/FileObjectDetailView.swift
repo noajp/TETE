@@ -66,3 +66,4 @@ struct FileObjectDetailView: View {
     .navigationTitle(fileObject.name)
   }
 }
+

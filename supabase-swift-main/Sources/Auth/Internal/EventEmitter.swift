@@ -28,3 +28,4 @@ struct AuthStateChangeEventEmitter {
     emitter.emit((event, session), to: token)
   }
 }
+

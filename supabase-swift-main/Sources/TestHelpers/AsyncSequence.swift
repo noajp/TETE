@@ -12,3 +12,4 @@ extension AsyncSequence {
     try await reduce(into: [Element]()) { $0.append($1) }
   }
 }
+

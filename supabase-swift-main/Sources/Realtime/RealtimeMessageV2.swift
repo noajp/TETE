@@ -80,3 +80,4 @@ public struct RealtimeMessageV2: Hashable, Codable, Sendable {
 extension RealtimeMessageV2: HasRawMessage {
   public var rawMessage: RealtimeMessageV2 { self }
 }
+

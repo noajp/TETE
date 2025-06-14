@@ -33,3 +33,4 @@ extension HTTPError: LocalizedError {
     return message
   }
 }
+

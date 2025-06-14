@@ -11,3 +11,4 @@ enum SupabaseConfig {
     return plist[key] as? String
   }
 }
+

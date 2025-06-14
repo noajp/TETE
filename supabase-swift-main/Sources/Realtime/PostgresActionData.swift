@@ -23,3 +23,4 @@ struct PostgresActionData: Codable {
     case commitTimestamp = "commit_timestamp"
   }
 }
+

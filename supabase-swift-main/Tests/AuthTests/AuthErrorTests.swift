@@ -43,3 +43,4 @@ final class AuthErrorTests: XCTestCase {
     XCTAssertEqual(implicitGrantRedirect.message, "Implicit grant failure")
   }
 }
+

@@ -34,3 +34,4 @@ extension Session {
     user: User(fromMockNamed: "user")
   )
 }
+

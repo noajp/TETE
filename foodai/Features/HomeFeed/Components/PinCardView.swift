@@ -73,3 +73,4 @@ struct PinCardView: View {
         .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
     }
 }
+
