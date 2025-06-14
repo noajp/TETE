@@ -68,7 +68,7 @@ struct CustomTabBar: View {
             Button(action: {
                 selectedTab = 3
             }) {
-                Image(systemName: selectedTab == 3 ? "map.fill" : "map")
+                Image(systemName: selectedTab == 3 ? "map.fill" : "map"
                     .font(.system(size: 20))
                     .foregroundColor(.black)
             }
@@ -78,7 +78,7 @@ struct CustomTabBar: View {
             Button(action: {
                 selectedTab = 4
             }) {
-                Image(systemName: selectedTab == 4 ? "person.fill" : "person")
+                Image(systemName: selectedTab == 4 ? "person.fill" : "person"
                     .font(.system(size: 20))
                     .foregroundColor(.black)
             }

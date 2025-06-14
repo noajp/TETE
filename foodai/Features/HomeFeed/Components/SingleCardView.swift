@@ -34,12 +34,12 @@ struct SingleCardView: View {
                 if let avatarUrl = post.user?.avatarUrl {
                     RemoteImageView(imageURL: avatarUrl)
                 } else {
-                    Circle()
+                    RoundedRectangle(cornerRadius: 0)
                         .fill(Color.gray.opacity(0.3))
                 }
             }
             .frame(width: 32, height: 32)
-            .clipShape(Circle())
+            .clipShape(RoundedRectangle(cornerRadius: 0))
             
             // ユーザー名
             Text(post.user?.username ?? "unknown")
@@ -91,13 +91,6 @@ struct SingleCardView: View {
             // コメントボタン
             Button(action: {}) {
                 Image(systemName: "message")
-                    .font(.system(size: 24))
-                    .foregroundColor(.black)
-            }
-            
-            // シェアボタン
-            Button(action: {}) {
-                Image(systemName: "paperplane")
                     .font(.system(size: 24))
                     .foregroundColor(.black)
             }

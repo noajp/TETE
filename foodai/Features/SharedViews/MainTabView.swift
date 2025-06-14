@@ -21,7 +21,7 @@ struct MainTabView: View {
                 case 3:
                     MapView()
                 case 4:
-                    ProfileView()
+                    MyPageView()
                 default:
                     EmptyView()
                 }

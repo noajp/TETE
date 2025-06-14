@@ -28,15 +28,15 @@ struct MyPageView: View {
                     // 統計セクション
                     StatsSection(
                         postsCount: viewModel.postsCount,
-                        reviewsCount: viewModel.reviewsCount,
-                        savedCount: viewModel.savedRestaurantsCount
+                        followersCount: viewModel.followersCount,
+                        followingCount: viewModel.followingCount
                     )
                     
                     // メニューリスト
                     MenuSection(
-                        onSavedRestaurants: { viewModel.navigateToSavedRestaurants() },
-                        onReservations: { viewModel.navigateToReservations() },
-                        onReviews: { viewModel.navigateToReviews() },
+                        onSavedPosts: { viewModel.navigateToSavedPosts() },
+                        onFollowers: { viewModel.navigateToFollowers() },
+                        onFollowing: { viewModel.navigateToFollowing() },
                         onSettings: { showSettings = true },
                         onHelp: { viewModel.navigateToHelp() }
                     )
@@ -88,9 +88,9 @@ struct ProfileSection: View {
                     if let avatarUrl = profile?.avatarUrl {
                         RemoteImageView(imageURL: avatarUrl)
                             .frame(width: 100, height: 100)
-                            .clipShape(Circle())
+                            .clipShape(RoundedRectangle(cornerRadius: 0))
                     } else {
-                        Circle()
+                        RoundedRectangle(cornerRadius: 0)
                             .fill(AppEnvironment.Colors.inputBackground)
                             .frame(width: 100, height: 100)
                             .overlay(
@@ -101,7 +101,7 @@ struct ProfileSection: View {
                     }
                     
                     // カメラアイコンオーバーレイ
-                    Circle()
+                    RoundedRectangle(cornerRadius: 0)
                         .fill(AppEnvironment.Colors.accentGreen)
                         .frame(width: 32, height: 32)
                         .overlay(
@@ -109,7 +109,7 @@ struct ProfileSection: View {
                                 .font(.system(size: 14))
                                 .foregroundColor(.white)
                         )
-                        .offset(x: 35, y: 35)
+                        .offset(x: 34, y: 34)
                 }
             }
             .buttonStyle(PlainButtonStyle())
@@ -151,18 +151,18 @@ struct ProfileSection: View {
 
 struct StatsSection: View {
     let postsCount: Int
-    let reviewsCount: Int
-    let savedCount: Int
+    let followersCount: Int
+    let followingCount: Int
     
     var body: some View {
         HStack(spacing: 0) {
             StatItemView(value: "\(postsCount)", label: "投稿")
             Divider()
                 .frame(height: 40)
-            StatItemView(value: "\(reviewsCount)", label: "レビュー")
+            StatItemView(value: "\(followersCount)", label: "フォロワー")
             Divider()
                 .frame(height: 40)
-            StatItemView(value: "\(savedCount)", label: "保存済み")
+            StatItemView(value: "\(followingCount)", label: "フォロー中")
         }
         .background(Color.white)
         .cornerRadius(12)
@@ -188,19 +188,19 @@ struct StatItemView: View {
 }
 
 struct MenuSection: View {
-    let onSavedRestaurants: () -> Void
-    let onReservations: () -> Void
-    let onReviews: () -> Void
+    let onSavedPosts: () -> Void
+    let onFollowers: () -> Void
+    let onFollowing: () -> Void
     let onSettings: () -> Void
     let onHelp: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
-            MenuRowView(icon: "bookmark.fill", title: "保存したレストラン", action: onSavedRestaurants)
+            MenuRowView(icon: "bookmark.fill", title: "保存済み投稿", action: onSavedPosts)
             Divider().padding(.leading, 56)
-            MenuRowView(icon: "calendar", title: "予約履歴", action: onReservations)
+            MenuRowView(icon: "person.2.fill", title: "フォロワー", action: onFollowers)
             Divider().padding(.leading, 56)
-            MenuRowView(icon: "star.fill", title: "レビュー履歴", action: onReviews)
+            MenuRowView(icon: "person.fill.checkmark", title: "フォロー中", action: onFollowing)
             Divider().padding(.leading, 56)
             MenuRowView(icon: "gearshape.fill", title: "設定", action: onSettings)
             Divider().padding(.leading, 56)

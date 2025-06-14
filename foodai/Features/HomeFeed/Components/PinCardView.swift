@@ -26,12 +26,12 @@ struct PinCardView: View {
                         if let avatarUrl = post.user?.avatarUrl {
                             RemoteImageView(imageURL: avatarUrl)
                         } else {
-                            Circle()
+                            RoundedRectangle(cornerRadius: 0)
                                 .fill(Color.gray.opacity(0.3))
                         }
                     }
                     .frame(width: 20, height: 20)
-                    .clipShape(Circle())
+                    .clipShape(RoundedRectangle(cornerRadius: 0))
                     
                     Text(post.user?.username ?? "unknown")
                         .font(.system(size: 12))

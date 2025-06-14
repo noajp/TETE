@@ -11,8 +11,8 @@ class MyPageViewModel: ObservableObject {
     @Published var userProfile: UserProfile?
     @Published var savedPosts: [Post] = []
     @Published var postsCount: Int = 0
-    @Published var reviewsCount: Int = 0
-    @Published var savedRestaurantsCount: Int = 0
+    @Published var followersCount: Int = 0
+    @Published var followingCount: Int = 0
     @Published var isLoading = false
     @Published var errorMessage: String?
     
@@ -47,8 +47,8 @@ class MyPageViewModel: ObservableObject {
             
             // 統計情報を取得（実装は仮）
             self.postsCount = await getPostsCount(userId: userId.uuidString)
-            self.reviewsCount = await getReviewsCount(userId: userId.uuidString)
-            self.savedRestaurantsCount = await getSavedRestaurantsCount(userId: userId.uuidString)
+            self.followersCount = await getFollowersCount(userId: userId.uuidString)
+            self.followingCount = await getFollowingCount(userId: userId.uuidString)
             
         } catch {
             errorMessage = "データの読み込みに失敗しました"
@@ -94,16 +94,16 @@ class MyPageViewModel: ObservableObject {
     }
     
     // MARK: - Navigation Methods
-    func navigateToSavedRestaurants() {
-        // TODO: 保存済みレストラン画面への遷移
+    func navigateToSavedPosts() {
+        // TODO: 保存済み投稿画面への遷移
     }
     
-    func navigateToReservations() {
-        // TODO: 予約履歴画面への遷移
+    func navigateToFollowers() {
+        // TODO: フォロワー一覧画面への遷移
     }
     
-    func navigateToReviews() {
-        // TODO: レビュー履歴画面への遷移
+    func navigateToFollowing() {
+        // TODO: フォロー中一覧画面への遷移
     }
     
     func navigateToHelp() {
@@ -116,13 +116,13 @@ class MyPageViewModel: ObservableObject {
         return 12
     }
     
-    private func getReviewsCount(userId: String) async -> Int {
+    private func getFollowersCount(userId: String) async -> Int {
         // TODO: 実際のデータ取得を実装
-        return 8
+        return 42
     }
     
-    private func getSavedRestaurantsCount(userId: String) async -> Int {
+    private func getFollowingCount(userId: String) async -> Int {
         // TODO: 実際のデータ取得を実装
-        return 24
+        return 28
     }
 }

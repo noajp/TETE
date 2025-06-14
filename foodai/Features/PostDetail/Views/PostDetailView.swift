@@ -41,9 +41,9 @@ struct PostDetailView: View {
                         if let avatarUrl = post.user?.avatarUrl {
                             RemoteImageView(imageURL: avatarUrl)
                                 .frame(width: 40, height: 40)
-                                .clipShape(Circle())
+                                .clipShape(RoundedRectangle(cornerRadius: 0))
                         } else {
-                            Circle()
+                            RoundedRectangle(cornerRadius: 0)
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(width: 40, height: 40)
                         }
@@ -89,13 +89,6 @@ struct PostDetailView: View {
                                         .foregroundColor(.black)
                                 }
                             }
-                        }
-                        
-                        // シェアボタン
-                        Button(action: {}) {
-                            Image(systemName: "paperplane")
-                                .font(.system(size: 24))
-                                .foregroundColor(.black)
                         }
                         
                         Spacer()

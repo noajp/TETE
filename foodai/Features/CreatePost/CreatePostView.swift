@@ -13,8 +13,7 @@ struct CreatePostView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showingMediaPicker = false
     @State private var selectedItem: PhotosPickerItem?
-    @State private var showingRestaurantSearch = false
-    @State private var selectedPlace: PlaceResult?
+    @State private var locationName: String = ""
     
     var body: some View {
         NavigationView {
@@ -29,55 +28,22 @@ struct CreatePostView: View {
                         selectedItem: $selectedItem
                     )
                     
-                    // 2. レストラン情報
-                    VStack(alignment: .leading, spacing: 15) {
-                        Text("レストラン情報")
+                    // 2. 位置情報（オプション）
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("場所")
                             .font(.headline)
                             .padding(.horizontal)
                         
-                        // レストラン検索ボタン
-                        Button(action: {
-                            showingRestaurantSearch = true
-                        }) {
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                Text(selectedPlace?.name ?? "レストランを検索")
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                            }
-                            .foregroundColor(selectedPlace != nil ? .primary : .gray)
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(10)
-                        }
-                        .padding(.horizontal)
-                        
-                        // 選択されたレストランの詳細
-                        if let place = selectedPlace {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(place.vicinity)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                
-                                if let rating = place.rating {
-                                    HStack {
-                                        PreciseStarRatingView(rating: rating, size: 14)
-                                        Text(String(format: "%.1f", rating))
-                                            .font(.caption)
-                                    }
-                                }
-                            }
+                        TextField("場所を入力（オプション）", text: $locationName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
                             .padding(.horizontal)
-                        }
                     }
                     
-                    // 3. 評価
-                    RatingSection(rating: $viewModel.rating)
                     
-                    // 4. コメント
+                    // 3. コメント
                     CommentSection(caption: $viewModel.caption)
                     
-                    // 5. 投稿ボタン
+                    // 4. 投稿ボタン
                     VStack(spacing: 10) {
                         if viewModel.isLoading {
                             ProgressView(value: viewModel.uploadProgress) {
@@ -129,22 +95,8 @@ struct CreatePostView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "投稿に失敗しました")
             }
-            .sheet(isPresented: $showingRestaurantSearch) {
-                RestaurantSearchModal(
-                    isPresented: $showingRestaurantSearch,
-                    selectedPlace: $selectedPlace
-                )
-            }
-            // onChange修正（iOS 17対応）
-            .onChange(of: selectedPlace) { _, newPlace in
-                if let place = newPlace {
-                    // 選択されたレストラン情報をViewModelに設定
-                    viewModel.restaurantName = place.name
-                    viewModel.restaurantArea = place.vicinity
-                    viewModel.googlePlaceId = place.placeId
-                    viewModel.latitude = place.geometry.location.lat
-                    viewModel.longitude = place.geometry.location.lng
-                }
+            .onChange(of: locationName) { _, newLocation in
+                viewModel.locationName = newLocation
             }
         }
         .onChange(of: selectedItem) { _, newItem in
@@ -240,30 +192,6 @@ struct MediaPickerSection: View {
     }
 }
 
-// MARK: - 評価セクション
-struct RatingSection: View {
-    @Binding var rating: Int
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("評価")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            HStack(spacing: 10) {
-                ForEach(1...5, id: \.self) { star in
-                    Image(systemName: star <= rating ? "star.fill" : "star")
-                        .font(.system(size: 30))
-                        .foregroundColor(star <= rating ? .yellow : .gray)
-                        .onTapGesture {
-                            rating = star
-                        }
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-}
 
 // MARK: - コメントセクション
 struct CommentSection: View {
