@@ -21,25 +21,25 @@ struct CustomTabBar: View {
                         VStack(spacing: 3) {
                             HStack(spacing: 3) {
                                 Rectangle()
-                                    .stroke(Color.black, lineWidth: 1)
+                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                                 Rectangle()
-                                    .stroke(Color.black, lineWidth: 1)
+                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                             }
                             HStack(spacing: 3) {
                                 Rectangle()
-                                    .stroke(Color.black, lineWidth: 1)
+                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                                 Rectangle()
-                                    .stroke(Color.black, lineWidth: 1)
+                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                             }
                         }
                     } else {
                         // 通常時は1つの正方形
                         Rectangle()
-                            .stroke(Color.black, lineWidth: selectedTab == 0 ? 1.5 : 1)
+                            .stroke(AppEnvironment.Colors.textPrimary, lineWidth: selectedTab == 0 ? 1.5 : 1)
                             .frame(width: 20, height: 20)
                     }
                 }
@@ -52,7 +52,7 @@ struct CustomTabBar: View {
             }) {
                 Image(systemName: selectedTab == 1 ? "message.fill" : "message")
                     .font(.system(size: 20))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
             
@@ -60,7 +60,7 @@ struct CustomTabBar: View {
             Button(action: onCreatePost) {
                 Image(systemName: "plus")
                     .font(.system(size: 24, weight: .regular))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
             
@@ -68,9 +68,9 @@ struct CustomTabBar: View {
             Button(action: {
                 selectedTab = 3
             }) {
-                Image(systemName: selectedTab == 3 ? "map.fill" : "map"
+                Image(systemName: selectedTab == 3 ? "map.fill" : "map")
                     .font(.system(size: 20))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
             
@@ -78,19 +78,19 @@ struct CustomTabBar: View {
             Button(action: {
                 selectedTab = 4
             }) {
-                Image(systemName: selectedTab == 4 ? "person.fill" : "person"
+                Image(systemName: selectedTab == 4 ? "person.fill" : "person")
                     .font(.system(size: 20))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
-        .background(Color.white)
+        .background(AppEnvironment.Colors.background)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
-                .foregroundColor(.black.opacity(0.2)),
+                .foregroundColor(AppEnvironment.Colors.subtleBorder),
             alignment: .top
         )
     }

@@ -35,7 +35,7 @@ struct PinCardView: View {
                     
                     Text(post.user?.username ?? "unknown")
                         .font(.system(size: 12))
-                        .foregroundColor(.black)
+                        .foregroundColor(AppEnvironment.Colors.textPrimary)
                         .lineLimit(1)
                 }
                 
@@ -50,15 +50,15 @@ struct PinCardView: View {
                     if post.likeCount > 0 {
                         Text("\(post.likeCount)")
                             .font(.system(size: 12))
-                            .foregroundColor(.black)
+                            .foregroundColor(AppEnvironment.Colors.textPrimary)
                     }
                 }
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 8)
-            .background(Color.white)
+            .background(AppEnvironment.Colors.background)
         }
-        .background(Color.white)
+        .background(AppEnvironment.Colors.background)
         .overlay(
             Rectangle()
                 .stroke(Color.black.opacity(0.1), lineWidth: 0.5)

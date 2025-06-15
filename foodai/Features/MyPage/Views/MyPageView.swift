@@ -51,7 +51,7 @@ struct MyPageView: View {
                 .padding()
             }
             .background(AppEnvironment.Colors.background)
-            .navigationTitle("アカウント")
+            .navigationTitle("Account")
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
@@ -119,7 +119,7 @@ struct ProfileSection: View {
                     .progressViewStyle(CircularProgressViewStyle())
             } else {
                 VStack(spacing: 8) {
-                    Text(profile?.displayName ?? profile?.username ?? "ユーザー名")
+                    Text(profile?.displayName ?? profile?.username ?? "Username")
                         .font(AppEnvironment.Fonts.primaryBold(size: 24))
                         .foregroundColor(AppEnvironment.Colors.textPrimary)
                     
@@ -132,7 +132,7 @@ struct ProfileSection: View {
                     }
                     
                     Button(action: onEditProfile) {
-                        Text("プロフィールを編集")
+                        Text("Edit Profile")
                             .font(AppEnvironment.Fonts.primary(size: 14))
                             .foregroundColor(AppEnvironment.Colors.accentGreen)
                             .padding(.horizontal, 16)
@@ -156,13 +156,13 @@ struct StatsSection: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            StatItemView(value: "\(postsCount)", label: "投稿")
+            StatItemView(value: "\(postsCount)", label: "Posts")
             Divider()
                 .frame(height: 40)
-            StatItemView(value: "\(followersCount)", label: "フォロワー")
+            StatItemView(value: "\(followersCount)", label: "Followers")
             Divider()
                 .frame(height: 40)
-            StatItemView(value: "\(followingCount)", label: "フォロー中")
+            StatItemView(value: "\(followingCount)", label: "Following")
         }
         .background(Color.white)
         .cornerRadius(12)
@@ -196,15 +196,15 @@ struct MenuSection: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            MenuRowView(icon: "bookmark.fill", title: "保存済み投稿", action: onSavedPosts)
+            MenuRowView(icon: "bookmark.fill", title: "Saved Posts", action: onSavedPosts)
             Divider().padding(.leading, 56)
-            MenuRowView(icon: "person.2.fill", title: "フォロワー", action: onFollowers)
+            MenuRowView(icon: "person.2.fill", title: "Followers", action: onFollowers)
             Divider().padding(.leading, 56)
-            MenuRowView(icon: "person.fill.checkmark", title: "フォロー中", action: onFollowing)
+            MenuRowView(icon: "person.fill.checkmark", title: "Following", action: onFollowing)
             Divider().padding(.leading, 56)
-            MenuRowView(icon: "gearshape.fill", title: "設定", action: onSettings)
+            MenuRowView(icon: "gearshape.fill", title: "Settings", action: onSettings)
             Divider().padding(.leading, 56)
-            MenuRowView(icon: "questionmark.circle.fill", title: "ヘルプ・お問い合わせ", action: onHelp)
+            MenuRowView(icon: "questionmark.circle.fill", title: "Help & Support", action: onHelp)
         }
         .background(Color.white)
         .cornerRadius(12)
@@ -249,7 +249,7 @@ struct SignOutButton: View {
             HStack {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
                     .font(.system(size: 16))
-                Text("サインアウト")
+                Text("Sign Out")
                     .font(AppEnvironment.Fonts.primary(size: 16))
             }
             .foregroundColor(.red)

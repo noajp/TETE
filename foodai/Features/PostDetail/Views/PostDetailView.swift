@@ -71,7 +71,7 @@ struct PostDetailView: View {
                                 if post.likeCount > 0 {
                                     Text("\(post.likeCount)")
                                         .font(.system(size: 16))
-                                        .foregroundColor(.black)
+                                        .foregroundColor(AppEnvironment.Colors.textPrimary)
                                 }
                             }
                         }
@@ -81,12 +81,12 @@ struct PostDetailView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "message")
                                     .font(.system(size: 24))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(AppEnvironment.Colors.textPrimary)
                                 
                                 if post.commentCount > 0 {
                                     Text("\(post.commentCount)")
                                         .font(.system(size: 16))
-                                        .foregroundColor(.black)
+                                        .foregroundColor(AppEnvironment.Colors.textPrimary)
                                 }
                             }
                         }
@@ -97,7 +97,7 @@ struct PostDetailView: View {
                         Button(action: {}) {
                             Image(systemName: post.isSavedByMe ? "bookmark.fill" : "bookmark")
                                 .font(.system(size: 24))
-                                .foregroundColor(.black)
+                                .foregroundColor(AppEnvironment.Colors.textPrimary)
                         }
                     }
                     
@@ -115,7 +115,7 @@ struct PostDetailView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Label(locationName, systemImage: "location")
                                 .font(.system(size: 16))
-                                .foregroundColor(.black)
+                                .foregroundColor(AppEnvironment.Colors.textPrimary)
                             
                             // マップ（位置情報がある場合）
                             if let cameraPosition = cameraPosition,

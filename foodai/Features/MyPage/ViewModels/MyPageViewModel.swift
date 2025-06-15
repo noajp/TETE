@@ -51,7 +51,7 @@ class MyPageViewModel: ObservableObject {
             self.followingCount = await getFollowingCount(userId: userId.uuidString)
             
         } catch {
-            errorMessage = "データの読み込みに失敗しました"
+            errorMessage = "Failed to load data"
             print("Error loading user data: \(error)")
         }
     }
@@ -73,7 +73,7 @@ class MyPageViewModel: ObservableObject {
             
             await loadUserData()
         } catch {
-            errorMessage = "プロフィールの更新に失敗しました"
+            errorMessage = "Failed to update profile"
             print("Error updating profile: \(error)")
         }
     }
@@ -88,7 +88,7 @@ class MyPageViewModel: ObservableObject {
                 print("Photo data loaded: \(data.count) bytes")
             }
         } catch {
-            errorMessage = "写真のアップロードに失敗しました"
+            errorMessage = "Failed to upload photo"
             print("Error uploading photo: \(error)")
         }
     }

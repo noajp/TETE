@@ -30,11 +30,11 @@ struct CreatePostView: View {
                     
                     // 2. 位置情報（オプション）
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("場所")
+                        Text("Location")
                             .font(.headline)
                             .padding(.horizontal)
                         
-                        TextField("場所を入力（オプション）", text: $locationName)
+                        TextField("Enter location (optional)", text: $locationName)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .padding(.horizontal)
                     }
@@ -47,7 +47,7 @@ struct CreatePostView: View {
                     VStack(spacing: 10) {
                         if viewModel.isLoading {
                             ProgressView(value: viewModel.uploadProgress) {
-                                Text("アップロード中...")
+                                Text("Uploading...")
                                     .font(.caption)
                             }
                             .progressViewStyle(LinearProgressViewStyle())
@@ -66,7 +66,7 @@ struct CreatePostView: View {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                             } else {
-                                Text("投稿する")
+                                Text("Post")
                                     .fontWeight(.bold)
                             }
                         }
@@ -81,11 +81,11 @@ struct CreatePostView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("新規投稿")
+            .navigationTitle("New Post")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("キャンセル") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
@@ -93,7 +93,7 @@ struct CreatePostView: View {
             .alert("エラー", isPresented: $viewModel.showError) {
                 Button("OK") { }
             } message: {
-                Text(viewModel.errorMessage ?? "投稿に失敗しました")
+                Text(viewModel.errorMessage ?? "Failed to create post")
             }
             .onChange(of: locationName) { _, newLocation in
                 viewModel.locationName = newLocation
@@ -135,7 +135,7 @@ struct MediaPickerSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("写真・動画を選択")
+            Text("Select Photo/Video")
                 .font(.headline)
                 .padding(.horizontal)
             
@@ -162,7 +162,7 @@ struct MediaPickerSection: View {
                         }
                         
                         // メディアタイプバッジ
-                        Text(mediaType == .video ? "動画" : "写真")
+                        Text(mediaType == .video ? "Video" : "Photo")
                             .font(.caption)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -181,7 +181,7 @@ struct MediaPickerSection: View {
                                 Image(systemName: "photo.on.rectangle.angled")
                                     .font(.system(size: 50))
                                     .foregroundColor(.gray)
-                                Text("タップして写真・動画を選択")
+                                Text("Tap to select photo/video")
                                     .foregroundColor(.gray)
                             }
                         )
@@ -199,7 +199,7 @@ struct CommentSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("コメント")
+            Text("Caption")
                 .font(.headline)
                 .padding(.horizontal)
             

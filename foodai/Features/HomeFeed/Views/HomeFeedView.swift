@@ -26,7 +26,7 @@ struct HomeFeedView: View {
         NavigationView {
             ZStack {
                 // 背景色
-                Color(.systemGroupedBackground)
+                AppEnvironment.Colors.background
                     .ignoresSafeArea()
                 
                 if viewModel.isLoading {
@@ -46,9 +46,9 @@ struct HomeFeedView: View {
     // MARK: - Views
     
     private var loadingView: some View {
-        ProgressView("読み込み中...")
+        ProgressView("Loading...")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(.systemBackground))
+            .background(AppEnvironment.Colors.background)
     }
     
     private var emptyView: some View {
@@ -56,16 +56,16 @@ struct HomeFeedView: View {
             Image(systemName: "photo.on.rectangle.angled")
                 .font(.system(size: 60))
                 .foregroundColor(.gray)
-            Text("まだ投稿がありません")
+            Text("No posts yet")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            Text("右上の＋ボタンから\n最初の投稿をしてみましょう")
+            Text("Tap the + button\nto create your first post")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
+        .background(AppEnvironment.Colors.background)
     }
     
     private var contentView: some View {

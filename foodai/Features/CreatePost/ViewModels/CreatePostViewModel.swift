@@ -33,7 +33,7 @@ class CreatePostViewModel: ObservableObject {
     func createPost() async {
         guard canPost else { return }
         guard let userId = AuthManager.shared.currentUser?.id else {
-            errorMessage = "ログインが必要です"
+            errorMessage = "Login required"
             showError = true
             return
         }
@@ -187,11 +187,11 @@ enum PostError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .imageProcessingFailed:
-            return "画像の処理に失敗しました"
+            return "Image processing failed"
         case .uploadFailed:
-            return "アップロードに失敗しました"
+            return "Upload failed"
         case .noMediaSelected:
-            return "画像または動画を選択してください"
+            return "Please select an image or video"
         }
     }
 }

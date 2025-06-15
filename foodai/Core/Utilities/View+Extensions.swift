@@ -24,6 +24,17 @@ struct RoundedCorner: Shape {
     }
 }
 
+// MARK: - Color Extensions
+extension Color {
+    init(light: Color, dark: Color) {
+        self.init(UIColor { traitCollection in
+            return traitCollection.userInterfaceStyle == .dark 
+                ? UIColor(dark) 
+                : UIColor(light)
+        })
+    }
+}
+
 // MARK: - Preview
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {

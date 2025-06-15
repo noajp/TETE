@@ -23,7 +23,7 @@ struct SingleCardView: View {
                 captionSection(caption: caption)
             }
         }
-        .background(Color.white)
+        .background(AppEnvironment.Colors.background)
     }
     
     // MARK: - ユーザーヘッダー
@@ -44,7 +44,7 @@ struct SingleCardView: View {
             // ユーザー名
             Text(post.user?.username ?? "unknown")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.black)
+                .foregroundColor(AppEnvironment.Colors.textPrimary)
             
             Spacer()
             
@@ -52,7 +52,7 @@ struct SingleCardView: View {
             Button(action: {}) {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 16))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
             }
         }
         .padding(.horizontal, 16)
@@ -83,7 +83,7 @@ struct SingleCardView: View {
                     if post.likeCount > 0 {
                         Text("\(post.likeCount)")
                             .font(.system(size: 14))
-                            .foregroundColor(.black)
+                            .foregroundColor(AppEnvironment.Colors.textPrimary)
                     }
                 }
             }
@@ -92,7 +92,7 @@ struct SingleCardView: View {
             Button(action: {}) {
                 Image(systemName: "message")
                     .font(.system(size: 24))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
             }
             
             Spacer()
@@ -101,7 +101,7 @@ struct SingleCardView: View {
             Button(action: {}) {
                 Image(systemName: post.isSavedByMe ? "bookmark.fill" : "bookmark")
                     .font(.system(size: 24))
-                    .foregroundColor(.black)
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
             }
         }
         .padding(.horizontal, 16)
@@ -114,7 +114,7 @@ struct SingleCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(caption)
                 .font(.system(size: 14))
-                .foregroundColor(.black)
+                .foregroundColor(AppEnvironment.Colors.textPrimary)
                 .lineLimit(3)
                 .multilineTextAlignment(.leading)
             

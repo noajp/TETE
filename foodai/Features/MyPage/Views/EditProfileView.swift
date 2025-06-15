@@ -17,9 +17,9 @@ struct EditProfileView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("基本情報")) {
+                Section(header: Text("Basic Information")) {
                     HStack {
-                        Text("ユーザー名")
+                        Text("Username")
                             .foregroundColor(AppEnvironment.Colors.textSecondary)
                         TextField("@username", text: $username)
                             .textInputAutocapitalization(.never)
@@ -27,42 +27,42 @@ struct EditProfileView: View {
                     }
                     
                     HStack {
-                        Text("表示名")
+                        Text("Display Name")
                             .foregroundColor(AppEnvironment.Colors.textSecondary)
-                        TextField("お名前", text: $displayName)
+                        TextField("Your name", text: $displayName)
                     }
                 }
                 
-                Section(header: Text("自己紹介")) {
+                Section(header: Text("Bio")) {
                     TextEditor(text: $bio)
                         .frame(minHeight: 100)
                         .padding(.vertical, 4)
                 }
                 
                 Section {
-                    Text("最大200文字まで入力できます")
+                    Text("Maximum 200 characters")
                         .font(.caption)
                         .foregroundColor(AppEnvironment.Colors.textSecondary)
                 }
             }
-            .navigationTitle("プロフィール編集")
+            .navigationTitle("Edit Profile")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("キャンセル") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("保存") {
+                    Button("Save") {
                         saveProfile()
                     }
                     .fontWeight(.semibold)
                     .disabled(username.isEmpty || displayName.isEmpty)
                 }
             }
-            .alert("エラー", isPresented: $showAlert) {
+            .alert("Error", isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(alertMessage)
@@ -83,7 +83,7 @@ struct EditProfileView: View {
     
     private func saveProfile() {
         guard bio.count <= 200 else {
-            alertMessage = "自己紹介は200文字以内で入力してください"
+            alertMessage = "Bio must be 200 characters or less"
             showAlert = true
             return
         }
