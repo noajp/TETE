@@ -180,6 +180,7 @@ struct SignInView: View {
             .background(AppEnvironment.Colors.background)
             .alert("エラー", isPresented: $showError) {
                 Button("OK") { }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
             } message: {
                 Text(errorMessage)
             }
@@ -264,8 +265,8 @@ struct TestButtonStyle: ButtonStyle {
             .font(.caption)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Color.blue.opacity(0.1))
-            .foregroundColor(.blue)
+            .background(AppEnvironment.Colors.accentRed.opacity(0.1))
+            .foregroundColor(AppEnvironment.Colors.accentRed)
             .cornerRadius(6)
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
     }

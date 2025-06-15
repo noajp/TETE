@@ -6,15 +6,18 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var authManager: AuthManager
     @AppStorage("enableNotifications") private var enableNotifications = true
     @AppStorage("enableLocationServices") private var enableLocationServices = true
     @AppStorage("defaultSearchRadius") private var defaultSearchRadius = 5.0
+    @State private var showSignOutAlert = false
     
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("通知設定")) {
                     Toggle("プッシュ通知", isOn: $enableNotifications)
+                        .toggleStyle(SwitchToggleStyle(tint: AppEnvironment.Colors.accentRed))
                     
                     if enableNotifications {
                         VStack(alignment: .leading, spacing: 8) {
@@ -29,6 +32,7 @@ struct SettingsView: View {
                 
                 Section(header: Text("プライバシー")) {
                     Toggle("位置情報サービス", isOn: $enableLocationServices)
+                        .toggleStyle(SwitchToggleStyle(tint: AppEnvironment.Colors.accentRed))
                     
                     HStack {
                         Text("検索範囲")
@@ -38,7 +42,7 @@ struct SettingsView: View {
                     }
                     
                     Slider(value: $defaultSearchRadius, in: 1...50, step: 1)
-                        .accentColor(AppEnvironment.Colors.accentGreen)
+                        .accentColor(AppEnvironment.Colors.accentRed)
                 }
                 
                 Section(header: Text("アカウント")) {
@@ -55,7 +59,11 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section(header: Text("その他")) {
+                Section(header: Text("サポート")) {
+                    NavigationLink(destination: EmptyView()) {
+                        Label("Help & Support", systemImage: "questionmark.circle")
+                    }
+                    
                     NavigationLink(destination: EmptyView()) {
                         Label("利用規約", systemImage: "doc.text")
                     }
@@ -77,6 +85,17 @@ struct SettingsView: View {
                 }
                 
                 Section {
+                    Button(action: { showSignOutAlert = true }) {
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 16))
+                            Text("Sign Out")
+                                .font(.system(size: 16))
+                        }
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity)
+                    }
+                    
                     Button(action: {}) {
                         Text("アカウントを削除")
                             .foregroundColor(.red)
@@ -91,8 +110,21 @@ struct SettingsView: View {
                     Button("完了") {
                         dismiss()
                     }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                 }
             }
+            .alert("Sign Out", isPresented: $showSignOutAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive) {
+                    Task {
+                        try? await authManager.signOut()
+                        dismiss()
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to sign out?")
+            }
+            .accentColor(AppEnvironment.Colors.accentRed)
         }
     }
 }
@@ -104,6 +136,6 @@ struct ToggleRow: View {
     var body: some View {
         Toggle(title, isOn: $isOn)
             .font(.system(size: 14))
-            .toggleStyle(SwitchToggleStyle(tint: AppEnvironment.Colors.accentGreen))
+            .toggleStyle(SwitchToggleStyle(tint: AppEnvironment.Colors.accentRed))
     }
 }

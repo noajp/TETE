@@ -8,6 +8,7 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var showingCreatePost = false
     @State private var showGridMode = false
+    @ObservedObject private var messageService = MessageService.shared
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -32,6 +33,7 @@ struct MainTabView: View {
             CustomTabBar(
                 selectedTab: $selectedTab,
                 showGridMode: $showGridMode,
+                unreadMessageCount: messageService.unreadConversationsCount,
                 onCreatePost: {
                     showingCreatePost = true
                 }
@@ -40,6 +42,12 @@ struct MainTabView: View {
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showingCreatePost) {
             CreatePostView()
+        }
+        .onAppear {
+            // Fetch conversations to get initial unread count
+            Task {
+                _ = try? await messageService.fetchConversations()
+            }
         }
     }
 }

@@ -139,5 +139,6 @@ struct PostDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .accentColor(AppEnvironment.Colors.accentRed)
     }
 }

@@ -30,15 +30,16 @@ class ConversationViewModel: ObservableObject {
     }
     
     private func setupRealtimeListeners() {
-        // Listen for updates from MessageService polling
-        messageService.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                Task {
-                    await self?.refreshMessages()
-                }
-            }
-            .store(in: &cancellables)
+        // Disable automatic listeners to prevent infinite loops and flickering
+        // Messages will update when user sends a message or manually refreshes
+        // messageService.objectWillChange
+        //     .receive(on: DispatchQueue.main)
+        //     .sink { [weak self] _ in
+        //         Task {
+        //             await self?.refreshMessages()
+        //         }
+        //     }
+        //     .store(in: &cancellables)
     }
     
     private func addNewMessage(_ message: Message) {
@@ -81,7 +82,10 @@ class ConversationViewModel: ObservableObject {
         
         do {
             let newMessage = try await messageService.sendMessage(to: conversationId, content: content)
-            messages.append(newMessage)
+            // Only add message if it's not already in the list (prevent duplicates)
+            if !messages.contains(where: { $0.id == newMessage.id }) {
+                messages.append(newMessage)
+            }
         } catch {
             errorMessage = "Failed to send message: \(error.localizedDescription)"
             print("❌ Error sending message: \(error)")
@@ -160,6 +164,7 @@ struct ConversationView: View {
         }
         .navigationTitle(viewModel.conversation?.displayName(currentUserId: authManager.currentUser?.id) ?? "Message")
         .navigationBarTitleDisplayMode(.inline)
+        .accentColor(AppEnvironment.Colors.accentRed)
         .toolbar {
             if let avatarUrl = viewModel.conversation?.displayAvatar(currentUserId: authManager.currentUser?.id) {
                 ToolbarItem(placement: .principal) {

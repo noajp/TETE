@@ -34,28 +34,28 @@ struct MyPageView: View {
                         onFollowingTap: { viewModel.navigateToFollowing() }
                     )
                     
-                    // メニューリスト
-                    MenuSection(
-                        onSettings: { showSettings = true },
-                        onHelp: { viewModel.navigateToHelp() }
-                    )
-                    
-                    // サインアウトボタン
-                    SignOutButton {
-                        Task {
-                            try? await authManager.signOut()
-                        }
-                    }
+                    // メニューリストから設定関連を削除
+                    // 設定ボタンは右上に移動
                 }
                 .padding()
             }
             .background(AppEnvironment.Colors.background)
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showSettings = true }) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    }
+                }
+            }
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
+                    .environmentObject(authManager)
             }
             .task {
                 await viewModel.loadUserData()
@@ -201,77 +201,8 @@ struct StatItemView: View {
     }
 }
 
-struct MenuSection: View {
-    let onSettings: () -> Void
-    let onHelp: () -> Void
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            MenuRowView(icon: "gearshape.fill", title: "Settings", action: onSettings)
-            Divider().padding(.leading, 56)
-            MenuRowView(icon: "questionmark.circle.fill", title: "Help & Support", action: onHelp)
-        }
-        .background(Color.white)
-        .overlay(
-            Rectangle()
-                .stroke(Color.black.opacity(0.1), lineWidth: 1)
-        )
-    }
-}
-
-struct MenuRowView: View {
-    let icon: String
-    let title: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 16) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(.black)
-                    .frame(width: 24)
-                
-                Text(title)
-                    .font(AppEnvironment.Fonts.primary(size: 16))
-                    .foregroundColor(.black)
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14))
-                    .foregroundColor(.black)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-struct SignOutButton: View {
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
-                    .font(.system(size: 16))
-                Text("Sign Out")
-                    .font(AppEnvironment.Fonts.primary(size: 16))
-            }
-            .foregroundColor(.red)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(Color.white)
-            .overlay(
-                Rectangle()
-                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
-            )
-        }
-        .padding(.top, 8)
-    }
-}
+// MenuSection, MenuRowView, SignOutButton コンポーネントを削除
+// 設定は右上のボタンから、Help & Support と Sign Out は設定画面内に移動
 
 
 

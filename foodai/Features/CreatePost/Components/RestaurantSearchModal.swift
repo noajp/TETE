@@ -43,7 +43,8 @@ struct RestaurantSearchModal: View {
                     Label("現在地の近くを検索", systemImage: "location.fill")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue.opacity(0.1))
+                        .background(AppEnvironment.Colors.accentRed.opacity(0.1))
+                        .foregroundColor(AppEnvironment.Colors.accentRed)
                         .cornerRadius(10)
                 }
                 .padding(.horizontal)
@@ -70,7 +71,9 @@ struct RestaurantSearchModal: View {
             .navigationTitle("レストランを選択")
             .navigationBarItems(trailing: Button("キャンセル") {
                 isPresented = false
-            })
+            }
+            .foregroundColor(AppEnvironment.Colors.accentRed)
+            )
         }
         .onAppear {
             locationManager.requestLocation()

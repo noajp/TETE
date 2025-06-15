@@ -78,17 +78,20 @@ struct ForgotPasswordView: View {
                     Button("戻る") {
                         dismiss()
                     }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                 }
             }
             .alert("送信完了", isPresented: $showSuccess) {
                 Button("OK") {
                     dismiss()
                 }
+                .foregroundColor(AppEnvironment.Colors.accentRed)
             } message: {
                 Text("パスワードリセット用のリンクを \(email) に送信しました。\nメールをご確認ください。")
             }
             .alert("エラー", isPresented: $showError) {
                 Button("OK") { }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
             } message: {
                 Text(errorMessage)
             }

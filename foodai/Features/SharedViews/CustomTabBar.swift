@@ -3,6 +3,7 @@ import SwiftUI
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
     @Binding var showGridMode: Bool
+    let unreadMessageCount: Int
     let onCreatePost: () -> Void
     
     var body: some View {
@@ -21,25 +22,25 @@ struct CustomTabBar: View {
                         VStack(spacing: 3) {
                             HStack(spacing: 3) {
                                 Rectangle()
-                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
+                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                                 Rectangle()
-                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
+                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                             }
                             HStack(spacing: 3) {
                                 Rectangle()
-                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
+                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                                 Rectangle()
-                                    .stroke(AppEnvironment.Colors.textPrimary, lineWidth: 1)
+                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
                                     .frame(width: 7, height: 7)
                             }
                         }
                     } else {
                         // 通常時は1つの正方形
                         Rectangle()
-                            .stroke(AppEnvironment.Colors.textPrimary, lineWidth: selectedTab == 0 ? 1.5 : 1)
+                            .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: selectedTab == 0 ? 1.5 : 1)
                             .frame(width: 20, height: 20)
                     }
                 }
@@ -50,9 +51,23 @@ struct CustomTabBar: View {
             Button(action: {
                 selectedTab = 1
             }) {
-                Image(systemName: selectedTab == 1 ? "message.fill" : "message")
-                    .font(.system(size: 20))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: selectedTab == 1 ? "message.fill" : "message")
+                        .font(.system(size: 20))
+                        .foregroundColor(selectedTab == 1 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                    
+                    // Badge for unread messages
+                    if unreadMessageCount > 0 {
+                        Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 4)
+                            .frame(minWidth: 16, minHeight: 16)
+                            .background(Color.red)
+                            .clipShape(Capsule())
+                            .offset(x: 10, y: -8)
+                    }
+                }
             }
             .frame(maxWidth: .infinity)
             
@@ -60,7 +75,7 @@ struct CustomTabBar: View {
             Button(action: onCreatePost) {
                 Image(systemName: "plus")
                     .font(.system(size: 24, weight: .regular))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(selectedTab == 2 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
             
@@ -70,7 +85,7 @@ struct CustomTabBar: View {
             }) {
                 Image(systemName: selectedTab == 3 ? "map.fill" : "map")
                     .font(.system(size: 20))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(selectedTab == 3 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
             
@@ -80,7 +95,7 @@ struct CustomTabBar: View {
             }) {
                 Image(systemName: selectedTab == 4 ? "person.fill" : "person")
                     .font(.system(size: 20))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(selectedTab == 4 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
         }

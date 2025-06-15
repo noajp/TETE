@@ -20,11 +20,11 @@ struct AppEnvironment {
             dark: Color.white.opacity(0.6)
         )
         
-        // Red accent color for modern look - Custom couleur red #BF0B2C
-        static let accentRed = Color(red: 0.749, green: 0.043, blue: 0.173)
+        // Red accent color for modern look - Custom couleur red #F21905
+        static let accentRed = Color(red: 0.949, green: 0.098, blue: 0.020)
         
-        // Keep green for backward compatibility but update to pure green
-        static let accentGreen = Color.green
+        // Changed from green to red for app consistency
+        static let accentGreen = Color(red: 0.949, green: 0.098, blue: 0.020)
         
         static let buttonText = Color(
             light: Color.white, // White text on black buttons

@@ -37,7 +37,7 @@ struct MessagesView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showNewMessage = true }) {
                         Image(systemName: "square.and.pencil")
-                            .foregroundColor(.black)
+                            .foregroundColor(AppEnvironment.Colors.accentRed)
                     }
                 }
             }
@@ -55,6 +55,7 @@ struct MessagesView: View {
                 }
             }
         }
+        .accentColor(AppEnvironment.Colors.accentRed)
     }
 }
 
@@ -204,6 +205,7 @@ struct NewMessageView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -213,9 +215,11 @@ struct NewMessageView: View {
                         }
                     }
                     .font(.caption)
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                 }
             }
         }
+        .accentColor(AppEnvironment.Colors.accentRed)
     }
 }
 

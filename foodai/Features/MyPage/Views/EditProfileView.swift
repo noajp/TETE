@@ -52,6 +52,7 @@ struct EditProfileView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -59,11 +60,13 @@ struct EditProfileView: View {
                         saveProfile()
                     }
                     .fontWeight(.semibold)
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                     .disabled(username.isEmpty || displayName.isEmpty)
                 }
             }
             .alert("Error", isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
             } message: {
                 Text(alertMessage)
             }

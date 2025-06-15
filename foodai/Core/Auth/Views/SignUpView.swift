@@ -244,10 +244,12 @@ struct SignUpView: View {
                     Button("キャンセル") {
                         dismiss()
                     }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                 }
             }
             .alert("エラー", isPresented: $showError) {
                 Button("OK") { }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
             } message: {
                 Text(errorMessage)
             }

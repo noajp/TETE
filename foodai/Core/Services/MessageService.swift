@@ -13,6 +13,9 @@ class MessageService: ObservableObject {
     // Timer for polling updates
     private var updateTimer: Timer?
     
+    // Published property for unread conversations count (how many people sent messages)
+    @Published var unreadConversationsCount: Int = 0
+    
     private init() {
         // Setup subscriptions when user authenticates
         setupAuthenticationListener()
@@ -93,11 +96,19 @@ class MessageService: ObservableObject {
         
         // Calculate unread count for each conversation
         var conversationsWithUnread: [Conversation] = []
+        var conversationsWithUnreadMessages = 0
+        
         for var conversation in conversations {
             let unreadCount = try await getUnreadCount(for: conversation.id)
             conversation.unreadCount = unreadCount
+            if unreadCount > 0 {
+                conversationsWithUnreadMessages += 1
+            }
             conversationsWithUnread.append(conversation)
         }
+        
+        // Update the count of conversations with unread messages
+        self.unreadConversationsCount = conversationsWithUnreadMessages
         
         return conversationsWithUnread
     }
@@ -191,8 +202,9 @@ class MessageService: ObservableObject {
         // Mark conversation as read after sending
         try await markConversationAsRead(conversationId)
         
-        // Trigger UI update only when a message is sent
-        objectWillChange.send()
+        // Don't trigger UI update to prevent infinite loops
+        // The UI will update when the message is appended directly
+        // objectWillChange.send()
         
         return message
     }
@@ -211,6 +223,12 @@ class MessageService: ObservableObject {
             .eq("conversation_id", value: conversationId)
             .eq("user_id", value: userId)
             .execute()
+        
+        // Update unread count after marking as read without triggering objectWillChange
+        // This prevents the infinite loop while keeping the badge count accurate
+        Task {
+            await updateUnreadCount()
+        }
     }
     
     /// Delete a message (soft delete)
@@ -240,5 +258,39 @@ class MessageService: ObservableObject {
             .update(updateData)
             .eq("id", value: messageId)
             .execute()
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Update unread conversation count without triggering full UI refresh
+    private func updateUnreadCount() async {
+        do {
+            let conversations: [Conversation] = try await supabase
+                .from("conversations")
+                .select("""
+                    *,
+                    conversation_participants!inner(
+                        *,
+                        user:user_profiles(*)
+                    )
+                """)
+                .order("last_message_at", ascending: false)
+                .execute()
+                .value
+            
+            var unreadCount = 0
+            for conversation in conversations {
+                let messageUnreadCount = try await getUnreadCount(for: conversation.id)
+                if messageUnreadCount > 0 {
+                    unreadCount += 1
+                }
+            }
+            
+            await MainActor.run {
+                self.unreadConversationsCount = unreadCount
+            }
+        } catch {
+            print("❌ Error updating unread count: \(error)")
+        }
     }
 }

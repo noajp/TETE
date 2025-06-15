@@ -24,15 +24,16 @@ class MessagesViewModel: ObservableObject {
     }
     
     private func setupRealtimeListeners() {
-        // Listen for updates from MessageService polling
-        messageService.objectWillChange
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                Task {
-                    await self?.loadConversations()
-                }
-            }
-            .store(in: &cancellables)
+        // Disable automatic listeners to prevent infinite loops and flickering
+        // Conversations will update when user manually refreshes or performs actions
+        // messageService.objectWillChange
+        //     .receive(on: DispatchQueue.main)
+        //     .sink { [weak self] _ in
+        //         Task {
+        //             await self?.loadConversations()
+        //         }
+        //     }
+        //     .store(in: &cancellables)
     }
     
     private var cancellables = Set<AnyCancellable>()

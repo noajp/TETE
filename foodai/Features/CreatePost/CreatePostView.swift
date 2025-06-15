@@ -88,10 +88,12 @@ struct CreatePostView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
                 }
             }
             .alert("エラー", isPresented: $viewModel.showError) {
                 Button("OK") { }
+                    .foregroundColor(AppEnvironment.Colors.accentRed)
             } message: {
                 Text(viewModel.errorMessage ?? "Failed to create post")
             }
