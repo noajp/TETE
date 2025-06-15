@@ -192,7 +192,8 @@ struct MessageBubble: View {
             return false 
         }
         
-        let result = message.senderId == currentUserId
+        // Compare with lowercase to handle UUID case differences  
+        let result = message.senderId.lowercased() == currentUserId.lowercased()
         print("🔵 Message from: \(message.senderId), Current user: \(currentUserId), Is current user: \(result)")
         return result
     }
