@@ -92,13 +92,6 @@ struct PostDetailView: View {
                         }
                         
                         Spacer()
-                        
-                        // ブックマークボタン
-                        Button(action: {}) {
-                            Image(systemName: post.isSavedByMe ? "bookmark.fill" : "bookmark")
-                                .font(.system(size: 24))
-                                .foregroundColor(AppEnvironment.Colors.textPrimary)
-                        }
                     }
                     
                     // キャプション

@@ -29,14 +29,13 @@ struct MyPageView: View {
                     StatsSection(
                         postsCount: viewModel.postsCount,
                         followersCount: viewModel.followersCount,
-                        followingCount: viewModel.followingCount
+                        followingCount: viewModel.followingCount,
+                        onFollowersTap: { viewModel.navigateToFollowers() },
+                        onFollowingTap: { viewModel.navigateToFollowing() }
                     )
                     
                     // メニューリスト
                     MenuSection(
-                        onSavedPosts: { viewModel.navigateToSavedPosts() },
-                        onFollowers: { viewModel.navigateToFollowers() },
-                        onFollowing: { viewModel.navigateToFollowing() },
                         onSettings: { showSettings = true },
                         onHelp: { viewModel.navigateToHelp() }
                     )
@@ -51,7 +50,6 @@ struct MyPageView: View {
                 .padding()
             }
             .background(AppEnvironment.Colors.background)
-            .navigationTitle("Account")
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
@@ -88,21 +86,21 @@ struct ProfileSection: View {
                     if let avatarUrl = profile?.avatarUrl {
                         RemoteImageView(imageURL: avatarUrl)
                             .frame(width: 100, height: 100)
-                            .clipShape(RoundedRectangle(cornerRadius: 0))
+                            .clipShape(Rectangle())
                     } else {
-                        RoundedRectangle(cornerRadius: 0)
+                        Rectangle()
                             .fill(AppEnvironment.Colors.inputBackground)
                             .frame(width: 100, height: 100)
                             .overlay(
                                 Image(systemName: "person.fill")
                                     .font(.system(size: 40))
-                                    .foregroundColor(AppEnvironment.Colors.textSecondary)
+                                    .foregroundColor(.black)
                             )
                     }
                     
                     // カメラアイコンオーバーレイ
-                    RoundedRectangle(cornerRadius: 0)
-                        .fill(AppEnvironment.Colors.accentGreen)
+                    Rectangle()
+                        .fill(AppEnvironment.Colors.accentRed)
                         .frame(width: 32, height: 32)
                         .overlay(
                             Image(systemName: "camera.fill")
@@ -121,12 +119,12 @@ struct ProfileSection: View {
                 VStack(spacing: 8) {
                     Text(profile?.displayName ?? profile?.username ?? "Username")
                         .font(AppEnvironment.Fonts.primaryBold(size: 24))
-                        .foregroundColor(AppEnvironment.Colors.textPrimary)
+                        .foregroundColor(.black)
                     
                     if let bio = profile?.bio, !bio.isEmpty {
                         Text(bio)
                             .font(AppEnvironment.Fonts.primary(size: 14))
-                            .foregroundColor(AppEnvironment.Colors.textSecondary)
+                            .foregroundColor(.black)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                     }
@@ -134,13 +132,10 @@ struct ProfileSection: View {
                     Button(action: onEditProfile) {
                         Text("Edit Profile")
                             .font(AppEnvironment.Fonts.primary(size: 14))
-                            .foregroundColor(AppEnvironment.Colors.accentGreen)
+                            .foregroundColor(.white)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(AppEnvironment.Colors.accentGreen, lineWidth: 1)
-                            )
+                            .background(Color.black)
                     }
                 }
             }
@@ -153,34 +148,53 @@ struct StatsSection: View {
     let postsCount: Int
     let followersCount: Int
     let followingCount: Int
+    let onFollowersTap: () -> Void
+    let onFollowingTap: () -> Void
     
     var body: some View {
         HStack(spacing: 0) {
-            StatItemView(value: "\(postsCount)", label: "Posts")
+            StatItemView(value: "\(postsCount)", label: "Posts", action: nil)
             Divider()
                 .frame(height: 40)
-            StatItemView(value: "\(followersCount)", label: "Followers")
+            StatItemView(value: "\(followersCount)", label: "Followers", action: onFollowersTap)
             Divider()
                 .frame(height: 40)
-            StatItemView(value: "\(followingCount)", label: "Following")
+            StatItemView(value: "\(followingCount)", label: "Following", action: onFollowingTap)
         }
         .background(Color.white)
-        .cornerRadius(12)
+        .overlay(
+            Rectangle()
+                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
 struct StatItemView: View {
     let value: String
     let label: String
+    let action: (() -> Void)?
     
     var body: some View {
+        Group {
+            if let action = action {
+                Button(action: action) {
+                    statContent
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                statContent
+            }
+        }
+    }
+    
+    var statContent: some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(AppEnvironment.Fonts.primaryBold(size: 20))
-                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                .foregroundColor(.black)
             Text(label)
                 .font(AppEnvironment.Fonts.primary(size: 12))
-                .foregroundColor(AppEnvironment.Colors.textSecondary)
+                .foregroundColor(.black)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
@@ -188,26 +202,20 @@ struct StatItemView: View {
 }
 
 struct MenuSection: View {
-    let onSavedPosts: () -> Void
-    let onFollowers: () -> Void
-    let onFollowing: () -> Void
     let onSettings: () -> Void
     let onHelp: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
-            MenuRowView(icon: "bookmark.fill", title: "Saved Posts", action: onSavedPosts)
-            Divider().padding(.leading, 56)
-            MenuRowView(icon: "person.2.fill", title: "Followers", action: onFollowers)
-            Divider().padding(.leading, 56)
-            MenuRowView(icon: "person.fill.checkmark", title: "Following", action: onFollowing)
-            Divider().padding(.leading, 56)
             MenuRowView(icon: "gearshape.fill", title: "Settings", action: onSettings)
             Divider().padding(.leading, 56)
             MenuRowView(icon: "questionmark.circle.fill", title: "Help & Support", action: onHelp)
         }
         .background(Color.white)
-        .cornerRadius(12)
+        .overlay(
+            Rectangle()
+                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
@@ -221,18 +229,18 @@ struct MenuRowView: View {
             HStack(spacing: 16) {
                 Image(systemName: icon)
                     .font(.system(size: 20))
-                    .foregroundColor(AppEnvironment.Colors.accentGreen)
+                    .foregroundColor(.black)
                     .frame(width: 24)
                 
                 Text(title)
                     .font(AppEnvironment.Fonts.primary(size: 16))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(.black)
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14))
-                    .foregroundColor(AppEnvironment.Colors.textSecondary)
+                    .foregroundColor(.black)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
@@ -256,7 +264,10 @@ struct SignOutButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .background(Color.white)
-            .cornerRadius(12)
+            .overlay(
+                Rectangle()
+                    .stroke(Color.black.opacity(0.1), lineWidth: 1)
+            )
         }
         .padding(.top, 8)
     }

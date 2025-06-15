@@ -92,7 +92,6 @@ struct MapView: View {
                     }
                 }
             }
-            .navigationTitle("マップ")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

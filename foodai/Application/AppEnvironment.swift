@@ -3,13 +3,13 @@ import SwiftUI
 
 struct AppEnvironment {
     struct Colors {
-        // Very subtle cream background - almost white with tiny hint of yellow
+        // Off-white background for modern monochrome look - Custom couleur white #FFFFFD
         static let background = Color(
-            light: Color(red: 0.9996, green: 0.9996, blue: 0.9965), // Almost white with tiny yellow hint
-            dark: Color(red: 0.1, green: 0.1, blue: 0.1) // Dark background
+            light: Color(red: 1.0, green: 1.0, blue: 0.992),
+            dark: Color.black
         )
         
-        // Always black text on light, white on dark
+        // Pure black/white text for maximum contrast
         static let textPrimary = Color(
             light: Color.black,
             dark: Color.white
@@ -20,26 +20,33 @@ struct AppEnvironment {
             dark: Color.white.opacity(0.6)
         )
         
-        static let accentGreen = Color(red: 0.0863, green: 0.3608, blue: 0.0902) // #165C17
+        // Red accent color for modern look - Custom couleur red #BF0B2C
+        static let accentRed = Color(red: 0.749, green: 0.043, blue: 0.173)
+        
+        // Keep green for backward compatibility but update to pure green
+        static let accentGreen = Color.green
         
         static let buttonText = Color(
+            light: Color.white, // White text on black buttons
+            dark: Color.black   // Black text on white buttons
+        )
+        
+        // Sharp borders for modern geometric look
+        static let subtleBorder = Color(
+            light: Color.black.opacity(0.2),
+            dark: Color.white.opacity(0.2)
+        )
+        
+        // Pure white/black input backgrounds
+        static let inputBackground = Color(
+            light: Color.white,
+            dark: Color.black
+        )
+        
+        // Modern button backgrounds
+        static let buttonBackground = Color(
             light: Color.black,
             dark: Color.white
-        )
-        
-        static let subtleBorder = Color(
-            light: Color.black.opacity(0.1),
-            dark: Color.white.opacity(0.1)
-        )
-        
-        static let inputBackground = Color(
-            light: Color(red: 0.999, green: 0.999, blue: 0.995), // Very subtle cream
-            dark: Color(red: 0.15, green: 0.15, blue: 0.15)
-        )
-        
-        static let lightGreenButtonBackground = Color(
-            light: Color(red: 0.999, green: 0.999, blue: 0.995),
-            dark: Color(red: 0.2, green: 0.2, blue: 0.2)
         )
     }
 

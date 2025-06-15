@@ -31,7 +31,7 @@ struct PinCardView: View {
                         }
                     }
                     .frame(width: 20, height: 20)
-                    .clipShape(RoundedRectangle(cornerRadius: 0))
+                    .clipShape(Rectangle())
                     
                     Text(post.user?.username ?? "unknown")
                         .font(.system(size: 12))

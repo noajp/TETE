@@ -1,221 +1,286 @@
 //======================================================================
-// MARK: - SignInView（接続テスト修正版）
-// Path: foodai/Features/Auth/Views/SignInView.swift
+// MARK: - SignInView.swift (Redesigned)
+// Path: foodai/Core/Auth/Views/SignInView.swift
 //======================================================================
 import SwiftUI
 
 struct SignInView: View {
     @State private var email = ""
     @State private var password = ""
-    @State private var isLoading = false
+    @State private var showSignUp = false
+    @State private var showForgotPassword = false
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var isTesting = false
-    @State private var useMockMode = false
     
     @EnvironmentObject var authManager: AuthManager
     
+    init() {
+        print("🔵 SignInView: Initialized")
+    }
+    
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                // ロゴ部分
-                Image(systemName: "fork.knife.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.blue)
-                
-                Text("foodai")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                // 入力フィールド
-                VStack(spacing: 15) {
-                    TextField("メールアドレス", text: $email)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .autocapitalization(.none)
-                        .keyboardType(.emailAddress)
-                        .disabled(isLoading)
+            ScrollView {
+                VStack(spacing: 30) {
+                    Spacer()
                     
-                    SecureField("パスワード", text: $password)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(isLoading)
-                }
-                .padding(.horizontal, 30)
-                .padding(.top, 30)
-                
-                // ログインボタン
-                Button(action: signIn) {
-                    if isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    } else {
-                        Text("ログイン")
-                            .fontWeight(.bold)
-                    }
-                }
-                .frame(width: 200, height: 50)
-                .background(AppEnvironment.Colors.accentGreen)
-                .foregroundColor(.white)
-                .cornerRadius(25)
-                .disabled(isLoading || email.isEmpty || password.isEmpty)
-                
-                // テスト用セクション
-                VStack(spacing: 15) {
-                    Text("テスト用機能")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    // テストアカウントボタン
-                    HStack(spacing: 20) {
-                        Button(action: {
-                            email = "test1@example.com"
-                            password = "testpass123"
-                            signIn()
-                        }) {
-                            Text("test1でログイン")
-                                .font(.caption)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(Color.blue.opacity(0.1))
-                                .cornerRadius(5)
-                        }
-                        .disabled(isLoading)
+                    // App Logo & Title
+                    VStack(spacing: 16) {
+                        Image(systemName: "fork.knife.circle.fill")
+                            .font(.system(size: 80))
+                            .foregroundColor(AppEnvironment.Colors.accentGreen)
                         
+                        Text("couleur")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.black)
+                        
+                        Text("色とりどりの瞬間をシェアしよう")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    // Authentication Options
+                    VStack(spacing: 20) {
+                        // Google Sign-In Button (準備中)
                         Button(action: {
-                            email = "test2@example.com"
-                            password = "testpass123"
-                            signIn()
-                        }) {
-                            Text("test2でログイン")
-                                .font(.caption)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(Color.blue.opacity(0.1))
-                                .cornerRadius(5)
-                        }
-                        .disabled(isLoading)
-                    }
-                    
-                    // 接続テストボタン（大きく、押しやすく）
-                    Button(action: {
-                        testConnection()
-                    }) {
-                        HStack {
-                            if isTesting {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle())
-                                    .scaleEffect(0.8)
-                            } else {
-                                Image(systemName: "network")
+                            Task {
+                                await signInWithGoogle()
                             }
-                            Text(isTesting ? "テスト中..." : "接続テスト")
-                                .fontWeight(.medium)
+                        }) {
+                            HStack {
+                                Image(systemName: "globe")
+                                    .font(.system(size: 18))
+                                Text("Googleでログイン")
+                                    .fontWeight(.medium)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.black)
+                            .foregroundColor(.white)
+                            .cornerRadius(0)
                         }
-                        .frame(width: 150, height: 40)
-                        .background(Color.orange)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
+                        .disabled(authManager.isLoading)
+                        
+                        // Divider
+                        HStack {
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundColor(.gray.opacity(0.3))
+                            Text("または")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 16)
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundColor(.gray.opacity(0.3))
+                        }
+                        
+                        // Email Sign-In Form
+                        VStack(spacing: 16) {
+                            TextField("メールアドレス", text: $email)
+                                .textFieldStyle(SquareTextFieldStyle())
+                                .autocapitalization(.none)
+                                .keyboardType(.emailAddress)
+                                .disabled(authManager.isLoading)
+                            
+                            SecureField("パスワード", text: $password)
+                                .textFieldStyle(SquareTextFieldStyle())
+                                .textContentType(.none)
+                                .autocorrectionDisabled()
+                                .disabled(authManager.isLoading)
+                            
+                            // Forgot Password
+                            HStack {
+                                Spacer()
+                                Button("パスワードを忘れた場合") {
+                                    showForgotPassword = true
+                                }
+                                .font(.caption)
+                                .foregroundColor(.black)
+                            }
+                        }
+                        
+                        // Sign In Button
+                        Button(action: {
+                            print("🔵 SignIn button tapped")
+                            print("🔵 Current email: \(email)")
+                            print("🔵 Current password length: \(password.count)")
+                            Task {
+                                await signInWithEmail()
+                            }
+                        }) {
+                            Group {
+                                if authManager.isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                } else {
+                                    Text("ログイン")
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(Color.black)
+                            .foregroundColor(.white)
+                            .cornerRadius(0)
+                        }
+                        .disabled(email.isEmpty || password.isEmpty || authManager.isLoading)
                     }
-                    .disabled(isTesting)
+                    .padding(.horizontal, 20)
                     
-                    // オフラインモードトグル
-                    HStack {
-                        Toggle("オフラインモード", isOn: $useMockMode)
-                            .font(.caption)
-                        Spacer()
-                    }
-                    .frame(width: 200)
-                    .padding(.top, 10)
+                    Spacer()
                     
-                    // デバッグ情報
-                    if useMockMode {
-                        Text("オフラインモードが有効です")
-                            .font(.caption2)
-                            .foregroundColor(.orange)
+                    // Sign Up Link
+                    VStack(spacing: 16) {
+                        HStack {
+                            Text("アカウントをお持ちでない場合")
+                                .font(.body)
+                                .foregroundColor(.gray)
+                            
+                            Button("新規登録") {
+                                showSignUp = true
+                            }
+                            .font(.body)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.black)
+                        }
+                        
+                        // Quick Test Accounts
+                        VStack(spacing: 8) {
+                            Text("テスト用アカウント")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            
+                            HStack(spacing: 12) {
+                                Button("TestUser1") {
+                                    print("🔵 TestUser1 button tapped")
+                                    email = "test1@couleur.com"
+                                    password = "test123"
+                                    print("🔵 Email set to: \(email), Password set")
+                                }
+                                .buttonStyle(TestButtonStyle())
+                                
+                                Button("TestUser2") {
+                                    print("🔵 TestUser2 button tapped")
+                                    email = "test2@couleur.com"
+                                    password = "test123"
+                                    print("🔵 Email set to: \(email), Password set")
+                                }
+                                .buttonStyle(TestButtonStyle())
+                            }
+                        }
                     }
+                    
+                    Spacer()
                 }
-                .padding(.top, 20)
-                
-                Spacer()
+                .padding()
             }
-            .padding()
             .navigationBarHidden(true)
+            .background(AppEnvironment.Colors.background)
             .alert("エラー", isPresented: $showError) {
                 Button("OK") { }
             } message: {
                 Text(errorMessage)
             }
-        }
-        .onAppear {
-            // 起動時に自動で接続テスト
-            testConnection()
-        }
-    }
-    
-    private func signIn() {
-        isLoading = true
-        errorMessage = ""
-        
-        // オフラインモードの場合
-        if useMockMode {
-            Task {
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1秒待機
-                
-                await MainActor.run {
-                    // モックユーザーでログイン
-                    authManager.currentUser = AppUser(
-                        id: "mock-user-id",
-                        email: email,
-                        createdAt: Date().ISO8601Format()
-                    )
-                    authManager.isAuthenticated = true
-                    isLoading = false
-                }
+            .sheet(isPresented: $showSignUp) {
+                SignUpView()
+                    .environmentObject(authManager)
             }
-            return
-        }
-        
-        // 通常のログイン処理
-        Task {
-            do {
-                try await authManager.signIn(email: email, password: password)
-            } catch {
-                await MainActor.run {
-                    // エラーの詳細を表示
-                    if let nsError = error as NSError? {
-                        switch nsError.code {
-                        case -1009:
-                            errorMessage = "インターネット接続を確認してください\nオフラインモードを有効にして続けることもできます"
-                        case -1001:
-                            errorMessage = "接続がタイムアウトしました\nオフラインモードを試してください"
-                        case -1005:
-                            errorMessage = "ネットワーク接続が失われました\nオフラインモードを有効にしてください"
-                        default:
-                            errorMessage = "エラー: \(error.localizedDescription)\nコード: \(nsError.code)\n\nオフラインモードで続けることができます"
-                        }
-                    } else {
-                        errorMessage = error.localizedDescription
-                    }
-                    showError = true
-                    isLoading = false
-                }
-                print("ログインエラー詳細: \(error)")
+            .sheet(isPresented: $showForgotPassword) {
+                ForgotPasswordView()
+                    .environmentObject(authManager)
             }
         }
     }
     
-    private func testConnection() {
-        print("🔵 接続テスト開始")
-        isTesting = true
+    // MARK: - Authentication Methods
+    
+    private func signInWithEmail() async {
+        print("🔵 SignInView: Starting email sign in")
+        print("🔵 Email: \(email)")
+        print("🔵 Password length: \(password.count)")
         
-        Task {
-            await NetworkTest.testSupabaseConnection()
-            
+        do {
+            try await authManager.signInWithEmail(email: email, password: password)
+            print("✅ SignInView: Sign in completed successfully")
+        } catch {
+            print("❌ SignInView: Sign in failed with error: \(error)")
             await MainActor.run {
-                isTesting = false
-                errorMessage = "接続テスト完了\nコンソールログを確認してください"
+                errorMessage = handleAuthError(error)
                 showError = true
+                print("🔵 SignInView: Error message set to: \(errorMessage)")
             }
+        }
+    }
+    
+    private func signInWithGoogle() async {
+        print("🔵 SignInView: Starting Google sign in")
+        do {
+            try await authManager.signInWithGoogle()
+            print("✅ SignInView: Google sign in completed successfully")
+        } catch {
+            print("❌ SignInView: Google sign in failed with error: \(error)")
+            await MainActor.run {
+                errorMessage = handleAuthError(error)
+                showError = true
+                print("🔵 SignInView: Google error message set to: \(errorMessage)")
+            }
+        }
+    }
+    
+    private func handleAuthError(_ error: Error) -> String {
+        let errorDescription = error.localizedDescription.lowercased()
+        
+        if errorDescription.contains("invalid login credentials") {
+            return "メールアドレスまたはパスワードが正しくありません"
+        } else if errorDescription.contains("email not confirmed") {
+            return "メールアドレスの確認が完了していません"
+        } else if errorDescription.contains("too many requests") {
+            return "ログイン試行回数が多すぎます。しばらく待ってから再試行してください"
+        } else if errorDescription.contains("network") {
+            return "ネットワーク接続を確認してください"
+        } else {
+            return "ログインに失敗しました: \(error.localizedDescription)"
         }
     }
 }
 
+// MARK: - Custom Styles
+
+struct CustomTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
+    }
+}
+
+struct TestButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.caption)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.blue.opacity(0.1))
+            .foregroundColor(.blue)
+            .cornerRadius(6)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+    }
+}
+
+struct SquareTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .cornerRadius(0)
+            .overlay(
+                Rectangle()
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+            )
+    }
+}

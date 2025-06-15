@@ -39,7 +39,7 @@ struct SingleCardView: View {
                 }
             }
             .frame(width: 32, height: 32)
-            .clipShape(RoundedRectangle(cornerRadius: 0))
+            .clipShape(Rectangle())
             
             // ユーザー名
             Text(post.user?.username ?? "unknown")
@@ -96,13 +96,6 @@ struct SingleCardView: View {
             }
             
             Spacer()
-            
-            // ブックマークボタン
-            Button(action: {}) {
-                Image(systemName: post.isSavedByMe ? "bookmark.fill" : "bookmark")
-                    .font(.system(size: 24))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
-            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
