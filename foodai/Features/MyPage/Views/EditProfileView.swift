@@ -24,6 +24,9 @@ struct EditProfileView: View {
                         TextField("@username", text: $username)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
                     }
                     
                     HStack {

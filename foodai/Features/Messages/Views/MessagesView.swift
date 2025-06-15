@@ -3,6 +3,8 @@ import SwiftUI
 struct MessagesView: View {
     @StateObject private var viewModel = MessagesViewModel()
     @State private var showNewMessage = false
+    @EnvironmentObject var authManager: AuthManager
+    
     var body: some View {
         NavigationStack {
             Group {
@@ -22,6 +24,16 @@ struct MessagesView: View {
                                     )
                                 }
                                 .buttonStyle(PlainButtonStyle())
+                                .contextMenu {
+                                    Button(action: {}) {
+                                        Label("", systemImage: "")
+                                    }
+                                    .disabled(true)
+                                } preview: {
+                                    ConversationPreview(conversation: conversation)
+                                        .environmentObject(authManager)
+                                        .frame(width: 300, height: 400)
+                                }
                                 
                                 if conversation.id != viewModel.conversations.last?.id {
                                     Divider()
@@ -267,5 +279,143 @@ struct UserRowView: View {
             .padding(.vertical, 8)
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Conversation Preview
+
+struct ConversationPreview: View {
+    let conversation: Conversation
+    @StateObject private var previewModel = ConversationPreviewModel()
+    @EnvironmentObject var authManager: AuthManager
+    
+    private var currentUserId: String? {
+        authManager.currentUser?.id
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            headerView
+            Divider()
+            messagesView
+        }
+        .background(AppEnvironment.Colors.background)
+        .onAppear {
+            Task {
+                await previewModel.loadMessages(for: conversation.id)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var headerView: some View {
+        HStack {
+            // Avatar
+            Group {
+                if let avatarUrl = conversation.displayAvatar(currentUserId: currentUserId) {
+                    RemoteImageView(imageURL: avatarUrl)
+                        .frame(width: 32, height: 32)
+                        .clipShape(Rectangle())
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 32, height: 32)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray)
+                        )
+                }
+            }
+            
+            // Name and time
+            VStack(alignment: .leading, spacing: 2) {
+                Text(conversation.displayName(currentUserId: currentUserId) ?? "Unknown")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                
+                if let lastMessageAt = conversation.lastMessageAt {
+                    Text(lastMessageAt.timeAgoDisplay())
+                        .font(.system(size: 11))
+                        .foregroundColor(AppEnvironment.Colors.textSecondary)
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(12)
+        .background(AppEnvironment.Colors.background)
+    }
+    
+    @ViewBuilder
+    private var messagesView: some View {
+        ScrollView {
+            VStack(spacing: 8) {
+                if previewModel.isLoading {
+                    ProgressView()
+                        .padding()
+                } else {
+                    ForEach(previewModel.messages.suffix(10)) { message in
+                        MessagePreviewRow(
+                            message: message,
+                            isCurrentUser: isCurrentUserMessage(message)
+                        )
+                    }
+                }
+            }
+            .padding(.vertical, 8)
+        }
+        .background(AppEnvironment.Colors.background)
+    }
+    
+    private func isCurrentUserMessage(_ message: Message) -> Bool {
+        guard let currentUserId = currentUserId else { return false }
+        return message.senderId.lowercased() == currentUserId.lowercased()
+    }
+}
+
+struct MessagePreviewRow: View {
+    let message: Message
+    let isCurrentUser: Bool
+    
+    var body: some View {
+        HStack {
+            if isCurrentUser {
+                Spacer()
+            }
+            
+            Text(message.content)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .font(.system(size: 14))
+                .background(isCurrentUser ? AppEnvironment.Colors.textPrimary : Color.gray.opacity(0.2))
+                .foregroundColor(isCurrentUser ? AppEnvironment.Colors.background : AppEnvironment.Colors.textPrimary)
+                .cornerRadius(0)
+                .frame(maxWidth: 200, alignment: isCurrentUser ? .trailing : .leading)
+            
+            if !isCurrentUser {
+                Spacer()
+            }
+        }
+        .padding(.horizontal, 12)
+    }
+}
+
+// Preview用のシンプルなViewModel
+@MainActor
+class ConversationPreviewModel: ObservableObject {
+    @Published var messages: [Message] = []
+    @Published var isLoading = false
+    
+    private let messageService = MessageService.shared
+    
+    func loadMessages(for conversationId: String) async {
+        isLoading = true
+        do {
+            messages = try await messageService.fetchMessages(for: conversationId, limit: 10)
+        } catch {
+            print("❌ Error loading preview messages: \(error)")
+        }
+        isLoading = false
     }
 }

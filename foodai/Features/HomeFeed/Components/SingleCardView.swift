@@ -6,6 +6,7 @@ import SwiftUI
 
 struct SingleCardView: View {
     let post: Post
+    let onLikeTapped: (Post) -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -61,20 +62,16 @@ struct SingleCardView: View {
     
     // MARK: - 画像セクション
     private var imageSection: some View {
-        GeometryReader { geometry in
-            RemoteImageView(imageURL: post.mediaUrl)
-                .aspectRatio(contentMode: .fill)
-                .frame(width: geometry.size.width, height: geometry.size.width)
-                .clipped()
-        }
-        .aspectRatio(1, contentMode: .fit)
+        SophisticatedImageView(imageUrl: post.mediaUrl, height: 400)
     }
     
     // MARK: - アクションセクション
     private var actionSection: some View {
         HStack(spacing: 16) {
             // いいねボタン
-            Button(action: {}) {
+            Button(action: {
+                onLikeTapped(post)
+            }) {
                 HStack(spacing: 4) {
                     Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
                         .font(.system(size: 24))

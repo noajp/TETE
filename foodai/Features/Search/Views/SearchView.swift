@@ -35,8 +35,12 @@ struct SearchView: View {
                             GridItem(.flexible(), spacing: 8)
                         ], spacing: 16) {
                             ForEach(viewModel.searchResults) { post in
-                                NavigationLink(destination: PostDetailView(post: post)) {
-                                    PinCardView(post: post)
+                                NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { _ in 
+                                    // TODO: Add like functionality to search
+                                })) {
+                                    PinCardView(post: post, onLikeTapped: { _ in
+                                        // TODO: Add like functionality to search
+                                    })
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }

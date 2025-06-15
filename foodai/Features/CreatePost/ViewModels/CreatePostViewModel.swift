@@ -38,6 +38,8 @@ class CreatePostViewModel: ObservableObject {
             return
         }
         
+        print("🔵 CreatePost: User ID = \(userId)")
+        
         isLoading = true
         uploadProgress = 0
         
@@ -67,6 +69,8 @@ class CreatePostViewModel: ObservableObject {
             errorMessage = error.localizedDescription
             showError = true
             print("❌ 投稿エラー: \(error)")
+            print("❌ エラー詳細: \(error)")
+            print("❌ エラータイプ: \(type(of: error))")
         }
         
         isLoading = false
@@ -127,7 +131,7 @@ class CreatePostViewModel: ObservableObject {
     
     private func createPostRecord(userId: String, mediaUrl: String) async throws {
         struct NewPost: Encodable {
-            let user_id: String
+            let user_id: UUID
             let media_url: String
             let media_type: String
             let caption: String?
@@ -138,7 +142,7 @@ class CreatePostViewModel: ObservableObject {
         }
         
         let newPost = NewPost(
-            user_id: userId,
+            user_id: UUID(uuidString: userId)!,
             media_url: mediaUrl,
             media_type: mediaType.rawValue,
             caption: caption.isEmpty ? nil : caption,
@@ -147,6 +151,18 @@ class CreatePostViewModel: ObservableObject {
             longitude: longitude,
             is_public: isPublic
         )
+        
+        print("🔵 Creating post record: \(newPost)")
+        
+        // Check current session before insert
+        do {
+            let session = try await supabase.auth.session
+            print("🔵 Current session user ID: \(session.user.id)")
+            print("🔵 Session access token exists: \(!session.accessToken.isEmpty)")
+        } catch {
+            print("❌ No valid session: \(error)")
+            throw PostError.uploadFailed
+        }
         
         try await supabase
             .from("posts")

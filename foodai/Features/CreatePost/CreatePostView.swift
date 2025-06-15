@@ -55,10 +55,15 @@ struct CreatePostView: View {
                         }
                         
                         Button(action: {
+                            print("🔵 Post button tapped")
                             Task {
+                                print("🔵 Starting createPost task")
                                 await viewModel.createPost()
+                                print("🔵 createPost completed, isPostCreated: \(viewModel.isPostCreated)")
                                 if viewModel.isPostCreated {
-                                    dismiss()
+                                    await MainActor.run {
+                                        dismiss()
+                                    }
                                 }
                             }
                         }) {
@@ -72,10 +77,11 @@ struct CreatePostView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(viewModel.canPost ? AppEnvironment.Colors.accentGreen : Color.gray)
+                        .background(viewModel.canPost && !viewModel.isLoading ? AppEnvironment.Colors.accentGreen : Color.gray)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                         .disabled(!viewModel.canPost || viewModel.isLoading)
+                        .animation(.easeInOut(duration: 0.2), value: viewModel.isLoading)
                         .padding(.horizontal)
                     }
                 }
@@ -147,12 +153,7 @@ struct MediaPickerSection: View {
             ) {
                 if let image = selectedImage {
                     ZStack(alignment: .topTrailing) {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 300)
-                            .clipped()
-                            .cornerRadius(10)
+                        SophisticatedUIImageView(image: image, height: 300)
                         
                         if mediaType == .video {
                             // 動画インジケーター

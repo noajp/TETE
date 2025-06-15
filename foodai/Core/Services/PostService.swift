@@ -7,14 +7,27 @@ import Supabase
 
 class PostService {
     private let client = SupabaseManager.shared.client
-    static let useMockData = true // 写真共有アプリ用モックデータ
+    private let likeService = LikeService()
+    static let useMockData = false // 写真共有アプリ用モックデータ
+    
+    // モックデータ用のいいね状態を保存
+    private static var mockLikedPosts: Set<String> = ["1", "3"] // 初期状態
     
     // フィード用の投稿一覧を取得
-    func fetchFeedPosts() async throws -> [Post] {
+    func fetchFeedPosts(currentUserId: String? = nil) async throws -> [Post] {
         // モックモードの場合
         if PostService.useMockData {
             print("🔵 写真共有アプリ用モックデータを使用します")
-            return getMockPosts()
+            var posts = getMockPosts()
+            
+            // モックデータにもいいね状態を設定
+            if let userId = currentUserId {
+                for i in 0..<posts.count {
+                    posts[i].isLikedByMe = await checkMockLikeStatus(postId: posts[i].id, userId: userId)
+                }
+            }
+            
+            return posts
         }
         
         // 本番モード
@@ -42,6 +55,15 @@ class PostService {
                         .execute()
                         .value
                     posts[i].user = userProfile
+                    
+                    // いいね状態を取得
+                    if let userId = currentUserId {
+                        posts[i].isLikedByMe = try await likeService.checkUserLikeStatus(
+                            postId: posts[i].id,
+                            userId: userId
+                        )
+                    }
+                    
                     print("✅ ユーザー情報取得: \(userProfile.username)")
                 } catch {
                     print("⚠️ ユーザー情報取得エラー: \(error)")
@@ -214,6 +236,43 @@ class PostService {
                 )
             )
         ]
+    }
+    
+    // MARK: - Like Operations
+    
+    func toggleLike(postId: String, userId: String) async throws -> Bool {
+        if PostService.useMockData {
+            // モックデータ用のいいね処理
+            let isCurrentlyLiked = PostService.mockLikedPosts.contains(postId)
+            if isCurrentlyLiked {
+                PostService.mockLikedPosts.remove(postId)
+                print("✅ PostService (Mock): Post \(postId) unliked")
+                return false
+            } else {
+                PostService.mockLikedPosts.insert(postId)
+                print("✅ PostService (Mock): Post \(postId) liked")
+                return true
+            }
+        } else {
+            let isNowLiked = try await likeService.toggleLike(postId: postId, userId: userId)
+            print("✅ PostService: Post \(postId) like toggled. Now liked: \(isNowLiked)")
+            return isNowLiked
+        }
+    }
+    
+    func getLikes(for postId: String) async throws -> [Like] {
+        return try await likeService.getLikes(for: postId)
+    }
+    
+    func getLikeCount(for postId: String) async throws -> Int {
+        return try await likeService.getLikeCount(for: postId)
+    }
+    
+    // MARK: - Mock Data Helper
+    
+    private func checkMockLikeStatus(postId: String, userId: String) async -> Bool {
+        // モックデータ用：動的ないいね状態を返す
+        return PostService.mockLikedPosts.contains(postId)
     }
 }
 

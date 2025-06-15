@@ -6,6 +6,10 @@ import Foundation
 import SwiftUI
 import Combine
 
+extension Notification.Name {
+    static let conversationMarkedAsRead = Notification.Name("conversationMarkedAsRead")
+}
+
 @MainActor
 class MessagesViewModel: ObservableObject {
     @Published var conversations: [Conversation] = []
@@ -24,16 +28,25 @@ class MessagesViewModel: ObservableObject {
     }
     
     private func setupRealtimeListeners() {
-        // Disable automatic listeners to prevent infinite loops and flickering
-        // Conversations will update when user manually refreshes or performs actions
-        // messageService.objectWillChange
-        //     .receive(on: DispatchQueue.main)
-        //     .sink { [weak self] _ in
-        //         Task {
-        //             await self?.loadConversations()
-        //         }
-        //     }
-        //     .store(in: &cancellables)
+        // Listen for conversation read status changes
+        NotificationCenter.default.publisher(for: .conversationMarkedAsRead)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                guard let self = self,
+                      let conversationId = notification.object as? String else { return }
+                
+                // Update the specific conversation's unread count to 0
+                print("🔵 Received notification to mark conversation \(conversationId) as read")
+                if let index = self.conversations.firstIndex(where: { $0.id == conversationId }) {
+                    print("🔵 Found conversation at index \(index), setting unread count to 0")
+                    self.conversations[index].unreadCount = 0
+                    // Force UI update
+                    self.objectWillChange.send()
+                } else {
+                    print("⚠️ Could not find conversation with ID \(conversationId)")
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private var cancellables = Set<AnyCancellable>()

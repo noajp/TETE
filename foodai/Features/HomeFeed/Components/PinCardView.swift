@@ -6,17 +6,12 @@ import SwiftUI
 
 struct PinCardView: View {
     let post: Post
+    let onLikeTapped: (Post) -> Void
     
     var body: some View {
         VStack(spacing: 0) {
             // 画像部分
-            GeometryReader { geometry in
-                RemoteImageView(imageURL: post.mediaUrl)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: geometry.size.width)
-                    .clipped()
-            }
-            .aspectRatio(1, contentMode: .fit)
+            SophisticatedImageView(imageUrl: post.mediaUrl, height: 250)
             
             // 下部の情報（シンプルに）
             HStack {
@@ -42,15 +37,19 @@ struct PinCardView: View {
                 Spacer()
                 
                 // いいねボタン
-                HStack(spacing: 4) {
-                    Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
-                        .font(.system(size: 14))
-                        .foregroundColor(post.isLikedByMe ? .red : .black)
-                    
-                    if post.likeCount > 0 {
-                        Text("\(post.likeCount)")
-                            .font(.system(size: 12))
-                            .foregroundColor(AppEnvironment.Colors.textPrimary)
+                Button(action: {
+                    onLikeTapped(post)
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                            .font(.system(size: 14))
+                            .foregroundColor(post.isLikedByMe ? .red : .black)
+                        
+                        if post.likeCount > 0 {
+                            Text("\(post.likeCount)")
+                                .font(.system(size: 12))
+                                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                        }
                     }
                 }
             }

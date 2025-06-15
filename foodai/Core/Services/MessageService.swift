@@ -224,6 +224,12 @@ class MessageService: ObservableObject {
             .eq("user_id", value: userId)
             .execute()
         
+        // Post notification that conversation was marked as read
+        await MainActor.run {
+            print("🔵 MessageService: Posting notification for conversation \(conversationId) marked as read")
+            NotificationCenter.default.post(name: .conversationMarkedAsRead, object: conversationId)
+        }
+        
         // Update unread count after marking as read without triggering objectWillChange
         // This prevents the infinite loop while keeping the badge count accurate
         Task {

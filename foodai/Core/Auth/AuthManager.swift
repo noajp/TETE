@@ -48,7 +48,7 @@ class AuthManager: ObservableObject {
             let user = session.user
             
             self.currentUser = AppUser(
-                id: user.id.uuidString.lowercased(),
+                id: user.id.uuidString,
                 email: user.email,
                 createdAt: user.createdAt.ISO8601Format()
             )
@@ -84,7 +84,7 @@ class AuthManager: ObservableObject {
             print("🔵 User Email: \(user.email ?? "nil")")
             
             self.currentUser = AppUser(
-                id: user.id.uuidString.lowercased(),
+                id: user.id.uuidString,
                 email: user.email,
                 createdAt: user.createdAt.ISO8601Format()
             )
@@ -118,7 +118,7 @@ class AuthManager: ObservableObject {
             
             let user = session.user
             self.currentUser = AppUser(
-                id: user.id.uuidString.lowercased(),
+                id: user.id.uuidString,
                 email: user.email,
                 createdAt: user.createdAt.ISO8601Format()
             )
@@ -126,7 +126,7 @@ class AuthManager: ObservableObject {
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
             print("✅ Email sign up successful: \(user.email ?? "")")
-            return user.id.uuidString.lowercased()
+            return user.id.uuidString
         } catch {
             print("❌ Email sign up failed: \(error)")
             throw error
@@ -235,7 +235,7 @@ class AuthManager: ObservableObject {
             print("🔵 User Email: \(user.email ?? "nil")")
             
             self.currentUser = AppUser(
-                id: user.id.uuidString.lowercased(),
+                id: user.id.uuidString,
                 email: user.email,
                 createdAt: user.createdAt.ISO8601Format()
             )

@@ -18,7 +18,7 @@ struct Post: Identifiable, Codable {
     let createdAt: Date
     
     // 統計情報
-    let likeCount: Int
+    var likeCount: Int
     let commentCount: Int
     
     // リレーション（オプショナル）

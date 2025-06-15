@@ -74,8 +74,12 @@ struct HomeFeedView: View {
                 // グリッドモード
                 LazyVGrid(columns: columns, spacing: 2) {
                     ForEach(viewModel.posts) { post in
-                        NavigationLink(destination: PostDetailView(post: post)) {
-                            PinCardView(post: post)
+                        NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
+                            viewModel.toggleLike(for: post)
+                        })) {
+                            PinCardView(post: post, onLikeTapped: { post in
+                                viewModel.toggleLike(for: post)
+                            })
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -85,8 +89,12 @@ struct HomeFeedView: View {
                 // シングルモード（1枚ずつ表示）
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.posts) { post in
-                        NavigationLink(destination: PostDetailView(post: post)) {
-                            SingleCardView(post: post)
+                        NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
+                            viewModel.toggleLike(for: post)
+                        })) {
+                            SingleCardView(post: post, onLikeTapped: { post in
+                                viewModel.toggleLike(for: post)
+                            })
                         }
                         .buttonStyle(PlainButtonStyle())
                     }

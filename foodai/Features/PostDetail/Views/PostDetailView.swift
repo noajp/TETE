@@ -7,10 +7,12 @@ import MapKit
 
 struct PostDetailView: View {
     let post: Post
+    let onLikeTapped: ((Post) -> Void)?
     @State private var cameraPosition: MapCameraPosition?
     
-    init(post: Post) {
+    init(post: Post, onLikeTapped: ((Post) -> Void)? = nil) {
         self.post = post
+        self.onLikeTapped = onLikeTapped
         
         // 位置情報がある場合のみマップの初期位置を設定
         if let latitude = post.latitude, let longitude = post.longitude {
@@ -29,11 +31,7 @@ struct PostDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 // 投稿画像
-                RemoteImageView(imageURL: post.mediaUrl)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: 400)
-                    .clipped()
-                    .background(Color.black)
+                SophisticatedImageView(imageUrl: post.mediaUrl, height: 400)
                 
                 VStack(alignment: .leading, spacing: 16) {
                     // ユーザー情報
@@ -62,7 +60,9 @@ struct PostDetailView: View {
                     // アクションボタン
                     HStack(spacing: 16) {
                         // いいねボタン
-                        Button(action: {}) {
+                        Button(action: {
+                            onLikeTapped?(post)
+                        }) {
                             HStack(spacing: 4) {
                                 Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
                                     .font(.system(size: 24))

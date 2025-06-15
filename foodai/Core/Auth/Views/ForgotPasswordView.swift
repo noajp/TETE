@@ -1,5 +1,5 @@
 //======================================================================
-// MARK: - ForgotPasswordView.swift
+// MARK: - ForgotPasswordView.swift (Simple & Modern)
 // Path: foodai/Core/Auth/Views/ForgotPasswordView.swift
 //======================================================================
 import SwiftUI
@@ -15,86 +15,94 @@ struct ForgotPasswordView: View {
     @EnvironmentObject var authManager: AuthManager
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 30) {
-                Spacer()
-                
-                // Header
-                VStack(spacing: 16) {
-                    Image(systemName: "key.horizontal")
-                        .font(.system(size: 60))
-                        .foregroundColor(.black)
-                    
-                    Text("パスワードリセット")
-                        .font(.title)
-                        .fontWeight(.bold)
-                    
-                    Text("登録済みのメールアドレスを入力してください。\nパスワードリセット用のリンクをお送りします。")
-                        .font(.body)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(nil)
-                }
-                
-                // Email Input
-                VStack(spacing: 16) {
-                    TextField("メールアドレス", text: $email)
-                        .textFieldStyle(SquareTextFieldStyle())
-                        .autocapitalization(.none)
-                        .keyboardType(.emailAddress)
-                        .disabled(isLoading)
-                    
-                    Button(action: {
-                        Task {
-                            await resetPassword()
-                        }
-                    }) {
-                        Group {
-                            if isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            } else {
-                                Text("リセットリンクを送信")
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(email.contains("@") ? Color.black : Color.gray)
-                        .foregroundColor(.white)
-                        .cornerRadius(0)
-                    }
-                    .disabled(!email.contains("@") || isLoading)
-                }
-                .padding(.horizontal, 20)
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("パスワードリセット")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("戻る") {
-                        dismiss()
-                    }
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
-                }
-            }
-            .alert("送信完了", isPresented: $showSuccess) {
-                Button("OK") {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            HStack {
+                Button("←") {
                     dismiss()
                 }
-                .foregroundColor(AppEnvironment.Colors.accentRed)
-            } message: {
-                Text("パスワードリセット用のリンクを \(email) に送信しました。\nメールをご確認ください。")
+                .font(.system(size: 24))
+                .foregroundColor(.black)
+                
+                Spacer()
             }
-            .alert("エラー", isPresented: $showError) {
-                Button("OK") { }
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
-            } message: {
-                Text(errorMessage)
+            .padding(.horizontal, 20)
+            .padding(.top, 10)
+            
+            Spacer()
+            
+            VStack(alignment: .leading, spacing: 40) {
+                // Title
+                Text("RESET PASSWORD")
+                    .font(.system(size: 32, weight: .regular))
+                    .foregroundColor(.black)
+                
+                // Description
+                Text("Please enter your registered email address. We will send you a password reset link.")
+                    .font(.system(size: 16))
+                    .foregroundColor(.secondary)
+                    .lineLimit(nil)
+                
+                // Email Field
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("EMAIL")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.secondary)
+                    
+                    TextField("", text: $email)
+                        .font(.system(size: 18))
+                        .autocapitalization(.none)
+                        .autocorrectionDisabled()
+                        .keyboardType(.emailAddress)
+                        .textContentType(.emailAddress)
+                        .disabled(isLoading)
+                        .padding(.bottom, 10)
+                        .overlay(
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundColor(.gray.opacity(0.3)),
+                            alignment: .bottom
+                        )
+                }
+                
+                // Send Reset Link Button
+                Button(action: {
+                    Task {
+                        await resetPassword()
+                    }
+                }) {
+                    Group {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("SEND RESET LINK")
+                                .font(.system(size: 18, weight: .medium))
+                        }
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(email.contains("@") ? Color.black : Color.gray)
+                }
+                .disabled(!email.contains("@") || isLoading)
             }
+            .padding(.horizontal, 20)
+            
+            Spacer()
+        }
+        .background(Color.white)
+        .alert("Success", isPresented: $showSuccess) {
+            Button("OK") {
+                dismiss()
+            }
+        } message: {
+            Text("Password reset link has been sent to \(email). Please check your email.")
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage)
         }
     }
     
@@ -109,7 +117,7 @@ struct ForgotPasswordView: View {
             }
         } catch {
             await MainActor.run {
-                errorMessage = "パスワードリセットに失敗しました: \(error.localizedDescription)"
+                errorMessage = "Password reset failed: \(error.localizedDescription)"
                 showError = true
                 isLoading = false
             }
