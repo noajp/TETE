@@ -93,7 +93,7 @@ struct ConversationRow: View {
                     .frame(width: 50, height: 50)
                     .overlay(
                         Image(systemName: "person.fill")
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppEnvironment.Colors.textSecondary)
                     )
             }
             
@@ -101,18 +101,18 @@ struct ConversationRow: View {
                 HStack {
                     Text(conversation.displayName(currentUserId: authManager.currentUser?.id))
                         .font(.system(size: 16, weight: hasUnread ? .semibold : .regular))
-                        .foregroundColor(.black)
+                        .foregroundColor(AppEnvironment.Colors.textPrimary)
                     
                     Spacer()
                     
                     Text(timestamp)
                         .font(.system(size: 14))
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppEnvironment.Colors.textSecondary)
                 }
                 
                 Text(conversation.lastMessagePreview ?? "Start a conversation")
                     .font(.system(size: 14))
-                    .foregroundColor(hasUnread ? .black : .gray)
+                    .foregroundColor(hasUnread ? AppEnvironment.Colors.textPrimary : AppEnvironment.Colors.textSecondary)
                     .lineLimit(1)
             }
             
@@ -130,7 +130,7 @@ struct ConversationRow: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
-        .background(Color.white)
+        .background(AppEnvironment.Colors.background)
     }
 }
 

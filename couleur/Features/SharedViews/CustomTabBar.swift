@@ -18,29 +18,29 @@ struct CustomTabBar: View {
             }) {
                 Group {
                     if showGridMode && selectedTab == 0 {
-                        // 4つの小さな正方形（外枠なし）
-                        VStack(spacing: 3) {
-                            HStack(spacing: 3) {
+                        // グリッドモード時は4つの小さな正方形（塗りつぶし）
+                        VStack(spacing: 2) {
+                            HStack(spacing: 2) {
                                 Rectangle()
-                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
-                                    .frame(width: 7, height: 7)
+                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .frame(width: 8, height: 8)
                                 Rectangle()
-                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
-                                    .frame(width: 7, height: 7)
+                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .frame(width: 8, height: 8)
                             }
-                            HStack(spacing: 3) {
+                            HStack(spacing: 2) {
                                 Rectangle()
-                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
-                                    .frame(width: 7, height: 7)
+                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .frame(width: 8, height: 8)
                                 Rectangle()
-                                    .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: 1)
-                                    .frame(width: 7, height: 7)
+                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .frame(width: 8, height: 8)
                             }
                         }
                     } else {
-                        // 通常時は1つの正方形
+                        // シングルモード時は1つの大きな正方形（塗りつぶし）
                         Rectangle()
-                            .stroke(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary, lineWidth: selectedTab == 0 ? 1.5 : 1)
+                            .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
                             .frame(width: 20, height: 20)
                     }
                 }
@@ -102,11 +102,5 @@ struct CustomTabBar: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
         .background(AppEnvironment.Colors.background)
-        .overlay(
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(AppEnvironment.Colors.subtleBorder),
-            alignment: .top
-        )
     }
 }

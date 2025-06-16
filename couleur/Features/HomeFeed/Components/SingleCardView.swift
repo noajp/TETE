@@ -75,7 +75,7 @@ struct SingleCardView: View {
                 HStack(spacing: 4) {
                     Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
                         .font(.system(size: 24))
-                        .foregroundColor(post.isLikedByMe ? .red : .black)
+                        .foregroundColor(post.isLikedByMe ? .red : AppEnvironment.Colors.textPrimary)
                     
                     if post.likeCount > 0 {
                         Text("\(post.likeCount)")
@@ -110,7 +110,7 @@ struct SingleCardView: View {
             
             Text(timeAgoString(from: post.createdAt))
                 .font(.system(size: 12))
-                .foregroundColor(.gray)
+                .foregroundColor(AppEnvironment.Colors.textSecondary)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 16)

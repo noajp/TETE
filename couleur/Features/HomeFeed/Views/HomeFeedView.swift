@@ -13,8 +13,8 @@ struct HomeFeedView: View {
         if showGridMode {
             // グリッドモード（2x2）
             return [
-                GridItem(.flexible(), spacing: 2),
-                GridItem(.flexible(), spacing: 2)
+                GridItem(.flexible(), spacing: 1),
+                GridItem(.flexible(), spacing: 1)
             ]
         } else {
             // シングルモード（1枚表示）
@@ -41,6 +41,7 @@ struct HomeFeedView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .accentColor(AppEnvironment.Colors.accentRed)
     }
     
     // MARK: - Views
@@ -69,40 +70,51 @@ struct HomeFeedView: View {
     }
     
     private var contentView: some View {
-        ScrollView {
-            if showGridMode {
-                // グリッドモード
-                LazyVGrid(columns: columns, spacing: 2) {
-                    ForEach(viewModel.posts) { post in
-                        NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
-                            viewModel.toggleLike(for: post)
-                        })) {
-                            PinCardView(post: post, onLikeTapped: { post in
+        ZStack(alignment: .top) {
+            ScrollView {
+                if showGridMode {
+                    // グリッドモード
+                    LazyVGrid(columns: columns, spacing: 1) {
+                        ForEach(viewModel.posts) { post in
+                            NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
                                 viewModel.toggleLike(for: post)
-                            })
+                            })) {
+                                PinCardView(post: post, onLikeTapped: { post in
+                                    viewModel.toggleLike(for: post)
+                                })
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
-                }
-                .padding(2)
-            } else {
-                // シングルモード（1枚ずつ表示）
-                LazyVStack(spacing: 0) {
-                    ForEach(viewModel.posts) { post in
-                        NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
-                            viewModel.toggleLike(for: post)
-                        })) {
-                            SingleCardView(post: post, onLikeTapped: { post in
+                    .padding(.horizontal, 0)
+                } else {
+                    // シングルモード（1枚ずつ表示）
+                    LazyVStack(spacing: 0) {
+                        ForEach(viewModel.posts) { post in
+                            NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
                                 viewModel.toggleLike(for: post)
-                            })
+                            })) {
+                                SingleCardView(post: post, onLikeTapped: { post in
+                                    viewModel.toggleLike(for: post)
+                                })
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
-        }
-        .refreshable {
-            viewModel.loadPosts()
+            .refreshable {
+                viewModel.loadPosts()
+            }
+            
+            // ステータスバー保護用のヘッダー
+            VStack {
+                Rectangle()
+                    .fill(AppEnvironment.Colors.background)
+                    .frame(height: 50)
+                    .ignoresSafeArea(edges: .top)
+                Spacer()
+            }
         }
     }
 }

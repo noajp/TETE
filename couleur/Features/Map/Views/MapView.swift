@@ -27,6 +27,22 @@ class MapViewModel: ObservableObject {
             }
         }
     }
+    
+    func toggleLike(for post: Post) {
+        Task {
+            do {
+                let isNowLiked = try await postService.toggleLike(postId: post.id, userId: "current-user-id")
+                
+                // 投稿のいいね状態を更新
+                if let index = posts.firstIndex(where: { $0.id == post.id }) {
+                    posts[index].isLikedByMe = isNowLiked
+                    posts[index].likeCount += isNowLiked ? 1 : -1
+                }
+            } catch {
+                print("❌ いいね操作に失敗: \(error)")
+            }
+        }
+    }
 }
 
 struct MapView: View {
@@ -37,6 +53,8 @@ struct MapView: View {
             span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
         )
     )
+    @State private var isMapMoving = false
+    @State private var dragGestureActive = false
     
     var body: some View {
         NavigationView {
@@ -47,29 +65,45 @@ struct MapView: View {
                         if let lat = post.latitude,
                            let lng = post.longitude {
                             Annotation(post.locationName ?? "写真", coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)) {
-                                PhotoMapPin(post: post)
+                                PhotoMapPin(post: post, onLikeTapped: { post in
+                                    viewModel.toggleLike(for: post)
+                                })
                             }
                         }
                     }
                 }
                 .mapStyle(.standard)
-                .ignoresSafeArea(edges: .top)
+                .ignoresSafeArea(.all)
+                .onMapCameraChange(frequency: .continuous) { _ in
+                    isMapMoving = true
+                }
+                .onMapCameraChange(frequency: .onEnd) { _ in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        isMapMoving = false
+                    }
+                }
                 
                 // 検索バー
                 VStack {
+                    Spacer()
                     HStack {
                         Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
+                            .foregroundColor(AppEnvironment.Colors.textSecondary)
                         TextField("場所を検索", text: $viewModel.searchText)
+                            .foregroundColor(AppEnvironment.Colors.textPrimary)
                     }
                     .padding()
-                    .background(Color(.systemBackground))
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
-                    .padding()
-                    
-                    Spacer()
+                    .background(
+                        AppEnvironment.Colors.background.opacity(
+                            isMapMoving ? 0.3 : 0.8
+                        )
+                    )
+                    .cornerRadius(25)
+                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 2)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 100)
                 }
+                .animation(.easeInOut(duration: 0.3), value: isMapMoving)
                 
                 // 現在地ボタン
                 VStack {
@@ -82,9 +116,9 @@ struct MapView: View {
                         }) {
                             Image(systemName: "location.fill")
                                 .font(.system(size: 20))
-                                .foregroundColor(.white)
+                                .foregroundColor(AppEnvironment.Colors.background)
                                 .padding()
-                                .background(Color.black)
+                                .background(AppEnvironment.Colors.textPrimary)
                                 .clipShape(Circle())
                                 .shadow(radius: 5)
                         }
@@ -92,19 +126,22 @@ struct MapView: View {
                     }
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(true)
         }
+        .navigationViewStyle(StackNavigationViewStyle())
+        .accentColor(AppEnvironment.Colors.accentRed)
     }
 }
 
 // 写真のマップピン
 struct PhotoMapPin: View {
     let post: Post
-    @State private var showingDetail = false
+    let onLikeTapped: (Post) -> Void
+    @State private var navigateToDetail = false
     
     var body: some View {
         Button(action: {
-            showingDetail = true
+            navigateToDetail = true
         }) {
             AsyncImage(url: URL(string: post.mediaUrl)) { image in
                 image
@@ -115,16 +152,21 @@ struct PhotoMapPin: View {
                     .fill(Color.gray.opacity(0.3))
             }
             .frame(width: 40, height: 40)
-            .clipShape(Circle())
+            .clipShape(Rectangle())
             .overlay(
-                Circle()
+                Rectangle()
                     .stroke(Color.white, lineWidth: 2)
             )
             .shadow(radius: 3)
         }
-        .sheet(isPresented: $showingDetail) {
-            PhotoQuickView(post: post)
-        }
+        .background(
+            NavigationLink(
+                destination: PostDetailView(post: post, onLikeTapped: onLikeTapped),
+                isActive: $navigateToDetail
+            ) {
+                EmptyView()
+            }
+        )
     }
 }
 

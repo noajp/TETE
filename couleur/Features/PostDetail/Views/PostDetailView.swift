@@ -66,7 +66,7 @@ struct PostDetailView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
                                     .font(.system(size: 24))
-                                    .foregroundColor(post.isLikedByMe ? .red : .black)
+                                    .foregroundColor(post.isLikedByMe ? .red : AppEnvironment.Colors.textPrimary)
                                 
                                 if post.likeCount > 0 {
                                     Text("\(post.likeCount)")
@@ -132,7 +132,7 @@ struct PostDetailView: View {
                     // 投稿日時
                     Text(post.createdAt.timeAgoDisplay())
                         .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppEnvironment.Colors.textSecondary)
                         .padding(.top, 8)
                 }
                 .padding()

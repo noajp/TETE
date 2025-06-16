@@ -16,7 +16,7 @@ struct MinimalDesign {
         static let secondaryBackground = Color(.secondarySystemBackground)
         static let tertiaryBackground = Color(.tertiarySystemBackground)
         
-        static let primary = Color.black
+        static let primary = Color(.label)
         static let secondary = Color(.secondaryLabel)
         static let tertiary = Color(.tertiaryLabel)
         
@@ -127,10 +127,10 @@ enum MinimalButtonStyle {
     
     var foregroundColor: Color {
         switch self {
-        case .primary: return .white
+        case .primary: return Color(.systemBackground)
         case .secondary: return MinimalDesign.Colors.primary
         case .ghost: return MinimalDesign.Colors.primary
-        case .destructive: return .white
+        case .destructive: return Color(.systemBackground)
         }
     }
 }
