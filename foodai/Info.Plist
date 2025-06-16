@@ -58,9 +58,11 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>写真を選択するために、フォトライブラリへのアクセスが必要です。</string>
 	<key>NSCameraUsageDescription</key>
-	<string>写真を撮影するために、カメラへのアクセスが必要です。</string>
+	<string>This app uses the camera to take photos for sharing with other users. Camera access is required to capture and share your moments.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>場所情報を共有するために、位置情報へのアクセスが必要です。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app may use the microphone for video recording features.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

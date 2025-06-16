@@ -8,7 +8,7 @@ import Supabase
 class PostService {
     private let client = SupabaseManager.shared.client
     private let likeService = LikeService()
-    static let useMockData = false // 写真共有アプリ用モックデータ
+    static let useMockData = true // 写真共有アプリ用モックデータ
     
     // モックデータ用のいいね状態を保存
     private static var mockLikedPosts: Set<String> = ["1", "3"] // 初期状態

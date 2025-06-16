@@ -14,6 +14,9 @@ struct CreatePostView: View {
     @State private var showingMediaPicker = false
     @State private var selectedItem: PhotosPickerItem?
     @State private var locationName: String = ""
+    @State private var showingPhotoEditor = false
+    @State private var imageToEdit: UIImage?
+    @State private var showingCustomCamera = false
     
     var body: some View {
         NavigationView {
@@ -25,7 +28,10 @@ struct CreatePostView: View {
                         selectedVideoURL: $viewModel.selectedVideoURL,
                         mediaType: $viewModel.mediaType,
                         showingMediaPicker: $showingMediaPicker,
-                        selectedItem: $selectedItem
+                        selectedItem: $selectedItem,
+                        showingPhotoEditor: $showingPhotoEditor,
+                        imageToEdit: $imageToEdit,
+                        showingCustomCamera: $showingCustomCamera
                     )
                     
                     // 2. 位置情報（オプション）
@@ -106,6 +112,27 @@ struct CreatePostView: View {
             .onChange(of: locationName) { _, newLocation in
                 viewModel.locationName = newLocation
             }
+            .sheet(isPresented: $showingPhotoEditor) {
+                if let imageToEdit = imageToEdit {
+                    PhotoEditorView(
+                        image: imageToEdit,
+                        onComplete: { editedImage in
+                            viewModel.selectedImage = editedImage
+                            showingPhotoEditor = false
+                        },
+                        onCancel: {
+                            showingPhotoEditor = false
+                        }
+                    )
+                }
+            }
+            .fullScreenCover(isPresented: $showingCustomCamera) {
+                CustomCameraView { capturedImage in
+                    viewModel.selectedImage = capturedImage
+                    viewModel.mediaType = .photo
+                    viewModel.selectedVideoURL = nil
+                }
+            }
         }
         .onChange(of: selectedItem) { _, newItem in
             Task {
@@ -140,6 +167,9 @@ struct MediaPickerSection: View {
     @Binding var mediaType: Post.MediaType
     @Binding var showingMediaPicker: Bool
     @Binding var selectedItem: PhotosPickerItem?
+    @Binding var showingPhotoEditor: Bool
+    @Binding var imageToEdit: UIImage?
+    @Binding var showingCustomCamera: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -164,15 +194,34 @@ struct MediaPickerSection: View {
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                         
-                        // メディアタイプバッジ
-                        Text(mediaType == .video ? "Video" : "Photo")
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.black.opacity(0.6))
-                            .foregroundColor(.white)
-                            .cornerRadius(4)
-                            .padding(8)
+                        // 右上のバッジとボタン
+                        VStack(spacing: 8) {
+                            // メディアタイプバッジ
+                            Text(mediaType == .video ? "Video" : "Photo")
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.black.opacity(0.6))
+                                .foregroundColor(.white)
+                                .cornerRadius(4)
+                            
+                            // 編集ボタン（写真の場合のみ）
+                            if mediaType == .photo {
+                                Button(action: {
+                                    imageToEdit = image
+                                    showingPhotoEditor = true
+                                }) {
+                                    Label("編集", systemImage: "slider.horizontal.3")
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.black.opacity(0.6))
+                                        .foregroundColor(.white)
+                                        .cornerRadius(4)
+                                }
+                            }
+                        }
+                        .padding(8)
                     }
                     .padding(.horizontal)
                 } else {
@@ -180,12 +229,27 @@ struct MediaPickerSection: View {
                         .fill(Color.gray.opacity(0.2))
                         .frame(height: 300)
                         .overlay(
-                            VStack {
+                            VStack(spacing: 20) {
                                 Image(systemName: "photo.on.rectangle.angled")
                                     .font(.system(size: 50))
                                     .foregroundColor(.gray)
-                                Text("Tap to select photo/video")
+                                Text("写真・動画を選択")
                                     .foregroundColor(.gray)
+                                
+                                // カメラボタンを追加
+                                Button(action: {
+                                    showingCustomCamera = true
+                                }) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "camera.fill")
+                                        Text("カメラで撮影")
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(AppEnvironment.Colors.accentGreen)
+                                    .cornerRadius(8)
+                                }
                             }
                         )
                         .padding(.horizontal)
