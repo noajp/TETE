@@ -17,6 +17,9 @@ struct CreatePostView: View {
     @State private var showingPhotoEditor = false
     @State private var imageToEdit: UIImage?
     @State private var showingCustomCamera = false
+    @State private var selectedFilter: FilterType = .none
+    @State private var showingFilterPreview = false
+    @State private var filterIntensity: Float = 1.0
     
     var body: some View {
         NavigationView {
@@ -50,8 +53,23 @@ struct CreatePostView: View {
                             selectedItem: $selectedItem,
                             showingPhotoEditor: $showingPhotoEditor,
                             imageToEdit: $imageToEdit,
-                            showingCustomCamera: $showingCustomCamera
+                            showingCustomCamera: $showingCustomCamera,
+                            selectedFilter: $selectedFilter,
+                            showingFilterPreview: $showingFilterPreview,
+                            filterIntensity: $filterIntensity
                         )
+                        
+                        // Quick Filter Selection
+                        if viewModel.selectedImage != nil && viewModel.mediaType == .photo {
+                            QuickFilterSection(
+                                originalImage: viewModel.selectedImage,
+                                selectedFilter: $selectedFilter,
+                                filterIntensity: $filterIntensity,
+                                onFilterSelected: { filter, intensity in
+                                    applyQuickFilter(filter, intensity: intensity)
+                                }
+                            )
+                        }
                         
                         // Form Fields
                         VStack(spacing: MinimalDesign.Spacing.md) {
@@ -125,6 +143,36 @@ struct CreatePostView: View {
         }
     }
     
+    // MARK: - Private Methods
+    
+    private func applyQuickFilter(_ filterType: FilterType, intensity: Float) {
+        guard let originalImage = viewModel.selectedImage else { return }
+        
+        selectedFilter = filterType
+        filterIntensity = intensity
+        
+        if filterType == .none {
+            // オリジナルに戻す
+            return
+        }
+        
+        // フィルター適用
+        CoreImageManager.shared.applyFilter(
+            filterType,
+            to: CoreImageManager.shared.createCIImage(from: originalImage) ?? CIImage(),
+            intensity: intensity
+        ) { result in
+            switch result {
+            case .success(let filteredImage):
+                DispatchQueue.main.async {
+                    self.viewModel.selectedImage = filteredImage
+                }
+            case .failure(let error):
+                print("Filter application failed: \(error)")
+            }
+        }
+    }
+    
     // MARK: - Minimal Components
     
     // Header Component
@@ -176,6 +224,9 @@ struct CreatePostView: View {
         @Binding var showingPhotoEditor: Bool
         @Binding var imageToEdit: UIImage?
         @Binding var showingCustomCamera: Bool
+        @Binding var selectedFilter: FilterType
+        @Binding var showingFilterPreview: Bool
+        @Binding var filterIntensity: Float
         
         var body: some View {
             PhotosPicker(
@@ -208,16 +259,30 @@ struct CreatePostView: View {
                                     
                                     // Edit Button
                                     if mediaType == .photo {
-                                        Button(action: {
-                                            imageToEdit = image
-                                            showingPhotoEditor = true
-                                        }) {
-                                            Image(systemName: "slider.horizontal.3")
-                                                .font(.caption)
-                                                .foregroundColor(.white)
-                                                .padding(MinimalDesign.Spacing.xs)
-                                                .background(.black.opacity(0.7))
-                                                .cornerRadius(MinimalDesign.Radius.sm)
+                                        VStack(spacing: 4) {
+                                            Button(action: {
+                                                imageToEdit = image
+                                                showingPhotoEditor = true
+                                            }) {
+                                                Image(systemName: "slider.horizontal.3")
+                                                    .font(.caption)
+                                                    .foregroundColor(.white)
+                                                    .padding(MinimalDesign.Spacing.xs)
+                                                    .background(.black.opacity(0.7))
+                                                    .cornerRadius(MinimalDesign.Radius.sm)
+                                            }
+                                            
+                                            // Quick Filter Button
+                                            Button(action: {
+                                                showingFilterPreview.toggle()
+                                            }) {
+                                                Image(systemName: "camera.filters")
+                                                    .font(.caption)
+                                                    .foregroundColor(.white)
+                                                    .padding(MinimalDesign.Spacing.xs)
+                                                    .background(selectedFilter != .none ? Color.red.opacity(0.8) : .black.opacity(0.7))
+                                                    .cornerRadius(MinimalDesign.Radius.sm)
+                                            }
                                         }
                                     }
                                 }
@@ -261,6 +326,178 @@ struct CreatePostView: View {
                 }
             }
             .padding(.horizontal, MinimalDesign.Spacing.md)
+        }
+    }
+    
+    // Quick Filter Section Component  
+    struct QuickFilterSection: View {
+        let originalImage: UIImage?
+        @Binding var selectedFilter: FilterType
+        @Binding var filterIntensity: Float
+        let onFilterSelected: (FilterType, Float) -> Void
+        
+        // レトロ特化フィルターの選択肢
+        private let retroFilters: [FilterType] = [
+            .none, .vintage, .sepia, .kodakPortra, .fujiPro, 
+            .cinestill, .polaroid, .ilfordHP5, .retro
+        ]
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: MinimalDesign.Spacing.sm) {
+                HStack {
+                    Text("Retro Filters")
+                        .font(MinimalDesign.Typography.headline)
+                        .foregroundColor(MinimalDesign.Colors.primary)
+                    
+                    Spacer()
+                    
+                    if selectedFilter != .none {
+                        Button("Reset") {
+                            selectedFilter = .none
+                            onFilterSelected(.none, 0)
+                        }
+                        .font(MinimalDesign.Typography.caption)
+                        .foregroundColor(MinimalDesign.Colors.accent)
+                    }
+                }
+                .padding(.horizontal, MinimalDesign.Spacing.md)
+                
+                // フィルター選択
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: MinimalDesign.Spacing.sm) {
+                        ForEach(retroFilters, id: \.self) { filter in
+                            FilterQuickPreview(
+                                filter: filter,
+                                originalImage: originalImage,
+                                isSelected: selectedFilter == filter,
+                                onTap: {
+                                    let intensity = filter.defaultIntensity
+                                    selectedFilter = filter
+                                    filterIntensity = intensity
+                                    onFilterSelected(filter, intensity)
+                                }
+                            )
+                        }
+                    }
+                    .padding(.horizontal, MinimalDesign.Spacing.md)
+                }
+                
+                // 強度調整スライダー
+                if selectedFilter != .none && selectedFilter.isAdjustable {
+                    VStack(spacing: MinimalDesign.Spacing.xs) {
+                        HStack {
+                            Text("Intensity")
+                                .font(MinimalDesign.Typography.caption)
+                                .foregroundColor(MinimalDesign.Colors.secondary)
+                            
+                            Spacer()
+                            
+                            Text("\\(Int(filterIntensity * 100))%")
+                                .font(MinimalDesign.Typography.caption)
+                                .foregroundColor(MinimalDesign.Colors.secondary)
+                        }
+                        
+                        Slider(value: $filterIntensity, in: 0...1) { _ in
+                            onFilterSelected(selectedFilter, filterIntensity)
+                        }
+                        .accentColor(MinimalDesign.Colors.accent)
+                    }
+                    .padding(.horizontal, MinimalDesign.Spacing.md)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .padding(.vertical, MinimalDesign.Spacing.sm)
+            .background(MinimalDesign.Colors.secondaryBackground)
+            .cornerRadius(MinimalDesign.Radius.lg)
+            .padding(.horizontal, MinimalDesign.Spacing.md)
+        }
+    }
+    
+    // Filter Quick Preview Component
+    struct FilterQuickPreview: View {
+        let filter: FilterType
+        let originalImage: UIImage?
+        let isSelected: Bool
+        let onTap: () -> Void
+        
+        @State private var previewImage: UIImage?
+        
+        var body: some View {
+            VStack(spacing: MinimalDesign.Spacing.xs) {
+                Button(action: onTap) {
+                    ZStack {
+                        // プレビュー画像
+                        if let previewImage = previewImage {
+                            Image(uiImage: previewImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 60, height: 60)
+                                .clipShape(RoundedRectangle(cornerRadius: MinimalDesign.Radius.sm))
+                        } else if let originalImage = originalImage {
+                            Image(uiImage: originalImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 60, height: 60)
+                                .clipShape(RoundedRectangle(cornerRadius: MinimalDesign.Radius.sm))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: MinimalDesign.Radius.sm)
+                                        .fill(Color.black.opacity(0.3))
+                                )
+                        } else {
+                            RoundedRectangle(cornerRadius: MinimalDesign.Radius.sm)
+                                .fill(MinimalDesign.Colors.tertiaryBackground)
+                                .frame(width: 60, height: 60)
+                        }
+                        
+                        // 選択インジケーター
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: MinimalDesign.Radius.sm)
+                                .stroke(MinimalDesign.Colors.accent, lineWidth: 2)
+                                .frame(width: 60, height: 60)
+                        }
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                // フィルター名
+                Text(filter.rawValue)
+                    .font(MinimalDesign.Typography.caption)
+                    .foregroundColor(isSelected ? MinimalDesign.Colors.accent : MinimalDesign.Colors.secondary)
+                    .lineLimit(1)
+                    .frame(width: 60)
+            }
+            .onAppear {
+                generatePreview()
+            }
+        }
+        
+        private func generatePreview() {
+            guard let originalImage = originalImage,
+                  filter != .none else {
+                previewImage = originalImage
+                return
+            }
+            
+            // サムネイル生成
+            let thumbnailSize = CGSize(width: 120, height: 120)
+            let thumbnail = originalImage.resized(to: thumbnailSize)
+            
+            guard let ciImage = CoreImageManager.shared.createCIImage(from: thumbnail) else {
+                previewImage = thumbnail
+                return
+            }
+            
+            // フィルター適用
+            if let filtered = CoreImageManager.shared.applyFilterSync(
+                filter,
+                to: ciImage,
+                intensity: filter.previewIntensity
+            ) {
+                let context = CIContext()
+                if let cgImage = context.createCGImage(filtered, from: filtered.extent) {
+                    previewImage = UIImage(cgImage: cgImage)
+                }
+            }
         }
     }
     

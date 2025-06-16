@@ -36,8 +36,8 @@ final class AdvancedFilterManager {
     
     /// リアルタイム用の軽量フィルター適用
     func applyFilterRealtime(_ filterType: FilterType, to image: CIImage, intensity: Float) -> CIImage {
-        // キャッシュチェック
-        let cacheKey = "\(filterType.rawValue)_\(intensity)"
+        // キャッシュチェック（将来の実装用）
+        let _ = "\(filterType.rawValue)_\(intensity)"
         
         switch filterType {
         case .none:
@@ -79,7 +79,7 @@ final class AdvancedFilterManager {
     // MARK: - Fast Filter Implementations
     
     private func applyFastSepia(to image: CIImage, intensity: Float) -> CIImage {
-        if let filter = filterCache["sepia"] as? CIFilter {
+        if let filter = filterCache["sepia"] {
             filter.setValue(image, forKey: kCIInputImageKey)
             filter.setValue(intensity, forKey: kCIInputIntensityKey)
             return filter.outputImage ?? image
@@ -94,7 +94,7 @@ final class AdvancedFilterManager {
     }
     
     private func applyFastNoir(to image: CIImage, intensity: Float) -> CIImage {
-        if let filter = filterCache["noir"] as? CIFilter {
+        if let filter = filterCache["noir"] {
             filter.setValue(image, forKey: kCIInputImageKey)
             return filter.outputImage ?? image
         }
@@ -122,7 +122,7 @@ final class AdvancedFilterManager {
     }
     
     private func applyFastWarmth(to image: CIImage, intensity: Float) -> CIImage {
-        if let filter = filterCache["warm"] as? CIFilter {
+        if let filter = filterCache["warm"] {
             filter.setValue(image, forKey: kCIInputImageKey)
             filter.setValue(CIVector(x: 6500, y: 0), forKey: "inputNeutral")
             filter.setValue(CIVector(x: CGFloat(5000 - 1000 * intensity), y: 0), forKey: "inputTargetNeutral")
@@ -140,7 +140,7 @@ final class AdvancedFilterManager {
     }
     
     private func applyFastCool(to image: CIImage, intensity: Float) -> CIImage {
-        if let filter = filterCache["cool"] as? CIFilter {
+        if let filter = filterCache["cool"] {
             filter.setValue(image, forKey: kCIInputImageKey)
             filter.setValue(CIVector(x: 6500, y: 0), forKey: "inputNeutral")
             filter.setValue(CIVector(x: CGFloat(7500 + 1000 * intensity), y: 0), forKey: "inputTargetNeutral")

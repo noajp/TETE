@@ -230,7 +230,10 @@ final class ImageCacheManager: ObservableObject {
             return
         }
         
-        for case let fileURL as URL in enumerator {
+        // Convert to array to avoid async iteration issues
+        let allFiles = enumerator.allObjects.compactMap { $0 as? URL }
+        
+        for fileURL in allFiles {
             if let resourceValues = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]),
                let modificationDate = resourceValues.contentModificationDate,
                Date().timeIntervalSince(modificationDate) > cacheExpiration {
@@ -252,7 +255,10 @@ final class ImageCacheManager: ObservableObject {
         
         var files: [(url: URL, date: Date, size: Int)] = []
         
-        for case let fileURL as URL in enumerator {
+        // Convert to array to avoid async iteration issues
+        let allFiles = enumerator.allObjects.compactMap { $0 as? URL }
+        
+        for fileURL in allFiles {
             if let resourceValues = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey]),
                let modificationDate = resourceValues.contentModificationDate,
                let fileSize = resourceValues.fileSize {

@@ -95,11 +95,13 @@ final class ImageProcessor {
 }
 
 // MARK: - Export Quality
-enum ExportQuality {
+enum ExportQuality: CaseIterable, Identifiable {
     case maximum    // 元画質を維持
     case high      // 高品質
     case standard  // 標準品質
     case compressed // サイズ優先
+    
+    var id: String { description }
     
     var description: String {
         switch self {
@@ -129,5 +131,29 @@ final class ProcessingQueueManager {
     
     func cancelAllOperations() {
         processingQueue.cancelAllOperations()
+    }
+}
+
+// MARK: - UIImage Extensions
+extension UIImage {
+    /// 指定サイズにリサイズ
+    func resized(to newSize: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            self.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+    
+    /// アスペクト比を保持してリサイズ
+    func resizedAspectFit(to maxSize: CGSize) -> UIImage {
+        let scale = min(maxSize.width / size.width, maxSize.height / size.height)
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        return resized(to: newSize)
+    }
+    
+    /// 正方形にクロップ
+    func cropped(to rect: CGRect) -> UIImage? {
+        guard let cgImage = self.cgImage?.cropping(to: rect) else { return nil }
+        return UIImage(cgImage: cgImage, scale: scale, orientation: imageOrientation)
     }
 }

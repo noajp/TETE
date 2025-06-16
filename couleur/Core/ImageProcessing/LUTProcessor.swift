@@ -82,7 +82,7 @@ final class LUTProcessor {
     /// .cubeファイルを読み込み
     private func loadCubeFile(url: URL) -> Data? {
         do {
-            let content = try String(contentsOf: url)
+            let content = try String(contentsOf: url, encoding: .utf8)
             return parseCubeFile(content: content)
         } catch {
             print("❌ Failed to load cube file: \(error)")

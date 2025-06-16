@@ -94,7 +94,11 @@ class CustomCameraViewModel: NSObject, ObservableObject {
             session.addOutput(photoOutput)
             
             // 写真設定
-            photoOutput.isHighResolutionCaptureEnabled = true
+            if #available(iOS 16.0, *) {
+                photoOutput.maxPhotoDimensions = CMVideoDimensions(width: 4032, height: 3024)
+            } else {
+                photoOutput.isHighResolutionCaptureEnabled = true
+            }
             if photoOutput.availablePhotoCodecTypes.contains(.hevc) {
                 photoOutput.isDepthDataDeliveryEnabled = false
             }
@@ -241,7 +245,11 @@ class CustomCameraViewModel: NSObject, ObservableObject {
         }
         
         // 高解像度設定
-        settings.isHighResolutionPhotoEnabled = true
+        if #available(iOS 16.0, *) {
+            settings.maxPhotoDimensions = photoOutput.maxPhotoDimensions
+        } else {
+            settings.isHighResolutionPhotoEnabled = true
+        }
         
         // フォーマット設定
         if photoOutput.availablePhotoCodecTypes.contains(.hevc) {
@@ -263,23 +271,23 @@ class CustomCameraViewModel: NSObject, ObservableObject {
 // MARK: - AVCapturePhotoCaptureDelegate
 extension CustomCameraViewModel: AVCapturePhotoCaptureDelegate {
     
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+    nonisolated func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         
-        defer { isCapturing = false }
-        
-        if let error = error {
-            showCameraError("写真の撮影に失敗しました: \(error.localizedDescription)")
-            return
-        }
-        
-        guard let imageData = photo.fileDataRepresentation(),
-              let uiImage = UIImage(data: imageData) else {
-            showCameraError("画像データの処理に失敗しました")
-            return
-        }
-        
-        // フィルター適用
-        Task {
+        Task { @MainActor in
+            defer { isCapturing = false }
+            
+            if let error = error {
+                showCameraError("写真の撮影に失敗しました: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let imageData = photo.fileDataRepresentation(),
+                  let uiImage = UIImage(data: imageData) else {
+                showCameraError("画像データの処理に失敗しました")
+                return
+            }
+            
+            // フィルター適用
             let processedImage = await processImage(uiImage)
             photoCompletionHandler?(processedImage)
         }

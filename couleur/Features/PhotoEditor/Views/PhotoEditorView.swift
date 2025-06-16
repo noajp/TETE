@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreImage
 
 struct PhotoEditorView: View {
     // MARK: - Properties
@@ -14,9 +15,12 @@ struct PhotoEditorView: View {
     let onCancel: () -> Void
     
     @StateObject private var viewModel: PhotoEditorViewModel
+    @StateObject private var historyManager = EditHistoryManager()
     @State private var selectedFilter: FilterType = .none
     @State private var filterIntensity: Float = 1.0
     @State private var showingIntensitySlider = false
+    @State private var showingEnhancedFilters = false
+    @State private var showingExportOptions = false
     
     // MARK: - Initialization
     init(image: UIImage, 
@@ -44,8 +48,8 @@ struct PhotoEditorView: View {
                             .transition(.move(edge: .bottom))
                     }
                     
-                    // フィルター選択
-                    filterSelectionView
+                    // Enhanced Filter Selection
+                    enhancedFilterSelectionView
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -109,41 +113,41 @@ struct PhotoEditorView: View {
         .background(Color.black.opacity(0.8))
     }
     
-    private var filterSelectionView: some View {
-        VStack(spacing: 12) {
-            // フィルタータイプ選択
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(FilterType.allCases) { filterType in
-                        FilterThumbnailView(
-                            filterType: filterType,
-                            thumbnail: viewModel.filterThumbnails[filterType],
-                            isSelected: selectedFilter == filterType,
-                            onTap: {
-                                selectFilter(filterType)
-                            }
-                        )
-                    }
-                }
-                .padding(.horizontal)
+    private var enhancedFilterSelectionView: some View {
+        EnhancedFilterSelectionView(
+            historyManager: historyManager,
+            selectedFilter: $selectedFilter,
+            filterIntensity: $filterIntensity,
+            originalImage: originalImage,
+            onFilterApplied: { filter, intensity in
+                selectFilter(filter, intensity: intensity)
             }
-            .frame(height: 100)
-        }
-        .padding(.vertical)
-        .background(Color.black.opacity(0.9))
+        )
+        .frame(height: showingEnhancedFilters ? 250 : 180)
+        .animation(.easeInOut(duration: 0.3), value: showingEnhancedFilters)
     }
     
     // MARK: - Methods
     
-    private func selectFilter(_ filterType: FilterType) {
+    private func selectFilter(_ filterType: FilterType, intensity: Float? = nil) {
         selectedFilter = filterType
-        filterIntensity = filterType.defaultIntensity
+        filterIntensity = intensity ?? filterType.defaultIntensity
         
         withAnimation(.easeInOut(duration: 0.2)) {
             showingIntensitySlider = filterType.isAdjustable
         }
         
         viewModel.applyFilter(filterType, intensity: filterIntensity)
+        
+        // 編集セッションを保存
+        if filterType != .none {
+            let session = EditSession(
+                originalImage: originalImage,
+                filterType: filterType,
+                intensity: filterIntensity
+            )
+            historyManager.saveSession(session)
+        }
     }
 }
 
