@@ -1,6 +1,6 @@
 //
 //  CoreImageManager.swift
-//  foodai
+//  couleur
 //
 //  Core Image処理の中央管理クラス
 //
@@ -17,7 +17,7 @@ final class CoreImageManager {
     
     // MARK: - Properties
     private let context: CIContext
-    private let filterQueue = DispatchQueue(label: "com.foodai.filterQueue", qos: .userInitiated)
+    private let filterQueue = DispatchQueue(label: "com.couleur.filterQueue", qos: .userInitiated)
     private let lutProcessor = LUTProcessor()
     
     // MARK: - Initialization

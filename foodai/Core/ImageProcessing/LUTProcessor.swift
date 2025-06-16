@@ -1,6 +1,6 @@
 //
 //  LUTProcessor.swift
-//  foodai
+//  couleur
 //
 //  LUT（ルックアップテーブル）処理システム
 //

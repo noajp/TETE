@@ -1,6 +1,6 @@
 //
 //  ImageProcessor.swift
-//  foodai
+//  couleur
 //
 //  画像処理ユーティリティ
 //

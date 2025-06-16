@@ -1,6 +1,6 @@
 //
 //  CustomCameraView.swift
-//  foodai
+//  couleur
 //
 //  カスタムカメラUI実装
 //

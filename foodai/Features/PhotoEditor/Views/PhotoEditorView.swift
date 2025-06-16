@@ -1,6 +1,6 @@
 //
 //  PhotoEditorView.swift
-//  foodai
+//  couleur
 //
 //  写真編集画面
 //

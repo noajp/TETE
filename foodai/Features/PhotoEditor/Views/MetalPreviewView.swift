@@ -1,6 +1,6 @@
 //
 //  MetalPreviewView.swift
-//  foodai
+//  couleur
 //
 //  Metalを使用したリアルタイムプレビュー
 //

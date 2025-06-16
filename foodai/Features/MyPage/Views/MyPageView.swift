@@ -1,6 +1,6 @@
 //======================================================================
-// MARK: - MyPageView.swift (マイページ/アカウント画面)
-// Path: foodai/Features/MyPage/Views/MyPageView.swift
+// MARK: - MyPageView.swift (Minimal Design Profile)
+// Path: couleur/Features/MyPage/Views/MyPageView.swift
 //======================================================================
 import SwiftUI
 import PhotosUI
@@ -15,41 +15,43 @@ struct MyPageView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // プロフィールセクション
-                    ProfileSection(
-                        profile: viewModel.userProfile,
-                        isLoading: viewModel.isLoading,
-                        onEditProfile: { showEditProfile = true },
-                        selectedPhotoItem: $selectedPhotoItem
-                    )
-                    
-                    // 統計セクション
-                    StatsSection(
-                        postsCount: viewModel.postsCount,
-                        followersCount: viewModel.followersCount,
-                        followingCount: viewModel.followingCount,
-                        onFollowersTap: { viewModel.navigateToFollowers() },
-                        onFollowingTap: { viewModel.navigateToFollowing() }
-                    )
-                    
-                    // メニューリストから設定関連を削除
-                    // 設定ボタンは右上に移動
-                }
-                .padding()
-            }
-            .background(AppEnvironment.Colors.background)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showSettings = true }) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(AppEnvironment.Colors.textPrimary)
+            VStack(spacing: 0) {
+                // Custom Header
+                ModernProfileHeader(
+                    onSettings: { showSettings = true }
+                )
+                
+                Divider()
+                    .foregroundColor(MinimalDesign.Colors.border)
+                
+                // Content
+                ScrollView {
+                    LazyVStack(spacing: MinimalDesign.Spacing.xl) {
+                        // Profile Section
+                        ModernProfileSection(
+                            profile: viewModel.userProfile,
+                            isLoading: viewModel.isLoading,
+                            onEditProfile: { showEditProfile = true },
+                            selectedPhotoItem: $selectedPhotoItem
+                        )
+                        
+                        // Stats Section
+                        ModernStatsSection(
+                            postsCount: viewModel.postsCount,
+                            followersCount: viewModel.followersCount,
+                            followingCount: viewModel.followingCount,
+                            onFollowersTap: { viewModel.navigateToFollowers() },
+                            onFollowingTap: { viewModel.navigateToFollowing() }
+                        )
+                        
+                        // Posts Grid
+                        ModernPostsGrid()
                     }
+                    .padding(.vertical, MinimalDesign.Spacing.md)
                 }
             }
+            .background(MinimalDesign.Colors.background)
+            .navigationBarHidden(true)
             .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
             }
@@ -70,81 +72,109 @@ struct MyPageView: View {
     }
 }
 
-struct ProfileSection: View {
+// MARK: - Modern Profile Components
+
+struct ModernProfileHeader: View {
+    let onSettings: () -> Void
+    
+    var body: some View {
+        HStack {
+            Text("Profile")
+                .font(MinimalDesign.Typography.title)
+                .fontWeight(.light)
+                .foregroundColor(MinimalDesign.Colors.primary)
+            
+            Spacer()
+            
+            Button(action: onSettings) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundColor(MinimalDesign.Colors.primary)
+            }
+        }
+        .padding(.horizontal, MinimalDesign.Spacing.md)
+        .padding(.vertical, MinimalDesign.Spacing.sm)
+    }
+}
+
+struct ModernProfileSection: View {
     let profile: UserProfile?
     let isLoading: Bool
     let onEditProfile: () -> Void
     @Binding var selectedPhotoItem: PhotosPickerItem?
     
     var body: some View {
-        VStack(spacing: 16) {
-            // プロフィール画像
-            PhotosPicker(selection: $selectedPhotoItem,
-                        matching: .images,
-                        photoLibrary: .shared()) {
+        VStack(spacing: MinimalDesign.Spacing.lg) {
+            // Profile Image
+            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                 ZStack {
+                    // Avatar
                     if let avatarUrl = profile?.avatarUrl {
-                        RemoteImageView(imageURL: avatarUrl)
-                            .frame(width: 100, height: 100)
-                            .clipShape(Rectangle())
+                        FastAsyncImage(urlString: avatarUrl) {
+                            Circle()
+                                .fill(MinimalDesign.Colors.tertiaryBackground)
+                        }
+                        .frame(width: 120, height: 120)
+                        .clipped()
                     } else {
                         Rectangle()
-                            .fill(AppEnvironment.Colors.inputBackground)
-                            .frame(width: 100, height: 100)
+                            .fill(MinimalDesign.Colors.tertiaryBackground)
+                            .frame(width: 120, height: 120)
                             .overlay(
                                 Image(systemName: "person.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.black)
+                                    .font(.system(size: 48, weight: .light))
+                                    .foregroundColor(MinimalDesign.Colors.tertiary)
                             )
                     }
                     
-                    // カメラアイコンオーバーレイ
+                    // Edit Indicator
                     Rectangle()
-                        .fill(AppEnvironment.Colors.accentRed)
+                        .fill(MinimalDesign.Colors.primary)
                         .frame(width: 32, height: 32)
                         .overlay(
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 14))
+                            Image(systemName: "camera")
+                                .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.white)
                         )
-                        .offset(x: 34, y: 34)
+                        .offset(x: 44, y: 44)
                 }
             }
             .buttonStyle(PlainButtonStyle())
             
             if isLoading {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle())
+                    .scaleEffect(0.8)
             } else {
-                VStack(spacing: 8) {
-                    Text(profile?.displayName ?? profile?.username ?? "Username")
-                        .font(AppEnvironment.Fonts.primaryBold(size: 24))
-                        .foregroundColor(.black)
+                VStack(spacing: MinimalDesign.Spacing.sm) {
+                    // Name
+                    Text(profile?.displayName ?? profile?.username ?? "User")
+                        .font(MinimalDesign.Typography.title)
+                        .fontWeight(.medium)
+                        .foregroundColor(MinimalDesign.Colors.primary)
                     
+                    // Bio
                     if let bio = profile?.bio, !bio.isEmpty {
                         Text(bio)
-                            .font(AppEnvironment.Fonts.primary(size: 14))
-                            .foregroundColor(.black)
+                            .font(MinimalDesign.Typography.body)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
                             .multilineTextAlignment(.center)
-                            .lineLimit(2)
+                            .lineLimit(3)
+                            .padding(.horizontal, MinimalDesign.Spacing.lg)
                     }
                     
+                    // Edit Button
                     Button(action: onEditProfile) {
                         Text("Edit Profile")
-                            .font(AppEnvironment.Fonts.primary(size: 14))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Color.black)
+                            .minimalButton(style: .secondary)
                     }
                 }
             }
         }
-        .padding(.vertical, 8)
+        .padding(.horizontal, MinimalDesign.Spacing.md)
     }
 }
 
-struct StatsSection: View {
+struct ModernStatsSection: View {
     let postsCount: Int
     let followersCount: Int
     let followingCount: Int
@@ -153,23 +183,31 @@ struct StatsSection: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            StatItemView(value: "\(postsCount)", label: "Posts", action: nil)
+            ModernStatItem(value: "\(postsCount)", label: "Posts", action: nil)
+            
             Divider()
-                .frame(height: 40)
-            StatItemView(value: "\(followersCount)", label: "Followers", action: onFollowersTap)
+                .frame(height: 60)
+                .background(MinimalDesign.Colors.border)
+            
+            ModernStatItem(value: "\(followersCount)", label: "Followers", action: onFollowersTap)
+            
             Divider()
-                .frame(height: 40)
-            StatItemView(value: "\(followingCount)", label: "Following", action: onFollowingTap)
+                .frame(height: 60)
+                .background(MinimalDesign.Colors.border)
+            
+            ModernStatItem(value: "\(followingCount)", label: "Following", action: onFollowingTap)
         }
-        .background(Color.white)
+        .background(MinimalDesign.Colors.background)
+        .cornerRadius(MinimalDesign.Radius.lg)
         .overlay(
-            Rectangle()
-                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+            RoundedRectangle(cornerRadius: MinimalDesign.Radius.lg)
+                .stroke(MinimalDesign.Colors.border, lineWidth: 1)
         )
+        .padding(.horizontal, MinimalDesign.Spacing.md)
     }
 }
 
-struct StatItemView: View {
+struct ModernStatItem: View {
     let value: String
     let label: String
     let action: (() -> Void)?
@@ -187,22 +225,50 @@ struct StatItemView: View {
         }
     }
     
-    var statContent: some View {
-        VStack(spacing: 4) {
+    private var statContent: some View {
+        VStack(spacing: MinimalDesign.Spacing.xs) {
             Text(value)
-                .font(AppEnvironment.Fonts.primaryBold(size: 20))
-                .foregroundColor(.black)
+                .font(MinimalDesign.Typography.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(MinimalDesign.Colors.primary)
+            
             Text(label)
-                .font(AppEnvironment.Fonts.primary(size: 12))
-                .foregroundColor(.black)
+                .font(MinimalDesign.Typography.caption)
+                .foregroundColor(MinimalDesign.Colors.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, MinimalDesign.Spacing.md)
     }
 }
 
-// MenuSection, MenuRowView, SignOutButton コンポーネントを削除
-// 設定は右上のボタンから、Help & Support と Sign Out は設定画面内に移動
-
+struct ModernPostsGrid: View {
+    // Placeholder for user's posts grid
+    var body: some View {
+        VStack(spacing: MinimalDesign.Spacing.md) {
+            HStack {
+                Text("Posts")
+                    .font(MinimalDesign.Typography.headline)
+                    .foregroundColor(MinimalDesign.Colors.primary)
+                Spacer()
+            }
+            .padding(.horizontal, MinimalDesign.Spacing.md)
+            
+            // Placeholder grid
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: MinimalDesign.Spacing.xs),
+                GridItem(.flexible(), spacing: MinimalDesign.Spacing.xs),
+                GridItem(.flexible(), spacing: MinimalDesign.Spacing.xs)
+            ], spacing: MinimalDesign.Spacing.xs) {
+                ForEach(0..<9, id: \.self) { _ in
+                    Rectangle()
+                        .fill(MinimalDesign.Colors.tertiaryBackground)
+                        .aspectRatio(1, contentMode: .fit)
+                        .cornerRadius(MinimalDesign.Radius.sm)
+                }
+            }
+            .padding(.horizontal, MinimalDesign.Spacing.md)
+        }
+    }
+}
 
 

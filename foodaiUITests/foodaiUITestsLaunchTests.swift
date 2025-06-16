@@ -1,13 +1,13 @@
 //
-//  foodaiUITestsLaunchTests.swift
-//  foodaiUITests
+//  couleurUITestsLaunchTests.swift
+//  couleurUITests
 //
 //  Created by N on 2025/05/26.
 //
 
 import XCTest
 
-final class foodaiUITestsLaunchTests: XCTestCase {
+final class CouleurUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

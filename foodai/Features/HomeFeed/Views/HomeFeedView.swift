@@ -107,6 +107,187 @@ struct HomeFeedView: View {
     }
 }
 
+// MARK: - Modern Feed Components
+
+struct ModernFeedHeader: View {
+    @Binding var showGridMode: Bool
+    
+    var body: some View {
+        HStack {
+            Text("couleur")
+                .font(MinimalDesign.Typography.title)
+                .fontWeight(.light)
+                .foregroundColor(MinimalDesign.Colors.primary)
+            
+            Spacer()
+            
+            // View Mode Toggle
+            Button(action: { showGridMode.toggle() }) {
+                Image(systemName: showGridMode ? "rectangle.grid.1x2" : "square.grid.2x2")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundColor(MinimalDesign.Colors.primary)
+            }
+        }
+        .padding(.horizontal, MinimalDesign.Spacing.md)
+        .padding(.vertical, MinimalDesign.Spacing.sm)
+    }
+}
+
+struct ModernFeedCard: View {
+    let post: Post
+    let onLikeTapped: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // User Header
+            HStack(spacing: MinimalDesign.Spacing.sm) {
+                // Avatar
+                AsyncImage(url: URL(string: post.user?.avatarUrl ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Rectangle()
+                        .fill(MinimalDesign.Colors.tertiaryBackground)
+                }
+                .frame(width: 32, height: 32)
+                .clipped()
+                
+                // User Info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(post.user?.username ?? "unknown")
+                        .font(MinimalDesign.Typography.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(MinimalDesign.Colors.primary)
+                    
+                    if let location = post.locationName {
+                        Text(location)
+                            .font(MinimalDesign.Typography.caption)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                // Options
+                Button(action: {}) {
+                    Image(systemName: "ellipsis")
+                        .font(.caption)
+                        .foregroundColor(MinimalDesign.Colors.tertiary)
+                }
+            }
+            .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.vertical, MinimalDesign.Spacing.sm)
+            
+            // Image
+            AsyncImage(url: URL(string: post.mediaUrl)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Rectangle()
+                    .fill(MinimalDesign.Colors.tertiaryBackground)
+            }
+            .frame(maxHeight: 400)
+            .clipped()
+            
+            // Actions
+            HStack(spacing: MinimalDesign.Spacing.md) {
+                // Like Button
+                Button(action: onLikeTapped) {
+                    HStack(spacing: MinimalDesign.Spacing.xs) {
+                        Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                            .font(.system(size: 20, weight: .light))
+                            .foregroundColor(post.isLikedByMe ? .red : MinimalDesign.Colors.primary)
+                        
+                        if post.likeCount > 0 {
+                            Text("\(post.likeCount)")
+                                .font(MinimalDesign.Typography.caption)
+                                .foregroundColor(MinimalDesign.Colors.secondary)
+                        }
+                    }
+                }
+                
+                // Comment Button
+                Button(action: {}) {
+                    Image(systemName: "message")
+                        .font(.system(size: 20, weight: .light))
+                        .foregroundColor(MinimalDesign.Colors.primary)
+                }
+                
+                Spacer()
+                
+                // Time
+                Text(timeAgoString(from: post.createdAt))
+                    .font(MinimalDesign.Typography.caption)
+                    .foregroundColor(MinimalDesign.Colors.tertiary)
+            }
+            .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.vertical, MinimalDesign.Spacing.sm)
+            
+            // Caption
+            if let caption = post.caption, !caption.isEmpty {
+                HStack {
+                    Text(caption)
+                        .font(MinimalDesign.Typography.body)
+                        .foregroundColor(MinimalDesign.Colors.primary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                    Spacer()
+                }
+                .padding(.horizontal, MinimalDesign.Spacing.md)
+                .padding(.bottom, MinimalDesign.Spacing.sm)
+            }
+        }
+    }
+    
+    private func timeAgoString(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
+
+struct ModernGridCard: View {
+    let post: Post
+    
+    var body: some View {
+        ZStack {
+            AsyncImage(url: URL(string: post.mediaUrl)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Rectangle()
+                    .fill(MinimalDesign.Colors.tertiaryBackground)
+            }
+            .frame(height: 160)
+            .clipped()
+            
+            // Overlay
+            if post.isLikedByMe || post.likeCount > 0 {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        if post.isLikedByMe {
+                            Image(systemName: "heart.fill")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                        if post.likeCount > 0 {
+                            Text("\(post.likeCount)")
+                                .font(MinimalDesign.Typography.small)
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .padding(MinimalDesign.Spacing.xs)
+            }
+        }
+    }
+}
+
 // MARK: - Preview
 struct HomeFeedView_Previews: PreviewProvider {
     static var previews: some View {

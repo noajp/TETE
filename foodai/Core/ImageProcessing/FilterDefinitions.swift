@@ -1,6 +1,6 @@
 //
 //  FilterDefinitions.swift
-//  foodai
+//  couleur
 //
 //  フィルター定義とプリセット
 //

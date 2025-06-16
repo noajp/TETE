@@ -1,6 +1,6 @@
 //
 //  FilmGrainFilter.swift
-//  foodai
+//  couleur
 //
 //  リアルなフィルムグレインエフェクト
 //

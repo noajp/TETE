@@ -1,11 +1,11 @@
 //======================================================================
-// MARK: - foodaiApp.swift の更新
-// Path: foodai/foodaiApp.swift
+// MARK: - CouleurApp.swift
+// Path: couleur/CouleurApp.swift
 //======================================================================
 import SwiftUI
 
 @main
-struct foodaiApp: App {
+struct CouleurApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()

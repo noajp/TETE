@@ -1,6 +1,6 @@
 //
 //  AdvancedFilterManager.swift
-//  foodai
+//  couleur
 //
 //  高度なフィルター管理とリアルタイム処理
 //
