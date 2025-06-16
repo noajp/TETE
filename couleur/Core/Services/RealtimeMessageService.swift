@@ -21,8 +21,8 @@ final class RealtimeMessageService: ObservableObject {
     
     // MARK: - Private Properties
     private let client = SupabaseManager.shared.client
-    private var messageChannel: RealtimeChannel?
-    private var conversationChannel: RealtimeChannel?
+    private var messageChannel: RealtimeChannelV2?
+    private var conversationChannel: RealtimeChannelV2?
     private var typingTimer: Timer?
     private let currentUserId: String
     
@@ -32,9 +32,7 @@ final class RealtimeMessageService: ObservableObject {
     }
     
     deinit {
-        Task { @MainActor in
-            disconnect()
-        }
+        // Cleanup is handled by disconnect() being called explicitly
     }
     
     // MARK: - Public Methods
@@ -214,7 +212,7 @@ final class RealtimeMessageService: ObservableObject {
     /// タイピング状態を送信
     func sendTypingStatus(conversationId: String, isTyping: Bool) {
         // Send typing event through realtime channel
-        let payload: [String: Any] = [
+        let _ : [String: Any] = [
             "user_id": currentUserId,
             "conversation_id": conversationId,
             "is_typing": isTyping,
@@ -245,9 +243,9 @@ final class RealtimeMessageService: ObservableObject {
     }
     
     /// 接続を切断
-    func disconnect() {
-        messageChannel?.unsubscribe()
-        conversationChannel?.unsubscribe()
+    func disconnect() async {
+        await messageChannel?.unsubscribe()
+        await conversationChannel?.unsubscribe()
         messageChannel = nil
         conversationChannel = nil
         typingTimer?.invalidate()
@@ -259,13 +257,13 @@ final class RealtimeMessageService: ObservableObject {
     
     private func setupRealtimeChannels() async {
         // Simplified realtime setup
-        messageChannel = await client.realtime.channel("messages:\(currentUserId)")
+        messageChannel = client.realtimeV2.channel("messages:\(currentUserId)")
         
         // Basic subscription without complex filters for now
         await messageChannel?.subscribe()
         
         // Conversations channel
-        conversationChannel = await client.realtime.channel("conversations:\(currentUserId)")
+        conversationChannel = client.realtimeV2.channel("conversations:\(currentUserId)")
         await conversationChannel?.subscribe()
         
         print("🔗 Realtime channels subscribed")

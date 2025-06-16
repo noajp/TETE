@@ -108,7 +108,7 @@ class PhotoEditorViewModel: ObservableObject {
                     }
                     
                     // フィルター適用
-                    let filtered = self.coreImageManager.applyFilterSync(
+                    let filtered = await self.coreImageManager.applyFilterSync(
                         filterType,
                         to: thumbnailCIImage,
                         intensity: filterType.previewIntensity

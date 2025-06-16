@@ -129,10 +129,9 @@ class AuthManager: ObservableObject {
             return user.id.uuidString
         } catch {
             print("❌ Email sign up failed: \(error)")
+            isLoading = false
             throw error
         }
-        
-        isLoading = false
     }
     
     // MARK: - Google Authentication (Web OAuth)

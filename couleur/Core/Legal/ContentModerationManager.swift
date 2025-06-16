@@ -7,8 +7,18 @@
 
 import Foundation
 import SwiftUI
-import Vision
+@preconcurrency import Vision
 import CoreML
+
+// MARK: - Enums
+enum RestrictionReason: String, Codable {
+    case inappropriate = "inappropriate"
+    case ageRestricted = "age_restricted"
+    case violatesGuidelines = "violates_guidelines"
+    case reported = "reported"
+    case temporaryBan = "temporary_ban"
+    case permanentBan = "permanent_ban"
+}
 
 // MARK: - Content Moderation Manager
 @MainActor
@@ -34,6 +44,7 @@ final class ContentModerationManager: ObservableObject {
     // MARK: - Content Analysis
     
     /// 画像コンテンツの分析
+    @MainActor
     func analyzeImage(_ image: UIImage) async -> ContentAnalysisResult {
         return await withCheckedContinuation { continuation in
             guard let cgImage = image.cgImage else {
@@ -91,7 +102,7 @@ final class ContentModerationManager: ObservableObject {
             }
             
             // リクエストを実行
-            DispatchQueue.global(qos: .userInitiated).async {
+            Task { @MainActor in
                 do {
                     try handler.perform([adultContentRequest, textRequest, faceRequest])
                     
@@ -113,16 +124,12 @@ final class ContentModerationManager: ObservableObject {
                     // 最終的な信頼度を計算
                     analysisResult.confidence = self.calculateConfidence(for: analysisResult)
                     
-                    DispatchQueue.main.async {
-                        continuation.resume(returning: analysisResult)
-                    }
+                    continuation.resume(returning: analysisResult)
                     
                 } catch {
-                    DispatchQueue.main.async {
-                        analysisResult.flags.append(.technicalError)
-                        analysisResult.isAppropriate = false
-                        continuation.resume(returning: analysisResult)
-                    }
+                    analysisResult.flags.append(.technicalError)
+                    analysisResult.isAppropriate = false
+                    continuation.resume(returning: analysisResult)
                 }
             }
         }
@@ -459,7 +466,7 @@ final class ContentModerationManager: ObservableObject {
             return .urgent
         case .hateSpeech, .harassment:
             return .high
-        case .spam, .inappropriate:
+        case .spam, .inappropriateContent:
             return .medium
         default:
             return .low

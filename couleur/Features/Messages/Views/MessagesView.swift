@@ -59,7 +59,7 @@ struct MessagesView: View {
             .sheet(isPresented: $showNewMessage) {
                 NewMessageView { userId in
                     Task {
-                        if let conversationId = await viewModel.createNewConversation(with: userId) {
+                        if await viewModel.createNewConversation(with: userId) != nil {
                             // Reload conversations to show the new one
                             await viewModel.loadConversations()
                         }
@@ -330,7 +330,7 @@ struct ConversationPreview: View {
             
             // Name and time
             VStack(alignment: .leading, spacing: 2) {
-                Text(conversation.displayName(currentUserId: currentUserId) ?? "Unknown")
+                Text(conversation.displayName(currentUserId: currentUserId))
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(AppEnvironment.Colors.textPrimary)
                 

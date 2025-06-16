@@ -14,7 +14,6 @@
 		150C73B32DE757A40028288E /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 150C73B22DE757A40028288E /* Realtime */; };
 		150C73B52DE757A40028288E /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 150C73B42DE757A40028288E /* Storage */; };
 		150C73B72DE757A40028288E /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 150C73B62DE757A40028288E /* Supabase */; };
-		15C8FC332DEE004000134431 /* Info in Resources */ = {isa = PBXBuildFile; fileRef = 15C8FC322DEE003800134431 /* Info */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,68 +22,38 @@
 			containerPortal = 1550EF3F2DE4ADD0000DF47F /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 1550EF462DE4ADD0000DF47F;
-			remoteInfo = foodai;
+			remoteInfo = couleur;
 		};
 		1550EF5F2DE4ADD1000DF47F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1550EF3F2DE4ADD0000DF47F /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 1550EF462DE4ADD0000DF47F;
-			remoteInfo = foodai;
+			remoteInfo = couleur;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		150C066B2DEDF9E3008B1863 /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Secrets.plist; sourceTree = "<group>"; };
-		1550EF472DE4ADD0000DF47F /* foodai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = foodai.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1550EF542DE4ADD1000DF47F /* foodaiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foodaiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1550EF5E2DE4ADD1000DF47F /* foodaiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foodaiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		15C8FC322DEE003800134431 /* Info */ = {isa = PBXFileReference; lastKnownFileType = text; path = Info; sourceTree = "<group>"; };
+		1550EF472DE4ADD0000DF47F /* couleur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = couleur.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1550EF542DE4ADD1000DF47F /* couleurTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = couleurTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1550EF5E2DE4ADD1000DF47F /* couleurUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = couleurUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		150C066F2DEDFFA4008B1863 /* Exceptions for "foodai" folder in "foodai" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 1550EF462DE4ADD0000DF47F /* foodai */;
-		};
-		1550EF792DE4AE97000DF47F /* Exceptions for "foodai" folder in "foodaiTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ContentView.swift,
-			);
-			target = 1550EF532DE4ADD1000DF47F /* foodaiTests */;
-		};
-		1550EF7A2DE4AE97000DF47F /* Exceptions for "foodai" folder in "foodaiUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				ContentView.swift,
-			);
-			target = 1550EF5D2DE4ADD1000DF47F /* foodaiUITests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1550EF492DE4ADD0000DF47F /* foodai */ = {
+		1550EF492DE4ADD0000DF47F /* couleur */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				150C066F2DEDFFA4008B1863 /* Exceptions for "foodai" folder in "foodai" target */,
-				1550EF792DE4AE97000DF47F /* Exceptions for "foodai" folder in "foodaiTests" target */,
-				1550EF7A2DE4AE97000DF47F /* Exceptions for "foodai" folder in "foodaiUITests" target */,
-			);
-			path = foodai;
+			path = couleur;
 			sourceTree = "<group>";
 		};
-		1550EF572DE4ADD1000DF47F /* foodaiTests */ = {
+		1550EF572DE4ADD1000DF47F /* couleurTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = foodaiTests;
+			path = couleurTests;
 			sourceTree = "<group>";
 		};
-		1550EF612DE4ADD1000DF47F /* foodaiUITests */ = {
+		1550EF612DE4ADD1000DF47F /* couleurUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = foodaiUITests;
+			path = couleurUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -123,11 +92,10 @@
 		1550EF3E2DE4ADD0000DF47F = {
 			isa = PBXGroup;
 			children = (
-				15C8FC322DEE003800134431 /* Info */,
 				150C066B2DEDF9E3008B1863 /* Secrets.plist */,
-				1550EF492DE4ADD0000DF47F /* foodai */,
-				1550EF572DE4ADD1000DF47F /* foodaiTests */,
-				1550EF612DE4ADD1000DF47F /* foodaiUITests */,
+				1550EF492DE4ADD0000DF47F /* couleur */,
+				1550EF572DE4ADD1000DF47F /* couleurTests */,
+				1550EF612DE4ADD1000DF47F /* couleurUITests */,
 				1550EF482DE4ADD0000DF47F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -135,9 +103,9 @@
 		1550EF482DE4ADD0000DF47F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1550EF472DE4ADD0000DF47F /* foodai.app */,
-				1550EF542DE4ADD1000DF47F /* foodaiTests.xctest */,
-				1550EF5E2DE4ADD1000DF47F /* foodaiUITests.xctest */,
+				1550EF472DE4ADD0000DF47F /* couleur.app */,
+				1550EF542DE4ADD1000DF47F /* couleurTests.xctest */,
+				1550EF5E2DE4ADD1000DF47F /* couleurUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -145,9 +113,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1550EF462DE4ADD0000DF47F /* foodai */ = {
+		1550EF462DE4ADD0000DF47F /* couleur */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1550EF682DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "foodai" */;
+			buildConfigurationList = 1550EF682DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "couleur" */;
 			buildPhases = (
 				1550EF432DE4ADD0000DF47F /* Sources */,
 				1550EF442DE4ADD0000DF47F /* Frameworks */,
@@ -158,9 +126,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1550EF492DE4ADD0000DF47F /* foodai */,
+				1550EF492DE4ADD0000DF47F /* couleur */,
 			);
-			name = foodai;
+			name = couleur;
 			packageProductDependencies = (
 				150C73AC2DE757A40028288E /* Auth */,
 				150C73AE2DE757A40028288E /* Functions */,
@@ -169,13 +137,13 @@
 				150C73B42DE757A40028288E /* Storage */,
 				150C73B62DE757A40028288E /* Supabase */,
 			);
-			productName = foodai;
-			productReference = 1550EF472DE4ADD0000DF47F /* foodai.app */;
+			productName = couleur;
+			productReference = 1550EF472DE4ADD0000DF47F /* couleur.app */;
 			productType = "com.apple.product-type.application";
 		};
-		1550EF532DE4ADD1000DF47F /* foodaiTests */ = {
+		1550EF532DE4ADD1000DF47F /* couleurTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1550EF6B2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "foodaiTests" */;
+			buildConfigurationList = 1550EF6B2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "couleurTests" */;
 			buildPhases = (
 				1550EF502DE4ADD1000DF47F /* Sources */,
 				1550EF512DE4ADD1000DF47F /* Frameworks */,
@@ -187,18 +155,18 @@
 				1550EF562DE4ADD1000DF47F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				1550EF572DE4ADD1000DF47F /* foodaiTests */,
+				1550EF572DE4ADD1000DF47F /* couleurTests */,
 			);
-			name = foodaiTests;
+			name = couleurTests;
 			packageProductDependencies = (
 			);
-			productName = foodaiTests;
-			productReference = 1550EF542DE4ADD1000DF47F /* foodaiTests.xctest */;
+			productName = couleurTests;
+			productReference = 1550EF542DE4ADD1000DF47F /* couleurTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		1550EF5D2DE4ADD1000DF47F /* foodaiUITests */ = {
+		1550EF5D2DE4ADD1000DF47F /* couleurUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1550EF6E2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "foodaiUITests" */;
+			buildConfigurationList = 1550EF6E2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "couleurUITests" */;
 			buildPhases = (
 				1550EF5A2DE4ADD1000DF47F /* Sources */,
 				1550EF5B2DE4ADD1000DF47F /* Frameworks */,
@@ -210,13 +178,13 @@
 				1550EF602DE4ADD1000DF47F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				1550EF612DE4ADD1000DF47F /* foodaiUITests */,
+				1550EF612DE4ADD1000DF47F /* couleurUITests */,
 			);
-			name = foodaiUITests;
+			name = couleurUITests;
 			packageProductDependencies = (
 			);
-			productName = foodaiUITests;
-			productReference = 1550EF5E2DE4ADD1000DF47F /* foodaiUITests.xctest */;
+			productName = couleurUITests;
+			productReference = 1550EF5E2DE4ADD1000DF47F /* couleurUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -242,7 +210,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 1550EF422DE4ADD0000DF47F /* Build configuration list for PBXProject "foodai" */;
+			buildConfigurationList = 1550EF422DE4ADD0000DF47F /* Build configuration list for PBXProject "couleur" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -259,9 +227,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1550EF462DE4ADD0000DF47F /* foodai */,
-				1550EF532DE4ADD1000DF47F /* foodaiTests */,
-				1550EF5D2DE4ADD1000DF47F /* foodaiUITests */,
+				1550EF462DE4ADD0000DF47F /* couleur */,
+				1550EF532DE4ADD1000DF47F /* couleurTests */,
+				1550EF5D2DE4ADD1000DF47F /* couleurUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -271,7 +239,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				15C8FC332DEE004000134431 /* Info in Resources */,
 				150C066C2DEDF9F7008B1863 /* Secrets.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -319,12 +286,12 @@
 /* Begin PBXTargetDependency section */
 		1550EF562DE4ADD1000DF47F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 1550EF462DE4ADD0000DF47F /* foodai */;
+			target = 1550EF462DE4ADD0000DF47F /* couleur */;
 			targetProxy = 1550EF552DE4ADD1000DF47F /* PBXContainerItemProxy */;
 		};
 		1550EF602DE4ADD1000DF47F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 1550EF462DE4ADD0000DF47F /* foodai */;
+			target = 1550EF462DE4ADD0000DF47F /* couleur */;
 			targetProxy = 1550EF5F2DE4ADD1000DF47F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -460,17 +427,22 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Couleur;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to take photos for sharing with other users. Camera access is required to capture and share your moments.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "場所情報を共有するために、位置情報へのアクセスが必要です。";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app may use the microphone for video recording features.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "写真を選択するために、フォトライブラリへのアクセスが必要です。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.takanorinakano.foodai;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takanorinakano.couleur;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljY2psa2N4cXlieHFld3pjaGVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NzUzMjUsImV4cCI6MjA2NDQ1MTMyNX0.sKAfALsKR6wzYfhu3HybrWVl3Pi5qttL6ychxg7L05Q;
 				SUPABASE_URL = "https://yccjlkcxqybxqewzchen.supabase.co";
@@ -489,17 +461,22 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Couleur;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to take photos for sharing with other users. Camera access is required to capture and share your moments.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "場所情報を共有するために、位置情報へのアクセスが必要です。";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app may use the microphone for video recording features.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "写真を選択するために、フォトライブラリへのアクセスが必要です。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.takanorinakano.foodai;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takanorinakano.couleur;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljY2psa2N4cXlieHFld3pjaGVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NzUzMjUsImV4cCI6MjA2NDQ1MTMyNX0.sKAfALsKR6wzYfhu3HybrWVl3Pi5qttL6ychxg7L05Q;
 				SUPABASE_URL = "https://yccjlkcxqybxqewzchen.supabase.co";
@@ -518,12 +495,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = a.foodaiTests;
+				PRODUCT_BUNDLE_IDENTIFIER = a.couleurTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/foodai.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/foodai";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/couleur.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/couleur";
 			};
 			name = Debug;
 		};
@@ -536,12 +513,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = a.foodaiTests;
+				PRODUCT_BUNDLE_IDENTIFIER = a.couleurTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/foodai.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/foodai";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/couleur.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/couleur";
 			};
 			name = Release;
 		};
@@ -552,12 +529,12 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = a.foodaiUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = a.couleurUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = foodai;
+				TEST_TARGET_NAME = couleur;
 			};
 			name = Debug;
 		};
@@ -568,19 +545,19 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = a.foodaiUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = a.couleurUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = foodai;
+				TEST_TARGET_NAME = couleur;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1550EF422DE4ADD0000DF47F /* Build configuration list for PBXProject "foodai" */ = {
+		1550EF422DE4ADD0000DF47F /* Build configuration list for PBXProject "couleur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1550EF662DE4ADD1000DF47F /* Debug */,
@@ -589,7 +566,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		1550EF682DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "foodai" */ = {
+		1550EF682DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "couleur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1550EF692DE4ADD1000DF47F /* Debug */,
@@ -598,7 +575,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		1550EF6B2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "foodaiTests" */ = {
+		1550EF6B2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "couleurTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1550EF6C2DE4ADD1000DF47F /* Debug */,
@@ -607,7 +584,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		1550EF6E2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "foodaiUITests" */ = {
+		1550EF6E2DE4ADD1000DF47F /* Build configuration list for PBXNativeTarget "couleurUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1550EF6F2DE4ADD1000DF47F /* Debug */,
@@ -624,7 +601,7 @@
 			repositoryURL = "https://github.com/supabase/supabase-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.5.1;
+				minimumVersion = 2.29.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

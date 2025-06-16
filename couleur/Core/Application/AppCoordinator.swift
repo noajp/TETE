@@ -43,9 +43,11 @@ final class AppCoordinator: ObservableObject {
     
     /// アプリケーション終了時のクリーンアップ
     func cleanup() {
-        realtimeMessageService?.disconnect()
-        cancellables.removeAll()
-        print("🧹 AppCoordinator cleaned up")
+        Task {
+            await realtimeMessageService?.disconnect()
+            cancellables.removeAll()
+            print("🧹 AppCoordinator cleaned up")
+        }
     }
     
     /// タブを切り替え
@@ -118,7 +120,7 @@ final class AppCoordinator: ObservableObject {
     private func optimizeForFeed() {
         // Optimize for scrolling performance
         Task {
-            await imageCache.clearCache() // Clear old cache
+            imageCache.clearCache() // Clear old cache
         }
     }
     
