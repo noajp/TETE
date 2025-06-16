@@ -16,23 +16,12 @@ struct SophisticatedImageView: View {
     var body: some View {
         GeometryReader { geometry in
             AsyncImage(url: URL(string: imageUrl)) { image in
-                ZStack {
-                    // Blurred background
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: geometry.size.width, height: height)
-                        .clipped()
-                        .blur(radius: 20)
-                        .opacity(0.6)
-                    
-                    // Main image - properly scaled
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: geometry.size.width, height: height)
-                        .clipped()
-                }
+                // Main image - properly scaled
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: geometry.size.width, height: height)
+                    .clipped()
             } placeholder: {
                 Rectangle()
                     .fill(Color.gray.opacity(0.2))
@@ -44,7 +33,6 @@ struct SophisticatedImageView: View {
             }
         }
         .frame(height: height)
-        .cornerRadius(12)
     }
 }
 
@@ -60,23 +48,12 @@ struct SophisticatedUIImageView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Blurred background
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geometry.size.width, height: height)
-                    .clipped()
-                    .blur(radius: 20)
-                    .opacity(0.6)
-                
-                // Main image - properly scaled
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: geometry.size.width, height: height)
-                    .clipped()
-            }
+            // Main image - properly scaled
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: geometry.size.width, height: height)
+                .clipped()
         }
         .frame(height: height)
         .cornerRadius(12)
