@@ -4,7 +4,7 @@
 //======================================================================
 import Foundation
 
-struct Post: Identifiable, Codable {
+struct Post: Identifiable, Codable, Hashable {
     let id: String
     let userId: String
     let mediaUrl: String
@@ -45,6 +45,16 @@ struct Post: Identifiable, Codable {
         case likeCount = "like_count"
         case commentCount = "comment_count"
         case createdAt = "created_at"
+    }
+    
+    // MARK: - Hashable Implementation
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Post, rhs: Post) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 

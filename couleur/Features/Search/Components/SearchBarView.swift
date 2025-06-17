@@ -11,12 +11,12 @@ struct SearchBarView: View {
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(AppEnvironment.Colors.textSecondary)
+                .foregroundColor(MinimalDesign.Colors.secondary)
                 .padding(.leading, 12)
             
             TextField("Search for restaurants or cuisines", text: $searchText)
                 .font(AppEnvironment.Fonts.primary(size: 16))
-                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                .foregroundColor(MinimalDesign.Colors.primary)
                 .onSubmit {
                     onSearch(searchText)
                 }
@@ -24,13 +24,13 @@ struct SearchBarView: View {
             if !searchText.isEmpty {
                 Button(action: { searchText = "" }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(AppEnvironment.Colors.textSecondary)
+                        .foregroundColor(MinimalDesign.Colors.secondary)
                 }
                 .padding(.trailing, 12)
             }
         }
         .frame(height: 48)
-        .background(AppEnvironment.Colors.inputBackground)
+        .background(MinimalDesign.Colors.secondaryBackground)
         .cornerRadius(12)
     }
 }

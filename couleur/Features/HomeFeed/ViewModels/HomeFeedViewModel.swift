@@ -1,70 +1,91 @@
 //======================================================================
-// MARK: - 更新版 HomeFeedViewModel（SNS用）
-// Path: foodai/Features/HomeFeed/ViewModels/HomeFeedViewModel.swift
+// MARK: - HomeFeedViewModel
+// Purpose: Manages the main feed display and user interactions
+// Dependencies: PostService, AuthManager
 //======================================================================
 import SwiftUI
 import Combine
 
 @MainActor
-class HomeFeedViewModel: ObservableObject {
+final class HomeFeedViewModel: BaseViewModelClass {
+    // MARK: - Published Properties
+    
+    /// Current posts in the feed
     @Published var posts: [Post] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
     
-    private let postService = PostService()
-    private var currentUserId: String?
+    // MARK: - Dependencies
     
-    init() {
-        // TODO: Get current user ID from AuthManager
-        currentUserId = "user-1" // Mock for now
-        loadPosts()
+    private let postService: PostServiceProtocol
+    private let authManager: any AuthManagerProtocol
+    
+    // MARK: - Private Properties
+    
+    private var currentUserId: String? {
+        authManager.currentUser?.id
     }
     
-    func loadPosts() {
-        isLoading = true
-        errorMessage = nil
+    // MARK: - Initialization
+    
+    init(
+        postService: PostServiceProtocol? = nil,
+        authManager: (any AuthManagerProtocol)? = nil
+    ) {
+        self.postService = postService ?? PostService()
+        self.authManager = authManager ?? (DependencyContainer.shared.resolve((any AuthManagerProtocol).self) ?? AuthManager.shared)
+        super.init()
         
         Task {
-            do {
-                let fetchedPosts = try await postService.fetchFeedPosts(currentUserId: currentUserId)
-                self.posts = fetchedPosts
-                self.isLoading = false
-            } catch {
-                self.errorMessage = "投稿の読み込みに失敗しました"
-                self.isLoading = false
-                print("❌ Error loading posts: \(error)")
-            }
+            await loadPosts()
+        }
+    }
+    
+    // MARK: - Public Methods
+    
+    /// Loads posts for the main feed
+    func loadPosts() async {
+        showLoading()
+        
+        do {
+            let fetchedPosts = try await postService.fetchFeedPosts(currentUserId: currentUserId)
+            posts = fetchedPosts
+            hideLoading()
+            Logger.shared.info("Loaded \(fetchedPosts.count) posts")
+        } catch {
+            handleError(error)
         }
     }
     
     // MARK: - Like Operations
     
-    func toggleLike(for post: Post) {
+    /// Toggles like status for a post with optimistic UI updates
+    func toggleLike(for post: Post) async {
         guard let userId = currentUserId else {
-            errorMessage = "ログインが必要です"
+            handleError(ViewModelError.unauthorized)
             return
         }
         
         // Optimistic UI update
-        let newLikeStatus = !post.isLikedByMe
+        let originalLikeStatus = post.isLikedByMe
+        let newLikeStatus = !originalLikeStatus
         updatePostLikeStatus(postId: post.id, isLiked: newLikeStatus)
         
-        Task {
-            do {
-                let isNowLiked = try await postService.toggleLike(
-                    postId: post.id,
-                    userId: userId
-                )
-                
-                // Only update like status, not count (to avoid double counting)
+        do {
+            let isNowLiked = try await postService.toggleLike(
+                postId: post.id,
+                userId: userId
+            )
+            
+            // Verify optimistic update was correct
+            if isNowLiked != newLikeStatus {
                 updatePostLikeStatusOnly(postId: post.id, isLiked: isNowLiked)
-                
-            } catch {
-                // Revert optimistic update on error
-                updatePostLikeStatus(postId: post.id, isLiked: post.isLikedByMe)
-                errorMessage = "いいねの更新に失敗しました"
-                print("❌ Error toggling like: \(error)")
             }
+            
+            Logger.shared.info("Toggled like for post \(post.id): \(isNowLiked)")
+            
+        } catch {
+            // Revert optimistic update on error
+            updatePostLikeStatus(postId: post.id, isLiked: originalLikeStatus)
+            handleError(error)
         }
     }
     
@@ -88,13 +109,11 @@ class HomeFeedViewModel: ObservableObject {
         }
     }
     
-    func refreshPosts() {
-        loadPosts()
-    }
+    // MARK: - Refresh
     
-    func setCurrentUserId(_ userId: String) {
-        currentUserId = userId
-        loadPosts() // Reload to get correct like status
+    /// Refreshes the feed
+    func refreshPosts() async {
+        await loadPosts()
     }
 }
 

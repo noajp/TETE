@@ -44,8 +44,8 @@ struct MyPageView: View {
                             onFollowingTap: { viewModel.navigateToFollowing() }
                         )
                         
-                        // Posts Grid
-                        ModernPostsGrid()
+                        // Posts Tab Section
+                        ModernPostsTabSection(posts: viewModel.userPosts)
                     }
                     .padding(.vertical, MinimalDesign.Spacing.md)
                 }
@@ -111,7 +111,7 @@ struct ModernProfileSection: View {
                     // Avatar
                     if let avatarUrl = profile?.avatarUrl {
                         FastAsyncImage(urlString: avatarUrl) {
-                            Circle()
+                            Rectangle()
                                 .fill(MinimalDesign.Colors.tertiaryBackground)
                         }
                         .frame(width: 120, height: 120)
@@ -185,22 +185,21 @@ struct ModernStatsSection: View {
         HStack(spacing: 0) {
             ModernStatItem(value: "\(postsCount)", label: "Posts", action: nil)
             
-            Divider()
-                .frame(height: 60)
-                .background(MinimalDesign.Colors.border)
+            Rectangle()
+                .fill(MinimalDesign.Colors.border)
+                .frame(width: 1, height: 48)
             
             ModernStatItem(value: "\(followersCount)", label: "Followers", action: onFollowersTap)
             
-            Divider()
-                .frame(height: 60)
-                .background(MinimalDesign.Colors.border)
+            Rectangle()
+                .fill(MinimalDesign.Colors.border)
+                .frame(width: 1, height: 48)
             
             ModernStatItem(value: "\(followingCount)", label: "Following", action: onFollowingTap)
         }
         .background(MinimalDesign.Colors.background)
-        .cornerRadius(MinimalDesign.Radius.lg)
         .overlay(
-            RoundedRectangle(cornerRadius: MinimalDesign.Radius.lg)
+            Rectangle()
                 .stroke(MinimalDesign.Colors.border, lineWidth: 1)
         )
         .padding(.horizontal, MinimalDesign.Spacing.md)
@@ -241,32 +240,280 @@ struct ModernStatItem: View {
     }
 }
 
-struct ModernPostsGrid: View {
-    // Placeholder for user's posts grid
+struct ModernPostsTabSection: View {
+    @State private var showGridMode = false
+    @State private var selectedTab: PostTab = .posts
+    let posts: [Post]
+    
+    enum PostTab: String, CaseIterable {
+        case posts = "posts"
+        case magazine = "book"
+    }
+    
     var body: some View {
-        VStack(spacing: MinimalDesign.Spacing.md) {
-            HStack {
-                Text("Posts")
-                    .font(MinimalDesign.Typography.headline)
-                    .foregroundColor(MinimalDesign.Colors.primary)
-                Spacer()
+        VStack(spacing: 0) {
+            // Tab Bar
+            HStack(spacing: 0) {
+                // Posts button with toggle functionality
+                Button(action: {
+                    if selectedTab == .posts {
+                        showGridMode.toggle()
+                    } else {
+                        selectedTab = .posts
+                    }
+                }) {
+                    Group {
+                        if showGridMode && selectedTab == .posts {
+                            // Grid mode - 4 small squares
+                            VStack(spacing: 2) {
+                                HStack(spacing: 2) {
+                                    Rectangle()
+                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .frame(width: 8, height: 8)
+                                    Rectangle()
+                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .frame(width: 8, height: 8)
+                                }
+                                HStack(spacing: 2) {
+                                    Rectangle()
+                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .frame(width: 8, height: 8)
+                                    Rectangle()
+                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .frame(width: 8, height: 8)
+                                }
+                            }
+                        } else {
+                            // Single mode - 1 large square
+                            Rectangle()
+                                .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                .frame(width: 20, height: 20)
+                        }
+                    }
+                    .frame(height: 30)
+                }
+                .frame(maxWidth: .infinity)
+                
+                // Magazine button
+                Button(action: { selectedTab = .magazine }) {
+                    Image(systemName: selectedTab == .magazine ? "book.fill" : "book")
+                        .font(.system(size: 20, weight: .regular))
+                        .foregroundColor(selectedTab == .magazine ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                        .frame(height: 30)
+                }
+                .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.vertical, MinimalDesign.Spacing.md)
             
-            // Placeholder grid
+            // Content based on selected tab
+            Group {
+                switch selectedTab {
+                case .posts:
+                    if showGridMode {
+                        GridView(posts: posts)
+                    } else {
+                        SingleCardGridView(posts: posts)
+                    }
+                case .magazine:
+                    MagazineView(posts: posts)
+                }
+            }
+            .padding(.top, MinimalDesign.Spacing.md)
+        }
+    }
+}
+
+struct SingleCardGridView: View {
+    let posts: [Post]
+    
+    var body: some View {
+        if posts.isEmpty {
+            VStack(spacing: MinimalDesign.Spacing.lg) {
+                Image(systemName: "photo.on.rectangle.angled")
+                    .font(.system(size: 48, weight: .thin))
+                    .foregroundColor(MinimalDesign.Colors.tertiary)
+                
+                Text("まだ投稿がありません")
+                    .font(MinimalDesign.Typography.body)
+                    .foregroundColor(MinimalDesign.Colors.secondary)
+            }
+            .frame(height: 300)
+        } else {
+            ScrollView {
+                LazyVStack(spacing: MinimalDesign.Spacing.lg) {
+                    ForEach(posts) { post in
+                        VStack(spacing: 0) {
+                            // User header
+                            HStack(spacing: MinimalDesign.Spacing.sm) {
+                                // Avatar
+                                if let avatarUrl = post.user?.avatarUrl {
+                                    FastAsyncImage(urlString: avatarUrl) {
+                                        Rectangle()
+                                            .fill(MinimalDesign.Colors.tertiaryBackground)
+                                    }
+                                    .frame(width: 32, height: 32)
+                                    .clipped()
+                                } else {
+                                    Rectangle()
+                                        .fill(MinimalDesign.Colors.tertiaryBackground)
+                                        .frame(width: 32, height: 32)
+                                        .overlay(
+                                            Image(systemName: "person.fill")
+                                                .font(.system(size: 16))
+                                                .foregroundColor(MinimalDesign.Colors.tertiary)
+                                        )
+                                }
+                                
+                                Text(post.user?.username ?? "unknown")
+                                    .font(MinimalDesign.Typography.body)
+                                    .foregroundColor(MinimalDesign.Colors.primary)
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal, MinimalDesign.Spacing.md)
+                            .padding(.vertical, MinimalDesign.Spacing.sm)
+                            
+                            // Image
+                            FastAsyncImage(urlString: post.mediaUrl) {
+                                Rectangle()
+                                    .fill(MinimalDesign.Colors.tertiaryBackground)
+                            }
+                            .aspectRatio(1, contentMode: .fill)
+                            .frame(width: UIScreen.main.bounds.width)
+                            .clipped()
+                            
+                            // Actions
+                            HStack(spacing: MinimalDesign.Spacing.md) {
+                                Button(action: {}) {
+                                    HStack(spacing: MinimalDesign.Spacing.xs) {
+                                        Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                                            .font(.system(size: 24, weight: .regular))
+                                            .foregroundColor(post.isLikedByMe ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                                        
+                                        if post.likeCount > 0 {
+                                            Text("\(post.likeCount)")
+                                                .font(MinimalDesign.Typography.body)
+                                                .foregroundColor(MinimalDesign.Colors.primary)
+                                        }
+                                    }
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                Button(action: {}) {
+                                    Image(systemName: "message")
+                                        .font(.system(size: 24, weight: .regular))
+                                        .foregroundColor(MinimalDesign.Colors.primary)
+                                }
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal, MinimalDesign.Spacing.md)
+                            .padding(.vertical, MinimalDesign.Spacing.sm)
+                            
+                            // Caption
+                            if let caption = post.caption, !caption.isEmpty {
+                                Text(caption)
+                                    .font(MinimalDesign.Typography.body)
+                                    .foregroundColor(MinimalDesign.Colors.primary)
+                                    .lineLimit(3)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, MinimalDesign.Spacing.md)
+                                    .padding(.bottom, MinimalDesign.Spacing.md)
+                            }
+                        }
+                        .background(MinimalDesign.Colors.background)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct GridView: View {
+    let posts: [Post]
+    
+    var body: some View {
+        if posts.isEmpty {
+            VStack(spacing: MinimalDesign.Spacing.lg) {
+                Image(systemName: "square.grid.2x2")
+                    .font(.system(size: 48, weight: .thin))
+                    .foregroundColor(MinimalDesign.Colors.tertiary)
+                
+                Text("まだ投稿がありません")
+                    .font(MinimalDesign.Typography.body)
+                    .foregroundColor(MinimalDesign.Colors.secondary)
+            }
+            .frame(height: 300)
+        } else {
             LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: MinimalDesign.Spacing.xs),
                 GridItem(.flexible(), spacing: MinimalDesign.Spacing.xs),
                 GridItem(.flexible(), spacing: MinimalDesign.Spacing.xs)
             ], spacing: MinimalDesign.Spacing.xs) {
-                ForEach(0..<9, id: \.self) { _ in
-                    Rectangle()
-                        .fill(MinimalDesign.Colors.tertiaryBackground)
-                        .aspectRatio(1, contentMode: .fit)
-                        .cornerRadius(MinimalDesign.Radius.sm)
+                ForEach(posts) { post in
+                    FastAsyncImage(urlString: post.mediaUrl) {
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiaryBackground)
+                    }
+                    .aspectRatio(1, contentMode: .fill)
+                    .clipped()
                 }
             }
             .padding(.horizontal, MinimalDesign.Spacing.md)
+        }
+    }
+}
+
+struct MagazineView: View {
+    let posts: [Post]
+    
+    var body: some View {
+        if posts.isEmpty {
+            VStack(spacing: MinimalDesign.Spacing.lg) {
+                Image(systemName: "book")
+                    .font(.system(size: 48, weight: .thin))
+                    .foregroundColor(MinimalDesign.Colors.tertiary)
+                
+                Text("まだ投稿がありません")
+                    .font(MinimalDesign.Typography.body)
+                    .foregroundColor(MinimalDesign.Colors.secondary)
+            }
+            .frame(height: 300)
+        } else {
+            ScrollView {
+                VStack(spacing: MinimalDesign.Spacing.lg) {
+                    ForEach(posts) { post in
+                        HStack(spacing: MinimalDesign.Spacing.md) {
+                            FastAsyncImage(urlString: post.mediaUrl) {
+                                Rectangle()
+                                    .fill(MinimalDesign.Colors.tertiaryBackground)
+                            }
+                            .frame(width: 100, height: 130)
+                            .clipped()
+                            
+                            VStack(alignment: .leading, spacing: MinimalDesign.Spacing.sm) {
+                                Text(post.user?.displayName ?? post.user?.username ?? "Unknown")
+                                    .font(MinimalDesign.Typography.headline)
+                                    .foregroundColor(MinimalDesign.Colors.primary)
+                                    .lineLimit(1)
+                                
+                                if let caption = post.caption {
+                                    Text(caption)
+                                        .font(MinimalDesign.Typography.body)
+                                        .foregroundColor(MinimalDesign.Colors.secondary)
+                                        .lineLimit(3)
+                                }
+                                
+                                Spacer()
+                            }
+                            
+                            Spacer()
+                        }
+                        .frame(height: 130)
+                        .padding(.horizontal, MinimalDesign.Spacing.md)
+                    }
+                }
+            }
         }
     }
 }

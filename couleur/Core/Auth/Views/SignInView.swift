@@ -86,7 +86,7 @@ struct SignInView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
-                            .background(AppEnvironment.Colors.accentRed)
+                            .background(MinimalDesign.Colors.accentRed)
                     }
                     .disabled(email.isEmpty || password.isEmpty || authManager.isLoading)
                     

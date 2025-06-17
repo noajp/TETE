@@ -20,7 +20,7 @@ struct EditProfileView: View {
                 Section(header: Text("Basic Information")) {
                     HStack {
                         Text("Username")
-                            .foregroundColor(AppEnvironment.Colors.textSecondary)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
                         TextField("@username", text: $username)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
@@ -31,7 +31,7 @@ struct EditProfileView: View {
                     
                     HStack {
                         Text("Display Name")
-                            .foregroundColor(AppEnvironment.Colors.textSecondary)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
                         TextField("Your name", text: $displayName)
                     }
                 }
@@ -45,7 +45,7 @@ struct EditProfileView: View {
                 Section {
                     Text("Maximum 200 characters")
                         .font(.caption)
-                        .foregroundColor(AppEnvironment.Colors.textSecondary)
+                        .foregroundColor(MinimalDesign.Colors.secondary)
                 }
             }
             .navigationTitle("Edit Profile")
@@ -55,7 +55,7 @@ struct EditProfileView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
+                    .foregroundColor(MinimalDesign.Colors.accentRed)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -63,13 +63,13 @@ struct EditProfileView: View {
                         saveProfile()
                     }
                     .fontWeight(.semibold)
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
+                    .foregroundColor(MinimalDesign.Colors.accentRed)
                     .disabled(username.isEmpty || displayName.isEmpty)
                 }
             }
             .alert("Error", isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
+                    .foregroundColor(MinimalDesign.Colors.accentRed)
             } message: {
                 Text(alertMessage)
             }

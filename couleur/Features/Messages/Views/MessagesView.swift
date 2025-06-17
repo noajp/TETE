@@ -49,7 +49,7 @@ struct MessagesView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: { showNewMessage = true }) {
                         Image(systemName: "square.and.pencil")
-                            .foregroundColor(AppEnvironment.Colors.accentRed)
+                            .foregroundColor(MinimalDesign.Colors.accentRed)
                     }
                 }
             }
@@ -67,7 +67,7 @@ struct MessagesView: View {
                 }
             }
         }
-        .accentColor(AppEnvironment.Colors.accentRed)
+        .accentColor(MinimalDesign.Colors.accentRed)
     }
 }
 
@@ -93,7 +93,7 @@ struct ConversationRow: View {
                     .frame(width: 50, height: 50)
                     .overlay(
                         Image(systemName: "person.fill")
-                            .foregroundColor(AppEnvironment.Colors.textSecondary)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
                     )
             }
             
@@ -101,18 +101,18 @@ struct ConversationRow: View {
                 HStack {
                     Text(conversation.displayName(currentUserId: authManager.currentUser?.id))
                         .font(.system(size: 16, weight: hasUnread ? .semibold : .regular))
-                        .foregroundColor(AppEnvironment.Colors.textPrimary)
+                        .foregroundColor(MinimalDesign.Colors.primary)
                     
                     Spacer()
                     
                     Text(timestamp)
                         .font(.system(size: 14))
-                        .foregroundColor(AppEnvironment.Colors.textSecondary)
+                        .foregroundColor(MinimalDesign.Colors.secondary)
                 }
                 
                 Text(conversation.lastMessagePreview ?? "Start a conversation")
                     .font(.system(size: 14))
-                    .foregroundColor(hasUnread ? AppEnvironment.Colors.textPrimary : AppEnvironment.Colors.textSecondary)
+                    .foregroundColor(hasUnread ? MinimalDesign.Colors.primary : MinimalDesign.Colors.secondary)
                     .lineLimit(1)
             }
             
@@ -130,7 +130,7 @@ struct ConversationRow: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 12)
-        .background(AppEnvironment.Colors.background)
+        .background(MinimalDesign.Colors.background)
     }
 }
 
@@ -217,7 +217,7 @@ struct NewMessageView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
+                    .foregroundColor(MinimalDesign.Colors.accentRed)
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -227,11 +227,11 @@ struct NewMessageView: View {
                         }
                     }
                     .font(.caption)
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
+                    .foregroundColor(MinimalDesign.Colors.accentRed)
                 }
             }
         }
-        .accentColor(AppEnvironment.Colors.accentRed)
+        .accentColor(MinimalDesign.Colors.accentRed)
     }
 }
 
@@ -299,7 +299,7 @@ struct ConversationPreview: View {
             Divider()
             messagesView
         }
-        .background(AppEnvironment.Colors.background)
+        .background(MinimalDesign.Colors.background)
         .onAppear {
             Task {
                 await previewModel.loadMessages(for: conversation.id)
@@ -332,19 +332,19 @@ struct ConversationPreview: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(conversation.displayName(currentUserId: currentUserId))
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(MinimalDesign.Colors.primary)
                 
                 if let lastMessageAt = conversation.lastMessageAt {
                     Text(lastMessageAt.timeAgoDisplay())
                         .font(.system(size: 11))
-                        .foregroundColor(AppEnvironment.Colors.textSecondary)
+                        .foregroundColor(MinimalDesign.Colors.secondary)
                 }
             }
             
             Spacer()
         }
         .padding(12)
-        .background(AppEnvironment.Colors.background)
+        .background(MinimalDesign.Colors.background)
     }
     
     @ViewBuilder
@@ -365,7 +365,7 @@ struct ConversationPreview: View {
             }
             .padding(.vertical, 8)
         }
-        .background(AppEnvironment.Colors.background)
+        .background(MinimalDesign.Colors.background)
     }
     
     private func isCurrentUserMessage(_ message: Message) -> Bool {
@@ -388,8 +388,8 @@ struct MessagePreviewRow: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .font(.system(size: 14))
-                .background(isCurrentUser ? AppEnvironment.Colors.textPrimary : Color.gray.opacity(0.2))
-                .foregroundColor(isCurrentUser ? AppEnvironment.Colors.background : AppEnvironment.Colors.textPrimary)
+                .background(isCurrentUser ? MinimalDesign.Colors.primary : Color.gray.opacity(0.2))
+                .foregroundColor(isCurrentUser ? MinimalDesign.Colors.background : MinimalDesign.Colors.primary)
                 .cornerRadius(0)
                 .frame(maxWidth: 200, alignment: isCurrentUser ? .trailing : .leading)
             

@@ -164,7 +164,7 @@ struct ConversationView: View {
         }
         .navigationTitle(viewModel.conversation?.displayName(currentUserId: authManager.currentUser?.id) ?? "Message")
         .navigationBarTitleDisplayMode(.inline)
-        .accentColor(AppEnvironment.Colors.accentRed)
+        .accentColor(MinimalDesign.Colors.accentRed)
         .toolbar {
             if let avatarUrl = viewModel.conversation?.displayAvatar(currentUserId: authManager.currentUser?.id) {
                 ToolbarItem(placement: .principal) {
@@ -213,8 +213,8 @@ struct MessageBubble: View {
                 Text(message.content)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(isCurrentUser ? AppEnvironment.Colors.textPrimary : Color.gray.opacity(0.2))
-                    .foregroundColor(isCurrentUser ? AppEnvironment.Colors.background : AppEnvironment.Colors.textPrimary)
+                    .background(isCurrentUser ? MinimalDesign.Colors.primary : Color.gray.opacity(0.2))
+                    .foregroundColor(isCurrentUser ? MinimalDesign.Colors.background : MinimalDesign.Colors.primary)
                     .cornerRadius(0)
                 
                 if message.isEdited {
@@ -254,7 +254,7 @@ struct MessageInputView: View {
                             .frame(width: 20, height: 20)
                     } else {
                         Image(systemName: "paperplane.fill")
-                            .foregroundColor(AppEnvironment.Colors.textPrimary)
+                            .foregroundColor(MinimalDesign.Colors.primary)
                     }
                 }
                 .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)

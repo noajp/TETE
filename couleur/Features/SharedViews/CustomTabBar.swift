@@ -22,25 +22,25 @@ struct CustomTabBar: View {
                         VStack(spacing: 2) {
                             HStack(spacing: 2) {
                                 Rectangle()
-                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                                     .frame(width: 8, height: 8)
                                 Rectangle()
-                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                                     .frame(width: 8, height: 8)
                             }
                             HStack(spacing: 2) {
                                 Rectangle()
-                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                                     .frame(width: 8, height: 8)
                                 Rectangle()
-                                    .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                                     .frame(width: 8, height: 8)
                             }
                         }
                     } else {
                         // シングルモード時は1つの大きな正方形（塗りつぶし）
                         Rectangle()
-                            .fill(selectedTab == 0 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                            .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                             .frame(width: 20, height: 20)
                     }
                 }
@@ -54,7 +54,7 @@ struct CustomTabBar: View {
                 ZStack(alignment: .topTrailing) {
                     Image(systemName: selectedTab == 1 ? "message.fill" : "message")
                         .font(.system(size: 20))
-                        .foregroundColor(selectedTab == 1 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                        .foregroundColor(selectedTab == 1 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                     
                     // Badge for unread messages
                     if unreadMessageCount > 0 {
@@ -75,7 +75,7 @@ struct CustomTabBar: View {
             Button(action: onCreatePost) {
                 Image(systemName: "plus")
                     .font(.system(size: 24, weight: .regular))
-                    .foregroundColor(selectedTab == 2 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(selectedTab == 2 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }
             .frame(maxWidth: .infinity)
             
@@ -85,7 +85,7 @@ struct CustomTabBar: View {
             }) {
                 Image(systemName: selectedTab == 3 ? "map.fill" : "map")
                     .font(.system(size: 20))
-                    .foregroundColor(selectedTab == 3 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(selectedTab == 3 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }
             .frame(maxWidth: .infinity)
             
@@ -95,12 +95,12 @@ struct CustomTabBar: View {
             }) {
                 Image(systemName: selectedTab == 4 ? "person.fill" : "person")
                     .font(.system(size: 20))
-                    .foregroundColor(selectedTab == 4 ? AppEnvironment.Colors.accentRed : AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(selectedTab == 4 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }
             .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
-        .background(AppEnvironment.Colors.background)
+        .background(MinimalDesign.Colors.background)
     }
 }

@@ -66,12 +66,12 @@ struct PostDetailView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
                                     .font(.system(size: 24))
-                                    .foregroundColor(post.isLikedByMe ? .red : AppEnvironment.Colors.textPrimary)
+                                    .foregroundColor(post.isLikedByMe ? .red : MinimalDesign.Colors.primary)
                                 
                                 if post.likeCount > 0 {
                                     Text("\(post.likeCount)")
                                         .font(.system(size: 16))
-                                        .foregroundColor(AppEnvironment.Colors.textPrimary)
+                                        .foregroundColor(MinimalDesign.Colors.primary)
                                 }
                             }
                         }
@@ -81,12 +81,12 @@ struct PostDetailView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "message")
                                     .font(.system(size: 24))
-                                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                                    .foregroundColor(MinimalDesign.Colors.primary)
                                 
                                 if post.commentCount > 0 {
                                     Text("\(post.commentCount)")
                                         .font(.system(size: 16))
-                                        .foregroundColor(AppEnvironment.Colors.textPrimary)
+                                        .foregroundColor(MinimalDesign.Colors.primary)
                                 }
                             }
                         }
@@ -108,7 +108,7 @@ struct PostDetailView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Label(locationName, systemImage: "location")
                                 .font(.system(size: 16))
-                                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                                .foregroundColor(MinimalDesign.Colors.primary)
                             
                             // マップ（位置情報がある場合）
                             if let cameraPosition = cameraPosition,
@@ -132,13 +132,13 @@ struct PostDetailView: View {
                     // 投稿日時
                     Text(post.createdAt.timeAgoDisplay())
                         .font(.system(size: 12))
-                        .foregroundColor(AppEnvironment.Colors.textSecondary)
+                        .foregroundColor(MinimalDesign.Colors.secondary)
                         .padding(.top, 8)
                 }
                 .padding()
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .accentColor(AppEnvironment.Colors.accentRed)
+        .accentColor(MinimalDesign.Colors.accentRed)
     }
 }

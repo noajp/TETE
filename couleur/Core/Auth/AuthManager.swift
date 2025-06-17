@@ -23,7 +23,8 @@ struct AppUser: Codable {
 }
 
 @MainActor
-class AuthManager: ObservableObject {
+class AuthManager: ObservableObject, AuthManagerProtocol {
+    typealias User = AppUser
     static let shared = AuthManager()
     
     @Published var currentUser: AppUser?
@@ -67,6 +68,10 @@ class AuthManager: ObservableObject {
     
     // MARK: - Email Authentication
     
+    func signIn(email: String, password: String) async throws {
+        try await signInWithEmail(email: email, password: password)
+    }
+    
     func signInWithEmail(email: String, password: String) async throws {
         print("🔵 Attempting sign in with email: \(email)")
         isLoading = true
@@ -105,6 +110,11 @@ class AuthManager: ObservableObject {
         }
         
         isLoading = false
+    }
+    
+    func signUp(email: String, password: String, username: String) async throws {
+        // Use existing signUpWithEmail method and ignore the return value for protocol compliance
+        _ = try await signUpWithEmail(email: email, password: password)
     }
     
     func signUpWithEmail(email: String, password: String) async throws -> String {

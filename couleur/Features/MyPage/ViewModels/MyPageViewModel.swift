@@ -1,95 +1,146 @@
 //======================================================================
-// MARK: - MyPageViewModel (アカウント画面のViewModel)
-// Path: foodai/Features/MyPage/ViewModels/MyPageViewModel.swift
+// MARK: - MyPageViewModel
+// Purpose: Manages the user's profile page state and operations
+// Dependencies: UserRepository, AuthManager
 //======================================================================
 import SwiftUI
 import Combine
 import PhotosUI
 
+/// ViewModel for the user's profile page
+/// Handles profile data loading, updates, and post management
 @MainActor
-class MyPageViewModel: ObservableObject {
+final class MyPageViewModel: BaseViewModelClass {
+    // MARK: - Published Properties
+    
+    /// Current user's profile
     @Published var userProfile: UserProfile?
+    
+    /// Posts saved by the user
     @Published var savedPosts: [Post] = []
+    
+    /// Posts created by the user
+    @Published var userPosts: [Post] = []
+    
+    /// Statistics
     @Published var postsCount: Int = 0
     @Published var followersCount: Int = 0
     @Published var followingCount: Int = 0
-    @Published var isLoading = false
-    @Published var errorMessage: String?
     
-    private let postService = PostService()
-    private let supabaseManager = SupabaseManager.shared
+    // MARK: - Dependencies
     
-    init() {
+    private let userRepository: UserRepositoryProtocol
+    private let authManager: any AuthManagerProtocol
+    
+    // MARK: - Private Properties
+    
+    private var currentUserId: String? {
+        authManager.currentUser?.id
+    }
+    
+    // MARK: - Initialization
+    
+    init(
+        userRepository: UserRepositoryProtocol? = nil,
+        authManager: (any AuthManagerProtocol)? = nil
+    ) {
+        self.userRepository = userRepository ?? UserRepository()
+        self.authManager = authManager ?? (DependencyContainer.shared.resolve((any AuthManagerProtocol).self) ?? AuthManager.shared)
+        super.init()
+        
         Task {
             await loadUserData()
         }
     }
     
+    // MARK: - Public Methods
+    
+    /// Loads all user data including profile, posts, and statistics
     func loadUserData() async {
-        isLoading = true
-        defer { isLoading = false }
+        guard let userId = currentUserId else {
+            handleError(ViewModelError.unauthorized)
+            return
+        }
+        
+        showLoading()
         
         do {
-            // ユーザープロフィールを取得
-            let session = try await supabaseManager.client.auth.session
-            let userId = session.user.id
+            // Load profile
+            userProfile = try await userRepository.fetchUserProfile(userId: userId)
             
-            // プロフィールデータを取得
-            let profile: UserProfile = try await supabaseManager.client
-                .from("user_profiles")
-                .select()
-                .eq("id", value: userId.uuidString)
-                .single()
-                .execute()
-                .value
+            // Load posts
+            userPosts = try await userRepository.fetchUserPosts(userId: userId)
+            postsCount = userPosts.count
             
-            self.userProfile = profile
+            // Load statistics
+            followersCount = try await userRepository.fetchFollowersCount(userId: userId)
+            followingCount = try await userRepository.fetchFollowingCount(userId: userId)
             
-            // 統計情報を取得（実装は仮）
-            self.postsCount = await getPostsCount(userId: userId.uuidString)
-            self.followersCount = await getFollowersCount(userId: userId.uuidString)
-            self.followingCount = await getFollowingCount(userId: userId.uuidString)
+            hideLoading()
+            Logger.shared.info("User data loaded successfully")
             
         } catch {
-            errorMessage = "Failed to load data"
-            print("Error loading user data: \(error)")
+            handleError(error)
         }
     }
     
+    /// Updates user profile information
     func updateProfile(username: String, displayName: String, bio: String) async {
+        guard var profile = userProfile else {
+            handleError(ViewModelError.notFound("Profile"))
+            return
+        }
+        
+        showLoading()
+        
         do {
-            let session = try await supabaseManager.client.auth.session
-            let userId = session.user.id
+            // Update local model
+            profile.username = username
+            profile.displayName = displayName
+            profile.bio = bio
             
-            _ = try await supabaseManager.client
-                .from("user_profiles")
-                .update([
-                    "username": username,
-                    "display_name": displayName,
-                    "bio": bio
-                ])
-                .eq("id", value: userId.uuidString)
-                .execute()
+            // Update remote
+            try await userRepository.updateUserProfile(profile)
             
+            // Reload data to ensure consistency
             await loadUserData()
+            
+            Logger.shared.info("Profile updated successfully")
+            
         } catch {
-            errorMessage = "Failed to update profile"
-            print("Error updating profile: \(error)")
+            handleError(error)
         }
     }
     
+    /// Updates user profile photo
     func updateProfilePhoto(item: PhotosPickerItem?) async {
-        guard let item = item else { return }
+        guard let item = item,
+              let userId = currentUserId else {
+            return
+        }
+        
+        showLoading()
         
         do {
-            if let data = try await item.loadTransferable(type: Data.self) {
-                // TODO: Storageにアップロードして、URLを取得
-                // TODO: プロフィールのavatar_urlを更新
-                print("Photo data loaded: \(data.count) bytes")
+            // Load image data
+            guard let data = try await item.loadTransferable(type: Data.self) else {
+                throw ViewModelError.fileSystem("Failed to load image data")
             }
+            
+            // Upload and update
+            let newAvatarUrl = try await userRepository.updateProfilePhoto(
+                userId: userId,
+                imageData: data
+            )
+            
+            // Update local profile
+            userProfile?.avatarUrl = newAvatarUrl
+            
+            hideLoading()
+            Logger.shared.info("Profile photo updated successfully")
+            
         } catch {
-            errorMessage = "Failed to upload photo"
-            print("Error uploading photo: \(error)")
+            handleError(error)
         }
     }
     
@@ -110,19 +161,10 @@ class MyPageViewModel: ObservableObject {
         // TODO: ヘルプ画面への遷移
     }
     
-    // MARK: - Private Methods
-    private func getPostsCount(userId: String) async -> Int {
-        // TODO: 実際のデータ取得を実装
-        return 12
-    }
+    // MARK: - Refresh
     
-    private func getFollowersCount(userId: String) async -> Int {
-        // TODO: 実際のデータ取得を実装
-        return 42
-    }
-    
-    private func getFollowingCount(userId: String) async -> Int {
-        // TODO: 実際のデータ取得を実装
-        return 28
+    /// Refreshes all user data
+    func refresh() async {
+        await loadUserData()
     }
 }

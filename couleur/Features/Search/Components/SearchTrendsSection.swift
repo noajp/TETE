@@ -18,7 +18,7 @@ struct SearchTrendsSection: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Search trends")
                 .font(AppEnvironment.Fonts.primaryBold(size: 18))
-                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                .foregroundColor(MinimalDesign.Colors.primary)
             
             VStack(spacing: 0) {
                 ForEach(trends, id: \.self) { trend in
@@ -26,7 +26,7 @@ struct SearchTrendsSection: View {
                     
                     if trend != trends.last {
                         Divider()
-                            .background(AppEnvironment.Colors.subtleBorder)
+                            .background(MinimalDesign.Colors.border)
                     }
                 }
             }
@@ -41,13 +41,13 @@ struct SearchTrendRowView: View {
         HStack {
             Text(title)
                 .font(AppEnvironment.Fonts.primary(size: 16))
-                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                .foregroundColor(MinimalDesign.Colors.primary)
                 .multilineTextAlignment(.leading)
             
             Spacer()
             
             Image(systemName: "arrow.right")
-                .foregroundColor(AppEnvironment.Colors.textSecondary)
+                .foregroundColor(MinimalDesign.Colors.secondary)
                 .font(.system(size: 14))
         }
         .padding(.vertical, 16)

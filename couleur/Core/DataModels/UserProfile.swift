@@ -6,10 +6,10 @@ import Foundation
 
 struct UserProfile: Identifiable, Codable {
     let id: String
-    let username: String
-    let displayName: String?
-    let avatarUrl: String?
-    let bio: String?
+    var username: String
+    var displayName: String?
+    var avatarUrl: String?
+    var bio: String?
     let createdAt: Date?
     
     enum CodingKeys: String, CodingKey {

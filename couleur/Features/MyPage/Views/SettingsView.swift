@@ -17,7 +17,7 @@ struct SettingsView: View {
             Form {
                 Section(header: Text("通知設定")) {
                     Toggle("プッシュ通知", isOn: $enableNotifications)
-                        .toggleStyle(SwitchToggleStyle(tint: AppEnvironment.Colors.accentRed))
+                        .toggleStyle(SwitchToggleStyle(tint: MinimalDesign.Colors.accentRed))
                     
                     if enableNotifications {
                         VStack(alignment: .leading, spacing: 8) {
@@ -32,17 +32,17 @@ struct SettingsView: View {
                 
                 Section(header: Text("プライバシー")) {
                     Toggle("位置情報サービス", isOn: $enableLocationServices)
-                        .toggleStyle(SwitchToggleStyle(tint: AppEnvironment.Colors.accentRed))
+                        .toggleStyle(SwitchToggleStyle(tint: MinimalDesign.Colors.accentRed))
                     
                     HStack {
                         Text("検索範囲")
                         Spacer()
                         Text("\(Int(defaultSearchRadius))km")
-                            .foregroundColor(AppEnvironment.Colors.textSecondary)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
                     }
                     
                     Slider(value: $defaultSearchRadius, in: 1...50, step: 1)
-                        .accentColor(AppEnvironment.Colors.accentRed)
+                        .accentColor(MinimalDesign.Colors.accentRed)
                 }
                 
                 Section(header: Text("アカウント")) {
@@ -80,7 +80,7 @@ struct SettingsView: View {
                         Text("バージョン")
                         Spacer()
                         Text("1.0.0")
-                            .foregroundColor(AppEnvironment.Colors.textSecondary)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
                     }
                 }
                 
@@ -110,7 +110,7 @@ struct SettingsView: View {
                     Button("完了") {
                         dismiss()
                     }
-                    .foregroundColor(AppEnvironment.Colors.accentRed)
+                    .foregroundColor(MinimalDesign.Colors.accentRed)
                 }
             }
             .alert("Sign Out", isPresented: $showSignOutAlert) {
@@ -124,7 +124,7 @@ struct SettingsView: View {
             } message: {
                 Text("Are you sure you want to sign out?")
             }
-            .accentColor(AppEnvironment.Colors.accentRed)
+            .accentColor(MinimalDesign.Colors.accentRed)
         }
     }
 }
@@ -136,6 +136,6 @@ struct ToggleRow: View {
     var body: some View {
         Toggle(title, isOn: $isOn)
             .font(.system(size: 14))
-            .toggleStyle(SwitchToggleStyle(tint: AppEnvironment.Colors.accentRed))
+            .toggleStyle(SwitchToggleStyle(tint: MinimalDesign.Colors.accentRed))
     }
 }

@@ -21,6 +21,7 @@ struct MinimalDesign {
         static let tertiary = Color(.tertiaryLabel)
         
         static let accent = Color(.systemBlue)
+        static let accentRed = Color(red: 0.949, green: 0.098, blue: 0.020) // Custom couleur red #F21905
         static let destructive = Color(.systemRed)
         static let success = Color(.systemGreen)
         

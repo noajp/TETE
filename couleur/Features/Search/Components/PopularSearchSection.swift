@@ -12,7 +12,7 @@ struct PopularSearchSection: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Popular searches")
                 .font(AppEnvironment.Fonts.primaryBold(size: 18))
-                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                .foregroundColor(MinimalDesign.Colors.primary)
             
             LazyVGrid(columns: [
                 GridItem(.adaptive(minimum: 80))

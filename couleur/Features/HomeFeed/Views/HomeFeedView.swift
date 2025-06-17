@@ -26,7 +26,7 @@ struct HomeFeedView: View {
         NavigationView {
             ZStack {
                 // 背景色
-                AppEnvironment.Colors.background
+                MinimalDesign.Colors.background
                     .ignoresSafeArea()
                 
                 if viewModel.isLoading {
@@ -41,7 +41,7 @@ struct HomeFeedView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        .accentColor(AppEnvironment.Colors.accentRed)
+        .accentColor(MinimalDesign.Colors.accentRed)
     }
     
     // MARK: - Views
@@ -49,7 +49,7 @@ struct HomeFeedView: View {
     private var loadingView: some View {
         ProgressView("Loading...")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppEnvironment.Colors.background)
+            .background(MinimalDesign.Colors.background)
     }
     
     private var emptyView: some View {
@@ -66,7 +66,7 @@ struct HomeFeedView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppEnvironment.Colors.background)
+        .background(MinimalDesign.Colors.background)
     }
     
     private var contentView: some View {
@@ -110,7 +110,7 @@ struct HomeFeedView: View {
             // ステータスバー保護用のヘッダー
             VStack {
                 Rectangle()
-                    .fill(AppEnvironment.Colors.background)
+                    .fill(MinimalDesign.Colors.background)
                     .frame(height: 50)
                     .ignoresSafeArea(edges: .top)
                 Spacer()

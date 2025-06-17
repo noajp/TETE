@@ -24,7 +24,7 @@ struct SingleCardView: View {
                 captionSection(caption: caption)
             }
         }
-        .background(AppEnvironment.Colors.background)
+        .background(MinimalDesign.Colors.background)
     }
     
     // MARK: - ユーザーヘッダー
@@ -45,7 +45,7 @@ struct SingleCardView: View {
             // ユーザー名
             Text(post.user?.username ?? "unknown")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                .foregroundColor(MinimalDesign.Colors.primary)
             
             Spacer()
             
@@ -53,7 +53,7 @@ struct SingleCardView: View {
             Button(action: {}) {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 16))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(MinimalDesign.Colors.primary)
             }
         }
         .padding(.horizontal, 16)
@@ -75,12 +75,12 @@ struct SingleCardView: View {
                 HStack(spacing: 4) {
                     Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
                         .font(.system(size: 24))
-                        .foregroundColor(post.isLikedByMe ? .red : AppEnvironment.Colors.textPrimary)
+                        .foregroundColor(post.isLikedByMe ? .red : MinimalDesign.Colors.primary)
                     
                     if post.likeCount > 0 {
                         Text("\(post.likeCount)")
                             .font(.system(size: 14))
-                            .foregroundColor(AppEnvironment.Colors.textPrimary)
+                            .foregroundColor(MinimalDesign.Colors.primary)
                     }
                 }
             }
@@ -89,7 +89,7 @@ struct SingleCardView: View {
             Button(action: {}) {
                 Image(systemName: "message")
                     .font(.system(size: 24))
-                    .foregroundColor(AppEnvironment.Colors.textPrimary)
+                    .foregroundColor(MinimalDesign.Colors.primary)
             }
             
             Spacer()
@@ -104,13 +104,13 @@ struct SingleCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(caption)
                 .font(.system(size: 14))
-                .foregroundColor(AppEnvironment.Colors.textPrimary)
+                .foregroundColor(MinimalDesign.Colors.primary)
                 .lineLimit(3)
                 .multilineTextAlignment(.leading)
             
             Text(timeAgoString(from: post.createdAt))
                 .font(.system(size: 12))
-                .foregroundColor(AppEnvironment.Colors.textSecondary)
+                .foregroundColor(MinimalDesign.Colors.secondary)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 16)

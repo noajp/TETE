@@ -23,10 +23,10 @@ struct FilterChipView: View {
         }) {
             Text(title)
                 .font(AppEnvironment.Fonts.primary(size: 14, weight: .medium))
-                .foregroundColor(isSelected ? AppEnvironment.Colors.buttonText : AppEnvironment.Colors.textPrimary)
+                .foregroundColor(isSelected ? MinimalDesign.Colors.background : MinimalDesign.Colors.primary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(isSelected ? AppEnvironment.Colors.accentGreen : AppEnvironment.Colors.inputBackground)
+                .background(isSelected ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.secondaryBackground)
                 .cornerRadius(20)
         }
         .buttonStyle(PlainButtonStyle())

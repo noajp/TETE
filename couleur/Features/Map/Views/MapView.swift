@@ -57,7 +57,7 @@ struct MapView: View {
     @State private var dragGestureActive = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // iOS 17+の新しいMap構文
                 Map(position: $cameraPosition) {
@@ -88,13 +88,13 @@ struct MapView: View {
                     Spacer()
                     HStack {
                         Image(systemName: "magnifyingglass")
-                            .foregroundColor(AppEnvironment.Colors.textSecondary)
+                            .foregroundColor(MinimalDesign.Colors.secondary)
                         TextField("場所を検索", text: $viewModel.searchText)
-                            .foregroundColor(AppEnvironment.Colors.textPrimary)
+                            .foregroundColor(MinimalDesign.Colors.primary)
                     }
                     .padding()
                     .background(
-                        AppEnvironment.Colors.background.opacity(
+                        MinimalDesign.Colors.background.opacity(
                             isMapMoving ? 0.3 : 0.8
                         )
                     )
@@ -116,9 +116,9 @@ struct MapView: View {
                         }) {
                             Image(systemName: "location.fill")
                                 .font(.system(size: 20))
-                                .foregroundColor(AppEnvironment.Colors.background)
+                                .foregroundColor(MinimalDesign.Colors.background)
                                 .padding()
-                                .background(AppEnvironment.Colors.textPrimary)
+                                .background(MinimalDesign.Colors.primary)
                                 .clipShape(Circle())
                                 .shadow(radius: 5)
                         }
@@ -127,9 +127,14 @@ struct MapView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationDestination(for: Post.self) { post in
+                PostDetailView(post: post) { post in
+                    // Handle like action from post detail
+                    viewModel.toggleLike(for: post)
+                }
+            }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
-        .accentColor(AppEnvironment.Colors.accentRed)
+        .accentColor(MinimalDesign.Colors.accentRed)
     }
 }
 
@@ -137,12 +142,9 @@ struct MapView: View {
 struct PhotoMapPin: View {
     let post: Post
     let onLikeTapped: (Post) -> Void
-    @State private var navigateToDetail = false
     
     var body: some View {
-        Button(action: {
-            navigateToDetail = true
-        }) {
+        NavigationLink(value: post) {
             AsyncImage(url: URL(string: post.mediaUrl)) { image in
                 image
                     .resizable()
@@ -159,14 +161,6 @@ struct PhotoMapPin: View {
             )
             .shadow(radius: 3)
         }
-        .background(
-            NavigationLink(
-                destination: PostDetailView(post: post, onLikeTapped: onLikeTapped),
-                isActive: $navigateToDetail
-            ) {
-                EmptyView()
-            }
-        )
     }
 }
 
