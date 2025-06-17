@@ -77,10 +77,14 @@ struct HomeFeedView: View {
                     LazyVGrid(columns: columns, spacing: 1) {
                         ForEach(viewModel.posts) { post in
                             NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
-                                viewModel.toggleLike(for: post)
+                                Task {
+                                    await viewModel.toggleLike(for: post)
+                                }
                             })) {
                                 PinCardView(post: post, onLikeTapped: { post in
-                                    viewModel.toggleLike(for: post)
+                                    Task {
+                                        await viewModel.toggleLike(for: post)
+                                    }
                                 })
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -92,10 +96,14 @@ struct HomeFeedView: View {
                     LazyVStack(spacing: 0) {
                         ForEach(viewModel.posts) { post in
                             NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
-                                viewModel.toggleLike(for: post)
+                                Task {
+                                    await viewModel.toggleLike(for: post)
+                                }
                             })) {
                                 SingleCardView(post: post, onLikeTapped: { post in
-                                    viewModel.toggleLike(for: post)
+                                    Task {
+                                        await viewModel.toggleLike(for: post)
+                                    }
                                 })
                             }
                             .buttonStyle(PlainButtonStyle())
@@ -104,7 +112,7 @@ struct HomeFeedView: View {
                 }
             }
             .refreshable {
-                viewModel.loadPosts()
+                await viewModel.loadPosts()
             }
             
             // ステータスバー保護用のヘッダー

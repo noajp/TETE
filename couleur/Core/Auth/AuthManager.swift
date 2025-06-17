@@ -260,13 +260,7 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
         }
     }
     
-    // MARK: - Legacy methods (backward compatibility)
+    // MARK: - Protocol Compliance
+    // AuthManagerProtocol methods signIn and signUp are implemented above
     
-    func signIn(email: String, password: String) async throws {
-        try await signInWithEmail(email: email, password: password)
-    }
-    
-    func signUp(email: String, password: String) async throws {
-        let _ = try await signUpWithEmail(email: email, password: password)
-    }
 }

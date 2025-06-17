@@ -26,7 +26,7 @@ struct SignUpView: View {
                         dismiss()
                     }
                     .font(.system(size: 24))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
@@ -37,7 +37,7 @@ struct SignUpView: View {
                     // Title
                     Text("PERSONAL DETAILS")
                         .font(.system(size: 24, weight: .regular))
-                        .foregroundColor(.black)
+                        .foregroundColor(.primary)
                     
                     // Form
                     VStack(alignment: .leading, spacing: 25) {
@@ -49,6 +49,7 @@ struct SignUpView: View {
                             
                             TextField("", text: $email)
                                 .font(.system(size: 18))
+                                .foregroundColor(.primary)
                                 .autocapitalization(.none)
                                 .autocorrectionDisabled()
                                 .keyboardType(.emailAddress)
@@ -57,7 +58,7 @@ struct SignUpView: View {
                                 .overlay(
                                     Rectangle()
                                         .frame(height: 1)
-                                        .foregroundColor(.gray.opacity(0.3)),
+                                        .foregroundColor(.secondary.opacity(0.5)),
                                     alignment: .bottom
                                 )
                         }
@@ -70,11 +71,12 @@ struct SignUpView: View {
                             
                             SecureField("", text: $password)
                                 .font(.system(size: 18))
+                                .foregroundColor(.primary)
                                 .padding(.bottom, 10)
                                 .overlay(
                                     Rectangle()
                                         .frame(height: 1)
-                                        .foregroundColor(.gray.opacity(0.3)),
+                                        .foregroundColor(.secondary.opacity(0.5)),
                                     alignment: .bottom
                                 )
                         }
@@ -87,11 +89,12 @@ struct SignUpView: View {
                             
                             TextField("", text: $surname)
                                 .font(.system(size: 18))
+                                .foregroundColor(.primary)
                                 .padding(.bottom, 10)
                                 .overlay(
                                     Rectangle()
                                         .frame(height: 1)
-                                        .foregroundColor(.gray.opacity(0.3)),
+                                        .foregroundColor(.secondary.opacity(0.5)),
                                     alignment: .bottom
                                 )
                         }
@@ -104,11 +107,12 @@ struct SignUpView: View {
                             
                             TextField("", text: $name)
                                 .font(.system(size: 18))
+                                .foregroundColor(.primary)
                                 .padding(.bottom, 10)
                                 .overlay(
                                     Rectangle()
                                         .frame(height: 1)
-                                        .foregroundColor(.gray.opacity(0.3)),
+                                        .foregroundColor(.secondary.opacity(0.5)),
                                     alignment: .bottom
                                 )
                         }
@@ -118,10 +122,10 @@ struct SignUpView: View {
                             Button(action: { newsletter.toggle() }) {
                                 Rectangle()
                                     .frame(width: 20, height: 20)
-                                    .foregroundColor(newsletter ? .black : .clear)
+                                    .foregroundColor(newsletter ? MinimalDesign.Colors.accentRed : .clear)
                                     .overlay(
                                         Rectangle()
-                                            .stroke(Color.black, lineWidth: 1)
+                                            .stroke(Color.primary, lineWidth: 1)
                                     )
                                     .overlay(
                                         newsletter ? Image(systemName: "checkmark")
@@ -145,13 +149,13 @@ struct SignUpView: View {
                     }) {
                         Text("CREATE ACCOUNT")
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .background(
                                 Rectangle()
-                                    .stroke(Color.black, lineWidth: 1)
-                                    .background(Color.white)
+                                    .stroke(Color.primary, lineWidth: 1)
+                                    .background(Color(.systemBackground))
                             )
                     }
                     .disabled(email.isEmpty || password.isEmpty || surname.isEmpty || name.isEmpty || authManager.isLoading)
@@ -160,7 +164,7 @@ struct SignUpView: View {
                 
                 Spacer()
             }
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .navigationBarHidden(true)
             .alert("Error", isPresented: $showError) {
                 Button("OK") { }

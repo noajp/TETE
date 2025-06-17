@@ -281,19 +281,12 @@ extension XCUIElement {
         
         // Select all text
         press(forDuration: 1.0)
-        if app.menuItems["Select All"].exists {
-            app.menuItems["Select All"].tap()
+        let application = XCUIApplication()
+        if application.menuItems["Select All"].exists {
+            application.menuItems["Select All"].tap()
         }
         
         // Type new text
         typeText(text)
-    }
-}
-
-// MARK: - XCUIApplication Extensions
-
-extension XCUIApplication {
-    var app: XCUIApplication {
-        return self
     }
 }

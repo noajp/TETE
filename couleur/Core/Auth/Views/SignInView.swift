@@ -22,7 +22,7 @@ struct SignInView: View {
                 // Title
                 Text("LOG IN")
                     .font(.system(size: 32, weight: .regular))
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                 
                 // Form
                 VStack(alignment: .leading, spacing: 25) {
@@ -34,6 +34,7 @@ struct SignInView: View {
                         
                         TextField("", text: $email)
                             .font(.system(size: 18))
+                            .foregroundColor(.primary)
                             .autocapitalization(.none)
                             .autocorrectionDisabled()
                             .keyboardType(.emailAddress)
@@ -42,7 +43,7 @@ struct SignInView: View {
                             .overlay(
                                 Rectangle()
                                     .frame(height: 1)
-                                    .foregroundColor(.gray.opacity(0.3)),
+                                    .foregroundColor(.secondary.opacity(0.5)),
                                 alignment: .bottom
                             )
                     }
@@ -55,11 +56,12 @@ struct SignInView: View {
                         
                         SecureField("", text: $password)
                             .font(.system(size: 18))
+                            .foregroundColor(.primary)
                             .padding(.bottom, 10)
                             .overlay(
                                 Rectangle()
                                     .frame(height: 1)
-                                    .foregroundColor(.gray.opacity(0.3)),
+                                    .foregroundColor(.secondary.opacity(0.5)),
                                 alignment: .bottom
                             )
                     }
@@ -96,13 +98,13 @@ struct SignInView: View {
                     }) {
                         Text("REGISTER")
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
                             .background(
                                 Rectangle()
-                                    .stroke(Color.black, lineWidth: 1)
-                                    .background(Color.white)
+                                    .stroke(Color.primary, lineWidth: 1)
+                                    .background(Color(.systemBackground))
                             )
                     }
                 }
@@ -111,7 +113,7 @@ struct SignInView: View {
             
             Spacer()
         }
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .alert("Error", isPresented: $showError) {
             Button("OK") { }
         } message: {
