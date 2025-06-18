@@ -89,7 +89,7 @@ struct ModernProfileHeader: View {
             Button(action: onSettings) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 18, weight: .light))
-                    .foregroundColor(MinimalDesign.Colors.primary)
+                    .foregroundColor(MinimalDesign.Colors.secondary)
             }
         }
         .padding(.horizontal, MinimalDesign.Spacing.md)
@@ -268,10 +268,10 @@ struct ModernPostsTabSection: View {
                             VStack(spacing: 2) {
                                 HStack(spacing: 2) {
                                     Rectangle()
-                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.tertiary)
                                         .frame(width: 8, height: 8)
                                     Rectangle()
-                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.tertiary)
                                         .frame(width: 8, height: 8)
                                 }
                                 HStack(spacing: 2) {
@@ -298,7 +298,7 @@ struct ModernPostsTabSection: View {
                 Button(action: { selectedTab = .magazine }) {
                     Image(systemName: selectedTab == .magazine ? "book.fill" : "book")
                         .font(.system(size: 20, weight: .regular))
-                        .foregroundColor(selectedTab == .magazine ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                        .foregroundColor(selectedTab == .magazine ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.tertiary)
                         .frame(height: 30)
                 }
                 .frame(maxWidth: .infinity)

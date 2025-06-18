@@ -20,14 +20,24 @@ class CustomCameraViewModel: NSObject, ObservableObject {
     @Published var flashMode: AVCaptureDevice.FlashMode = .off
     @Published var focusPoint: CGPoint?
     @Published var currentFilter: FilterType = .none
+    @Published var isManualMode = false
+    @Published var manualISO: Float = 400
+    @Published var manualShutterSpeed: Float = 60
+    @Published var manualWhiteBalance: Float = 5600
+    @Published var manualFocus: Float = 0.5
+    @Published var exposureCompensation: Float = 0.0
     
     // MARK: - Camera Properties
     let session = AVCaptureSession()
     private var videoInput: AVCaptureDeviceInput?
     private var photoOutput = AVCapturePhotoOutput()
-    private var currentCamera: AVCaptureDevice?
     private var frontCamera: AVCaptureDevice?
     private var backCamera: AVCaptureDevice?
+    
+    // Expose currentCamera for manual controls
+    var currentCamera: AVCaptureDevice? {
+        return videoInput?.device
+    }
     
     // MARK: - Image Processing
     private let imageProcessor = ImageProcessor()
@@ -81,7 +91,6 @@ class CustomCameraViewModel: NSObject, ObservableObject {
                 videoInput = try AVCaptureDeviceInput(device: backCamera)
                 if session.canAddInput(videoInput!) {
                     session.addInput(videoInput!)
-                    currentCamera = backCamera
                 }
             } catch {
                 showCameraError("カメラの初期化に失敗しました: \(error.localizedDescription)")
@@ -168,7 +177,6 @@ class CustomCameraViewModel: NSObject, ObservableObject {
             if session.canAddInput(newInput) {
                 session.addInput(newInput)
                 videoInput = newInput
-                currentCamera = camera
             } else {
                 session.addInput(currentInput)
             }
@@ -230,6 +238,216 @@ class CustomCameraViewModel: NSObject, ObservableObject {
     
     func setCurrentFilter(_ filterType: FilterType) {
         currentFilter = filterType
+    }
+    
+    // MARK: - Manual Camera Controls
+    
+    func setManualMode(_ enabled: Bool) {
+        isManualMode = enabled
+        
+        guard let device = currentCamera else { return }
+        
+        do {
+            try device.lockForConfiguration()
+            
+            if enabled {
+                // Switch to manual mode
+                if device.isExposureModeSupported(.custom) {
+                    device.exposureMode = .custom
+                }
+                if device.isFocusModeSupported(.locked) {
+                    device.focusMode = .locked
+                }
+                if device.isWhiteBalanceModeSupported(.locked) {
+                    device.whiteBalanceMode = .locked
+                }
+                
+                // Get current values for manual controls
+                getCurrentCameraSettings()
+            } else {
+                // Switch back to auto mode
+                resetToAutoMode()
+            }
+            
+            device.unlockForConfiguration()
+        } catch {
+            print("Manual mode setup error: \(error)")
+        }
+    }
+    
+    func getCurrentCameraSettings() {
+        guard let device = currentCamera else { return }
+        
+        // Get current ISO
+        manualISO = device.iso
+        
+        // Get current shutter speed (convert from CMTime to fraction)
+        let currentDuration = device.exposureDuration
+        if currentDuration.timescale > 0 {
+            manualShutterSpeed = Float(currentDuration.timescale) / Float(currentDuration.value)
+        }
+        
+        // Get current white balance (convert to Kelvin approximation)
+        let gains = device.deviceWhiteBalanceGains
+        manualWhiteBalance = calculateKelvinFromGains(gains)
+        
+        // Get current focus position
+        manualFocus = device.lensPosition
+    }
+    
+    func setManualISO(_ iso: Float) {
+        guard let device = currentCamera, isManualMode else { return }
+        
+        let clampedISO = max(device.activeFormat.minISO, min(device.activeFormat.maxISO, iso))
+        
+        do {
+            try device.lockForConfiguration()
+            
+            if device.isExposureModeSupported(.custom) {
+                let currentDuration = device.exposureDuration
+                device.setExposureModeCustom(duration: currentDuration, iso: clampedISO)
+                manualISO = clampedISO
+            }
+            
+            device.unlockForConfiguration()
+        } catch {
+            print("ISO setting error: \(error)")
+        }
+    }
+    
+    func setManualShutterSpeed(_ shutterSpeed: Float) {
+        guard let device = currentCamera, isManualMode else { return }
+        
+        let duration = CMTime(seconds: 1.0 / Double(shutterSpeed), preferredTimescale: 1000000)
+        let clampedDuration = CMTimeClampToRange(duration, range: CMTimeRangeMake(
+            start: device.activeFormat.minExposureDuration,
+            duration: device.activeFormat.maxExposureDuration
+        ))
+        
+        do {
+            try device.lockForConfiguration()
+            
+            if device.isExposureModeSupported(.custom) {
+                device.setExposureModeCustom(duration: clampedDuration, iso: device.iso)
+                manualShutterSpeed = shutterSpeed
+            }
+            
+            device.unlockForConfiguration()
+        } catch {
+            print("Shutter speed setting error: \(error)")
+        }
+    }
+    
+    func setManualWhiteBalance(_ kelvin: Float) {
+        guard let device = currentCamera, isManualMode else { return }
+        
+        let gains = calculateGainsFromKelvin(kelvin)
+        let adjustedGains = normalizeGains(gains, for: device)
+        
+        do {
+            try device.lockForConfiguration()
+            
+            if device.isWhiteBalanceModeSupported(.locked) {
+                device.setWhiteBalanceModeLocked(with: adjustedGains)
+                manualWhiteBalance = kelvin
+            }
+            
+            device.unlockForConfiguration()
+        } catch {
+            print("White balance setting error: \(error)")
+        }
+    }
+    
+    func setManualFocus(_ focus: Float) {
+        guard let device = currentCamera, isManualMode else { return }
+        
+        let clampedFocus = max(0.0, min(1.0, focus))
+        
+        do {
+            try device.lockForConfiguration()
+            
+            if device.isFocusModeSupported(.locked) {
+                device.setFocusModeLocked(lensPosition: clampedFocus)
+                manualFocus = clampedFocus
+            }
+            
+            device.unlockForConfiguration()
+        } catch {
+            print("Focus setting error: \(error)")
+        }
+    }
+    
+    func setExposureCompensation(_ compensation: Float) {
+        guard let device = currentCamera else { return }
+        
+        let clampedCompensation = max(device.minExposureTargetBias, min(device.maxExposureTargetBias, compensation))
+        
+        do {
+            try device.lockForConfiguration()
+            device.setExposureTargetBias(clampedCompensation)
+            exposureCompensation = clampedCompensation
+            device.unlockForConfiguration()
+        } catch {
+            print("Exposure compensation setting error: \(error)")
+        }
+    }
+    
+    func resetToAutoMode() {
+        guard let device = currentCamera else { return }
+        
+        do {
+            try device.lockForConfiguration()
+            
+            // Reset to auto modes
+            if device.isExposureModeSupported(.continuousAutoExposure) {
+                device.exposureMode = .continuousAutoExposure
+            }
+            
+            if device.isFocusModeSupported(.continuousAutoFocus) {
+                device.focusMode = .continuousAutoFocus
+            }
+            
+            if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+                device.whiteBalanceMode = .continuousAutoWhiteBalance
+            }
+            
+            // Reset exposure compensation
+            device.setExposureTargetBias(0.0)
+            exposureCompensation = 0.0
+            
+            device.unlockForConfiguration()
+        } catch {
+            print("Auto mode reset error: \(error)")
+        }
+    }
+    
+    // MARK: - Camera Settings Utility
+    
+    private func calculateKelvinFromGains(_ gains: AVCaptureDevice.WhiteBalanceGains) -> Float {
+        // Simplified color temperature calculation
+        let ratio = gains.blueGain / gains.redGain
+        let kelvin = 2000 + (ratio * 3000)
+        return max(2000, min(8000, kelvin))
+    }
+    
+    private func calculateGainsFromKelvin(_ kelvin: Float) -> AVCaptureDevice.WhiteBalanceGains {
+        // Simplified conversion from Kelvin to RGB gains
+        let normalized = (kelvin - 2000) / 6000 // 0.0 to 1.0
+        let redGain: Float = 1.0 + (normalized * 0.5)
+        let greenGain: Float = 1.0
+        let blueGain: Float = 1.0 + ((1.0 - normalized) * 0.5)
+        
+        return AVCaptureDevice.WhiteBalanceGains(redGain: redGain, greenGain: greenGain, blueGain: blueGain)
+    }
+    
+    private func normalizeGains(_ gains: AVCaptureDevice.WhiteBalanceGains, for device: AVCaptureDevice) -> AVCaptureDevice.WhiteBalanceGains {
+        let maxGain = device.maxWhiteBalanceGain
+        
+        return AVCaptureDevice.WhiteBalanceGains(
+            redGain: max(1.0, min(maxGain, gains.redGain)),
+            greenGain: max(1.0, min(maxGain, gains.greenGain)),
+            blueGain: max(1.0, min(maxGain, gains.blueGain))
+        )
     }
     
     // MARK: - Photo Capture

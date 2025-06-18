@@ -426,7 +426,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Couleur;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to take photos for sharing with other users. Camera access is required to capture and share your moments.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "場所情報を共有するために、位置情報へのアクセスが必要です。";
@@ -460,7 +461,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = couleur/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Couleur;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to take photos for sharing with other users. Camera access is required to capture and share your moments.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "場所情報を共有するために、位置情報へのアクセスが必要です。";

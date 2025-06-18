@@ -145,3 +145,67 @@ struct FilterResult {
     let intensity: Float
     let processingTime: TimeInterval
 }
+
+// MARK: - Advanced Filter System (for ProFilmFilterPack)
+
+/// フィルター特性の詳細定義
+struct FilterCharacteristics {
+    let contrast: Float
+    let saturation: Float
+    let warmth: Float
+    let grain: Float
+    let vignette: Float
+    let lightLeak: Float
+    let filmGrain: Float
+    let colorCast: Float
+    
+    init(contrast: Float = 1.0, saturation: Float = 1.0, warmth: Float = 0.0, 
+         grain: Float = 0.0, vignette: Float = 0.0, lightLeak: Float = 0.0,
+         filmGrain: Float = 0.0, colorCast: Float = 0.0) {
+        self.contrast = contrast
+        self.saturation = saturation
+        self.warmth = warmth
+        self.grain = grain
+        self.vignette = vignette
+        self.lightLeak = lightLeak
+        self.filmGrain = filmGrain
+        self.colorCast = colorCast
+    }
+}
+
+/// フィルターカテゴリー
+enum FilterCategory: String, CaseIterable {
+    case filmEmulation = "Film Emulation"
+    case modern = "Modern"
+    case creative = "Creative"
+    case vintage = "Vintage"
+    case blackAndWhite = "Black & White"
+    case cinematic = "Cinematic"
+    
+    var displayName: String {
+        return rawValue
+    }
+}
+
+/// 拡張フィルター定義
+struct FilterDefinition {
+    let id: String
+    let name: String
+    let category: FilterCategory
+    let description: String
+    let lutFileName: String?
+    let intensity: Float
+    let characteristics: FilterCharacteristics
+    
+    init(id: String, name: String, category: FilterCategory, description: String,
+         lutFileName: String? = nil, intensity: Float = 1.0, 
+         characteristics: FilterCharacteristics = FilterCharacteristics()) {
+        self.id = id
+        self.name = name
+        self.category = category
+        self.description = description
+        self.lutFileName = lutFileName
+        self.intensity = intensity
+        self.characteristics = characteristics
+    }
+}

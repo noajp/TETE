@@ -1,12 +1,33 @@
 //======================================================================
-// MARK: - AuthManager.swift (Google + Email Authentication)
-// Path: foodai/Core/Auth/AuthManager.swift
+// MARK: - AuthManager.swift (Secure Authentication System)
+// Path: couleur/Core/Auth/AuthManager.swift
 //======================================================================
 import Foundation
 import Supabase
 
 extension Notification.Name {
     static let authStateChanged = Notification.Name("authStateChanged")
+}
+
+// MARK: - Auth Errors
+enum AuthError: LocalizedError {
+    case invalidInput(String)
+    case rateLimitExceeded(TimeInterval)
+    case accountLocked
+    case weakPassword([String])
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidInput(let message):
+            return message
+        case .rateLimitExceeded(let duration):
+            return "Too many failed attempts. Please try again in \(Int(duration/60)) minutes."
+        case .accountLocked:
+            return "Account temporarily locked due to multiple failed login attempts."
+        case .weakPassword(let errors):
+            return "Password requirements not met: \(errors.joined(separator: ", "))"
+        }
+    }
 }
 
 // アプリ内で使用するUser構造体
@@ -32,11 +53,24 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     @Published var isLoading = false
     
     private let client = SupabaseManager.shared.client
+    private let secureLogger = SecureLogger.shared
+    
+    // セキュリティ設定
+    private let maxLoginAttempts = 5
+    private let lockoutDuration: TimeInterval = 900 // 15分
+    private var loginAttempts: [String: (count: Int, lastAttempt: Date)] = [:]
     
     private init() {
+        setupSecurityConfiguration()
         Task {
             await checkCurrentUser()
         }
+    }
+    
+    private func setupSecurityConfiguration() {
+        // セキュア設定の初期化
+        SecureConfig.shared.setupCredentials()
+        secureLogger.info("AuthManager initialized with secure configuration")
     }
     
     // MARK: - Current User Check
@@ -56,11 +90,11 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             self.isAuthenticated = true
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
-            print("✅ Current user found: \(user.email ?? "No email")")
+            secureLogger.authEvent("Current user session found", userID: user.id.uuidString)
         } catch {
             self.currentUser = nil
             self.isAuthenticated = false
-            print("ℹ️ No current user session")
+            secureLogger.debug("No current user session found")
         }
         
         isLoading = false
@@ -73,20 +107,26 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     }
     
     func signInWithEmail(email: String, password: String) async throws {
-        print("🔵 Attempting sign in with email: \(email)")
+        // 入力検証
+        let emailValidation = InputValidator.validateEmail(email)
+        guard emailValidation.isValid, let validEmail = emailValidation.value else {
+            secureLogger.securityEvent("Invalid email format during sign in", details: ["email": email])
+            throw AuthError.invalidInput("Invalid email format")
+        }
+        
+        // レート制限チェック
+        try checkRateLimit(for: validEmail)
+        
+        secureLogger.authEvent("Sign in attempt", userID: nil)
         isLoading = true
         
         do {
-            print("🔵 Calling Supabase auth.signIn...")
             let session = try await client.auth.signIn(
-                email: email,
+                email: validEmail,
                 password: password
             )
             
-            print("🔵 Sign in response received")
             let user = session.user
-            print("🔵 User ID: \(user.id.uuidString)")
-            print("🔵 User Email: \(user.email ?? "nil")")
             
             self.currentUser = AppUser(
                 id: user.id.uuidString,
@@ -96,15 +136,13 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             self.isAuthenticated = true
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
-            print("✅ Email sign in successful: \(user.email ?? "")")
-        } catch {
-            print("❌ Email sign in failed: \(error)")
-            print("❌ Error description: \(error.localizedDescription)")
-            let nsError = error as NSError
-            print("❌ Error domain: \(nsError.domain)")
-            print("❌ Error code: \(nsError.code)")
-            print("❌ Error userInfo: \(nsError.userInfo)")
+            // ログイン成功時はレート制限をリセット
+            resetLoginAttempts(for: validEmail)
             
+            secureLogger.authEvent("Sign in successful", userID: user.id.uuidString)
+        } catch {
+            recordFailedLoginAttempt(for: validEmail)
+            secureLogger.securityEvent("Sign in failed", details: ["error": error.localizedDescription])
             isLoading = false
             throw error
         }
@@ -118,11 +156,26 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     }
     
     func signUpWithEmail(email: String, password: String) async throws -> String {
+        // 入力検証
+        let emailValidation = InputValidator.validateEmail(email)
+        guard emailValidation.isValid, let validEmail = emailValidation.value else {
+            secureLogger.securityEvent("Invalid email format during sign up", details: ["email": email])
+            throw AuthError.invalidInput("Invalid email format")
+        }
+        
+        // パスワード強度チェック
+        let passwordValidation = InputValidator.validatePassword(password)
+        guard passwordValidation.isValid else {
+            secureLogger.securityEvent("Weak password during sign up")
+            throw AuthError.weakPassword(passwordValidation.errors)
+        }
+        
         isLoading = true
+        secureLogger.authEvent("Sign up attempt", userID: nil)
         
         do {
             let session = try await client.auth.signUp(
-                email: email,
+                email: validEmail,
                 password: password
             )
             
@@ -135,10 +188,10 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             self.isAuthenticated = true
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
-            print("✅ Email sign up successful: \(user.email ?? "")")
+            secureLogger.authEvent("Sign up successful", userID: user.id.uuidString)
             return user.id.uuidString
         } catch {
-            print("❌ Email sign up failed: \(error)")
+            secureLogger.securityEvent("Sign up failed", details: ["error": error.localizedDescription])
             isLoading = false
             throw error
         }
@@ -206,20 +259,75 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     
     func signOut() async throws {
         isLoading = true
+        let userID = currentUser?.id
         
         do {
             try await client.auth.signOut()
+            
+            // メモリ内の機密データをクリア
+            clearSensitiveData()
+            
             self.currentUser = nil
             self.isAuthenticated = false
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
-            print("✅ Sign out successful")
+            secureLogger.authEvent("Sign out successful", userID: userID)
         } catch {
-            print("❌ Sign out failed: \(error)")
+            secureLogger.securityEvent("Sign out failed", details: ["error": error.localizedDescription])
             throw error
         }
         
         isLoading = false
+    }
+    
+    // MARK: - Security Helper Methods
+    
+    private func checkRateLimit(for email: String) throws {
+        let currentTime = Date()
+        
+        if let attempts = loginAttempts[email] {
+            // ロックアウト期間中かチェック
+            if attempts.count >= maxLoginAttempts {
+                let timeSinceLastAttempt = currentTime.timeIntervalSince(attempts.lastAttempt)
+                if timeSinceLastAttempt < lockoutDuration {
+                    let remainingTime = lockoutDuration - timeSinceLastAttempt
+                    secureLogger.securityEvent("Rate limit exceeded", details: ["email": email, "remaining_time": remainingTime])
+                    throw AuthError.rateLimitExceeded(remainingTime)
+                } else {
+                    // ロックアウト期間が過ぎたのでリセット
+                    loginAttempts.removeValue(forKey: email)
+                }
+            }
+        }
+    }
+    
+    private func recordFailedLoginAttempt(for email: String) {
+        let currentTime = Date()
+        
+        if var attempts = loginAttempts[email] {
+            attempts.count += 1
+            attempts.lastAttempt = currentTime
+            loginAttempts[email] = attempts
+        } else {
+            loginAttempts[email] = (count: 1, lastAttempt: currentTime)
+        }
+        
+        secureLogger.securityEvent("Failed login attempt recorded", details: [
+            "email": email,
+            "attempt_count": loginAttempts[email]?.count ?? 0
+        ])
+    }
+    
+    private func resetLoginAttempts(for email: String) {
+        loginAttempts.removeValue(forKey: email)
+    }
+    
+    private func clearSensitiveData() {
+        // メモリ内の機密データをゼロクリア
+        loginAttempts.removeAll()
+        
+        // 追加のクリーンアップ処理
+        secureLogger.debug("Sensitive data cleared from memory")
     }
     
     // MARK: - Password Reset

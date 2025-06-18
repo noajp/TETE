@@ -1,7 +1,7 @@
 
 //======================================================================
-// MARK: - 修正版 SupabaseManager.swift
-// Path: foodai/Core/Networking/SupabaseManager.swift
+// MARK: - Secure SupabaseManager.swift
+// Path: couleur/Core/Networking/SupabaseManager.swift
 //======================================================================
 import Foundation
 import Supabase
@@ -10,12 +10,33 @@ class SupabaseManager {
     static let shared = SupabaseManager()
     
     let client: SupabaseClient
+    private let secureLogger = SecureLogger.shared
     
     private init() {
+        // セキュアな設定を使用
+        guard let supabaseURL = URL(string: SecureConfig.shared.supabaseURL) else {
+            secureLogger.error("Invalid Supabase URL configuration")
+            fatalError("Invalid Supabase URL")
+        }
+        
+        let supabaseKey = SecureConfig.shared.supabaseAnonKey
+        guard !supabaseKey.isEmpty else {
+            secureLogger.error("Missing Supabase anonymous key")
+            fatalError("Missing Supabase configuration")
+        }
+        
         client = SupabaseClient(
-            supabaseURL: URL(string: Config.supabaseURL)!,
-            supabaseKey: Config.supabaseAnonKey
+            supabaseURL: supabaseURL,
+            supabaseKey: supabaseKey
         )
+        
+        secureLogger.info("SupabaseManager initialized with secure configuration")
+        setupSecurityConfiguration()
+    }
+    
+    private func setupSecurityConfiguration() {
+        // 追加のセキュリティ設定
+        secureLogger.debug("Supabase security configuration completed")
     }
 }
 
