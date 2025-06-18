@@ -8,12 +8,19 @@
 import UIKit
 import CoreImage
 
-// MARK: - LUT Processor
+// MARK: - LUT Processor (Optimized)
 final class LUTProcessor {
     
     // MARK: - Properties
     private static let lutSize = 64
-    private var lutCache: [String: Data] = [:]
+    private let lutCache = NSCache<NSString, NSData>()
+    
+    // MARK: - Initialization
+    init() {
+        // Configure cache for memory efficiency
+        lutCache.countLimit = 20  // Maximum 20 LUTs in memory
+        lutCache.totalCostLimit = 50 * 1024 * 1024  // 50MB max
+    }
     
     // MARK: - LUT Application
     
@@ -42,26 +49,36 @@ final class LUTProcessor {
     
     // MARK: - LUT Loading
     
-    /// LUTファイルを読み込み
+    /// LUTファイルを読み込み (Optimized with NSCache)
     private func loadLUT(named lutName: String) -> Data? {
-        // キャッシュチェック
-        if let cachedData = lutCache[lutName] {
-            return cachedData
+        let cacheKey = NSString(string: lutName)
+        
+        // キャッシュチェック (NSCache使用)
+        if let cachedData = lutCache.object(forKey: cacheKey) {
+            return cachedData as Data
         }
         
         // バンドルからLUTファイルを読み込み
         if let lutData = loadLUTFromBundle(named: lutName) {
-            lutCache[lutName] = lutData
+            let nsData = NSData(data: lutData)
+            lutCache.setObject(nsData, forKey: cacheKey, cost: lutData.count)
             return lutData
         }
         
         // 生成済みLUTをチェック
         if let generatedData = generateLUT(named: lutName) {
-            lutCache[lutName] = generatedData
+            let nsData = NSData(data: generatedData)
+            lutCache.setObject(nsData, forKey: cacheKey, cost: generatedData.count)
             return generatedData
         }
         
         return nil
+    }
+    
+    /// キャッシュクリア
+    func clearCache() {
+        lutCache.removeAllObjects()
+        print("🧹 LUT cache cleared")
     }
     
     /// バンドルからLUTを読み込み

@@ -42,11 +42,11 @@ struct MetalPreviewView: UIViewRepresentable {
         Coordinator(self)
     }
     
-    // MARK: - Coordinator
+    // MARK: - Coordinator (Optimized)
     class Coordinator: NSObject, MTKViewDelegate {
         var parent: MetalPreviewView
         private let ciContext: CIContext
-        private let filterManager = AdvancedFilterManager()
+        private let imageProcessor = UnifiedImageProcessor.shared
         private var currentFilterType: FilterType = .none
         private var currentIntensity: Float = 1.0
         private let commandQueue: MTLCommandQueue?
@@ -87,8 +87,8 @@ struct MetalPreviewView: UIViewRepresentable {
                     return
                 }
                 
-                // フィルター適用（高速版）
-                let filteredImage = filterManager.applyFilterRealtime(
+                // Optimized filter application using UnifiedImageProcessor
+                let filteredImage = imageProcessor.applyFilterRealtime(
                     currentFilterType,
                     to: currentImage,
                     intensity: currentIntensity

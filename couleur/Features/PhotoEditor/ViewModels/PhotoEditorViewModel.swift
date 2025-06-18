@@ -87,6 +87,40 @@ class PhotoEditorViewModel: ObservableObject {
         return imageProcessor.exportImage(image, quality: quality)
     }
     
+    /// フィルター設定を適用
+    func applyFilterSettings(_ settings: FilterSettings) {
+        Task {
+            var filteredImage = originalCIImage
+            
+            // 色調整フィルター適用
+            if let colorFilter = CIFilter(name: "CIColorControls") {
+                colorFilter.setValue(filteredImage, forKey: kCIInputImageKey)
+                colorFilter.setValue(settings.brightness, forKey: kCIInputBrightnessKey)
+                colorFilter.setValue(settings.contrast, forKey: kCIInputContrastKey)
+                colorFilter.setValue(settings.saturation, forKey: kCIInputSaturationKey)
+                filteredImage = colorFilter.outputImage ?? filteredImage
+            }
+            
+            // 温度とティント調整
+            if let tempFilter = CIFilter(name: "CITemperatureAndTint") {
+                tempFilter.setValue(filteredImage, forKey: kCIInputImageKey)
+                tempFilter.setValue(CIVector(x: CGFloat(settings.temperature), y: CGFloat(settings.tint)), forKey: "inputNeutral")
+                tempFilter.setValue(CIVector(x: CGFloat(settings.temperature), y: 0), forKey: "inputTargetNeutral")
+                filteredImage = tempFilter.outputImage ?? filteredImage
+            }
+            
+            // CIImageを更新
+            await MainActor.run {
+                self.ciImage = filteredImage
+                
+                // UIImageも更新
+                if let cgImage = CIContext().createCGImage(filteredImage, from: filteredImage.extent) {
+                    self.currentImage = UIImage(cgImage: cgImage)
+                }
+            }
+        }
+    }
+    
     // MARK: - Private Methods
     
     /// フィルターサムネイル生成

@@ -8,7 +8,9 @@ class SecureConfig {
     // MARK: - Singleton
     static let shared = SecureConfig()
     private init() {
-        loadFromSecretsIfNeeded()
+        // 強制的にSecrets.plistから再読み込み
+        clearAllCredentials()
+        loadFromSecretsPlist()
     }
     
     // MARK: - Keychain Keys
@@ -172,6 +174,12 @@ class SecureConfig {
         return !supabaseURL.isEmpty && 
                !supabaseAnonKey.isEmpty && 
                !googlePlacesAPIKey.isEmpty
+    }
+    
+    // MARK: - Public Reload Method
+    func reloadFromSecrets() {
+        clearAllCredentials()
+        loadFromSecretsPlist()
     }
 }
 
