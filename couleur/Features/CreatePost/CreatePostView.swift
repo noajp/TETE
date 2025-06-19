@@ -99,7 +99,7 @@ struct CreatePostView: View {
         }
         .sheet(isPresented: $showingPhotoEditor) {
             if let imageToEdit = imageToEdit {
-                PhotoEditorView(
+                ModernPhotoEditorView(
                     image: imageToEdit,
                     onComplete: { editedImage in
                         viewModel.selectedImage = editedImage
@@ -129,10 +129,10 @@ struct CreatePostView: View {
                 if let data = contentType {
                     // 動画かどうかを判定（簡易的な方法）
                     if let image = UIImage(data: data) {
-                        // 画像の処理
+                        // 画像の処理 - 直接編集画面へ
                         viewModel.mediaType = .photo
-                        viewModel.selectedImage = image
-                        viewModel.selectedVideoURL = nil
+                        imageToEdit = image
+                        showingPhotoEditor = true
                     } else {
                         // 動画として処理を試みる
                         viewModel.mediaType = .video
@@ -264,7 +264,7 @@ struct CreatePostView: View {
                                                 imageToEdit = image
                                                 showingPhotoEditor = true
                                             }) {
-                                                Image(systemName: "slider.horizontal.3")
+                                                Image(systemName: "wand.and.stars")
                                                     .font(.caption)
                                                     .foregroundColor(.white)
                                                     .padding(MinimalDesign.Spacing.xs)

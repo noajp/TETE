@@ -40,8 +40,9 @@ struct MainTabView: View {
             )
         }
         .ignoresSafeArea(.keyboard)
-        .sheet(isPresented: $showingCreatePost) {
-            CreatePostView()
+        .fullScreenCover(isPresented: $showingCreatePost) {
+            CreatePostNavigationView()
+                .transition(.move(edge: .bottom))
         }
         .onAppear {
             // Fetch conversations to get initial unread count

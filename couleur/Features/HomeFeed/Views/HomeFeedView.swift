@@ -88,6 +88,7 @@ struct HomeFeedView: View {
                                 })
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .background(Color.clear)
                         }
                     }
                     .padding(.horizontal, 0)
@@ -107,6 +108,7 @@ struct HomeFeedView: View {
                                 })
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .background(Color.clear)
                         }
                     }
                 }

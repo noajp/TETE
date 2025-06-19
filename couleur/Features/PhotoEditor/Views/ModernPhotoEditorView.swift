@@ -19,7 +19,6 @@ struct ModernPhotoEditorView: View {
     @State private var selectedCategory: PresetCategory = .allPresets
     @State private var selectedTab: EditorTab = .presets
     @State private var filterIntensity: Float = 1.0
-    @State private var showShareSheet = false
     
     // MARK: - Initialization
     init(image: UIImage,
@@ -33,53 +32,43 @@ struct ModernPhotoEditorView: View {
     
     // MARK: - Body
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
             Color.black.ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // ヘッダー
-                headerView
-                
-                // メイン画像
+                // メイン画像（全画面表示）
                 mainImageView
                 
                 // 編集メニュー
                 editMenuView
             }
-        }
-        .sheet(isPresented: $showShareSheet) {
-            if let editedImage = viewModel.currentImage {
-                ShareSheet(activityItems: [editedImage])
+            
+            // カスタム戻るボタン
+            Button(action: onCancel) {
+                Text("Back")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.6))
+                    .cornerRadius(20)
             }
+            .padding(.top, 50) // Safe Area対応
+            .padding(.leading, 16)
         }
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    // 右方向にスワイプで戻る
+                    if value.translation.width > 100 && abs(value.translation.height) < 50 {
+                        onCancel()
+                    }
+                }
+        )
     }
     
     // MARK: - Views
     
-    private var headerView: some View {
-        HStack {
-            // 戻るボタン
-            Button(action: onCancel) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(.white)
-                    .frame(width: 44, height: 44)
-            }
-            
-            Spacer()
-            
-            // シェアボタン
-            Button(action: { showShareSheet = true }) {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white)
-                    .frame(width: 44, height: 44)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 50) // Status barの考慮
-        .padding(.bottom, 10)
-    }
     
     private var mainImageView: some View {
         GeometryReader { geometry in
@@ -191,11 +180,11 @@ struct ModernPhotoEditorView: View {
                 }
             }) {
                 Text("完了")
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .font(.system(size: 16, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.white)
+                    .background(MinimalDesign.Colors.accentRed)
                     .cornerRadius(10)
             }
             .padding(.horizontal, 40)

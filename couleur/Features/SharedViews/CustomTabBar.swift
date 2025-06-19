@@ -73,9 +73,15 @@ struct CustomTabBar: View {
             
             // 投稿ボタン（中央）
             Button(action: onCreatePost) {
-                Image(systemName: "plus")
-                    .font(.system(size: 24, weight: .regular))
-                    .foregroundColor(selectedTab == 2 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                ZStack {
+                    Circle()
+                        .fill(MinimalDesign.Colors.accentRed)
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundColor(.white)
+                }
             }
             .frame(maxWidth: .infinity)
             
