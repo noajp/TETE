@@ -18,30 +18,54 @@ struct CustomTabBar: View {
             }) {
                 Group {
                     if showGridMode && selectedTab == 0 {
-                        // グリッドモード時は4つの小さな正方形（塗りつぶし）
+                        // グリッドモード時は4つの小さな正方形（選択時は塗りつぶし、非選択時は枠線のみ）
                         VStack(spacing: 2) {
                             HStack(spacing: 2) {
-                                Rectangle()
-                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
-                                    .frame(width: 8, height: 8)
-                                Rectangle()
-                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
-                                    .frame(width: 8, height: 8)
+                                if selectedTab == 0 {
+                                    Rectangle()
+                                        .fill(MinimalDesign.Colors.accentRed)
+                                        .frame(width: 8, height: 8)
+                                    Rectangle()
+                                        .fill(MinimalDesign.Colors.accentRed)
+                                        .frame(width: 8, height: 8)
+                                } else {
+                                    Rectangle()
+                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .frame(width: 8, height: 8)
+                                    Rectangle()
+                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .frame(width: 8, height: 8)
+                                }
                             }
                             HStack(spacing: 2) {
-                                Rectangle()
-                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
-                                    .frame(width: 8, height: 8)
-                                Rectangle()
-                                    .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
-                                    .frame(width: 8, height: 8)
+                                if selectedTab == 0 {
+                                    Rectangle()
+                                        .fill(MinimalDesign.Colors.accentRed)
+                                        .frame(width: 8, height: 8)
+                                    Rectangle()
+                                        .fill(MinimalDesign.Colors.accentRed)
+                                        .frame(width: 8, height: 8)
+                                } else {
+                                    Rectangle()
+                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .frame(width: 8, height: 8)
+                                    Rectangle()
+                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .frame(width: 8, height: 8)
+                                }
                             }
                         }
                     } else {
-                        // シングルモード時は1つの大きな正方形（塗りつぶし）
-                        Rectangle()
-                            .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
-                            .frame(width: 20, height: 20)
+                        // シングルモード時は1つの大きな正方形（選択時は塗りつぶし、非選択時は枠線のみ）
+                        if selectedTab == 0 {
+                            Rectangle()
+                                .fill(MinimalDesign.Colors.accentRed)
+                                .frame(width: 20, height: 20)
+                        } else {
+                            Rectangle()
+                                .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                .frame(width: 20, height: 20)
+                        }
                     }
                 }
             }

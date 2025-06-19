@@ -263,30 +263,30 @@ struct ModernPostsTabSection: View {
                     }
                 }) {
                     Group {
-                        if showGridMode && selectedTab == .posts {
+                        if showGridMode {
                             // Grid mode - 4 small squares
                             VStack(spacing: 2) {
                                 HStack(spacing: 2) {
                                     Rectangle()
-                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.tertiary)
+                                        .fill(MinimalDesign.Colors.accentRed)
                                         .frame(width: 8, height: 8)
                                     Rectangle()
-                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.tertiary)
+                                        .fill(MinimalDesign.Colors.accentRed)
                                         .frame(width: 8, height: 8)
                                 }
                                 HStack(spacing: 2) {
                                     Rectangle()
-                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .fill(MinimalDesign.Colors.accentRed)
                                         .frame(width: 8, height: 8)
                                     Rectangle()
-                                        .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                        .fill(MinimalDesign.Colors.accentRed)
                                         .frame(width: 8, height: 8)
                                 }
                             }
                         } else {
-                            // Single mode - 1 large square
+                            // Single mode - 1 large square (only stroke when not selected)
                             Rectangle()
-                                .fill(selectedTab == .posts ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
+                                .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
                                 .frame(width: 20, height: 20)
                         }
                     }
