@@ -266,6 +266,21 @@ class MessageService: ObservableObject {
             .execute()
     }
     
+    /// Delete a conversation
+    func deleteConversation(_ conversationId: String) async throws {
+        guard let userId = AuthManager.shared.currentUser?.id else {
+            throw NSError(domain: "MessageService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // Delete the participant record (soft delete for the user)
+        try await supabase
+            .from("conversation_participants")
+            .delete()
+            .eq("conversation_id", value: conversationId)
+            .eq("user_id", value: userId)
+            .execute()
+    }
+    
     // MARK: - Helper Methods
     
     /// Update unread conversation count without triggering full UI refresh

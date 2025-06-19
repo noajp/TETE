@@ -25,10 +25,11 @@ struct MessagesView: View {
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 .contextMenu {
-                                    Button(action: {}) {
-                                        Label("", systemImage: "")
+                                    Button("Delete", role: .destructive) {
+                                        Task {
+                                            await viewModel.deleteConversation(conversation.id)
+                                        }
                                     }
-                                    .disabled(true)
                                 } preview: {
                                     ConversationPreview(conversation: conversation)
                                         .environmentObject(authManager)
@@ -388,10 +389,12 @@ struct MessagePreviewRow: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .font(.system(size: 14))
-                .background(isCurrentUser ? MinimalDesign.Colors.primary : Color.gray.opacity(0.2))
                 .foregroundColor(isCurrentUser ? MinimalDesign.Colors.background : MinimalDesign.Colors.primary)
-                .cornerRadius(0)
                 .frame(maxWidth: 200, alignment: isCurrentUser ? .trailing : .leading)
+                .background(
+                    Rectangle()
+                        .fill(isCurrentUser ? MinimalDesign.Colors.primary : Color.gray.opacity(0.2))
+                )
             
             if !isCurrentUser {
                 Spacer()

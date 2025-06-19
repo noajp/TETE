@@ -92,4 +92,15 @@ class MessagesViewModel: ObservableObject {
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: date, relativeTo: Date())
     }
+    
+    func deleteConversation(_ conversationId: String) async {
+        do {
+            try await messageService.deleteConversation(conversationId)
+            // Remove from local list
+            conversations.removeAll { $0.id == conversationId }
+        } catch {
+            errorMessage = "Failed to delete conversation: \(error.localizedDescription)"
+            print("❌ Error deleting conversation: \(error)")
+        }
+    }
 }
