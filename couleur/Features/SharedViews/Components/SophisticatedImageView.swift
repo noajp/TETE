@@ -66,23 +66,16 @@ struct SophisticatedImageView: View {
         loadingTask?.cancel()
         
         loadingTask = Task {
-            do {
-                // Use ImageCacheManager for optimized loading
-                let loadedImage = await ImageCacheManager.shared.loadImage(from: imageUrl)
-                
-                // Check if task was cancelled
-                guard !Task.isCancelled else { return }
-                
-                // Update UI on main thread
-                await MainActor.run {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        self.image = loadedImage
-                        self.isLoading = false
-                    }
-                }
-            } catch {
-                // Handle error
-                await MainActor.run {
+            // Use ImageCacheManager for optimized loading
+            let loadedImage = await ImageCacheManager.shared.loadImage(from: imageUrl)
+            
+            // Check if task was cancelled
+            guard !Task.isCancelled else { return }
+            
+            // Update UI on main thread
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.image = loadedImage
                     self.isLoading = false
                 }
             }

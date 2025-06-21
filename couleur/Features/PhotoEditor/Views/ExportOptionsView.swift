@@ -289,7 +289,7 @@ struct ExportOptionsView: View {
         exportProgress = 0
         
         // プログレス更新をシミュレート
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+        let _ = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
             exportProgress += 0.1
             if exportProgress >= 1.0 {
                 timer.invalidate()

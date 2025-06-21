@@ -137,7 +137,9 @@ class VisionContentModerator: ObservableObject {
                 // Vision リクエストの作成
                 let classificationRequest = VNClassifyImageRequest { request, error in
                     if let error = error {
-                        self.secureLogger.error("Vision classification failed: \(error.localizedDescription)")
+                        Task { @MainActor in
+                            self.secureLogger.error("Vision classification failed: \(error.localizedDescription)")
+                        }
                         continuation.resume(returning: flags)
                         return
                     }
@@ -153,7 +155,8 @@ class VisionContentModerator: ObservableObject {
                         let confidence = observation.confidence
                         
                         // 下半身露出の特定キーワードチェック
-                        if self.isLowerBodyExposure(identifier) && confidence > self.lowerBodyExposureThreshold {
+                        let isLowerBody = self.checkLowerBodyExposure(identifier)
+                        if isLowerBody && confidence > self.lowerBodyExposureThreshold {
                             flags.append(ModerationFlag(
                                 type: .lowerBodyExposure,
                                 severity: confidence > 0.9 ? .critical : .high,
@@ -171,7 +174,9 @@ class VisionContentModerator: ObservableObject {
                 do {
                     try handler.perform([classificationRequest])
                 } catch {
-                    self.secureLogger.error("Vision request failed: \(error.localizedDescription)")
+                    Task { @MainActor in
+                        self.secureLogger.error("Vision request failed: \(error.localizedDescription)")
+                    }
                     continuation.resume(returning: flags)
                 }
             }
@@ -188,14 +193,16 @@ class VisionContentModerator: ObservableObject {
                 var aiProbability: Float = 0.0
                 
                 // 複数の手法でAI生成を検出
-                let noiseAnalysis = self.analyzeNoisePatterns(cgImage)
-                let frequencyAnalysis = self.analyzeFrequencyDomain(cgImage)
-                let artifactAnalysis = self.detectAIArtifacts(cgImage)
+                let noiseAnalysis = await self.analyzeNoisePatternsAsync(cgImage)
+                let frequencyAnalysis = await self.analyzeFrequencyDomainAsync(cgImage)
+                let artifactAnalysis = await self.detectAIArtifactsAsync(cgImage)
                 
                 // 総合スコアの計算
                 aiProbability = (noiseAnalysis + frequencyAnalysis + artifactAnalysis) / 3.0
                 
-                self.secureLogger.debug("AI generation probability: \(aiProbability)")
+                Task { @MainActor in
+                    self.secureLogger.debug("AI generation probability: \(aiProbability)")
+                }
                 continuation.resume(returning: aiProbability)
             }
         }
@@ -204,6 +211,16 @@ class VisionContentModerator: ObservableObject {
     
     // MARK: - Helper Methods
     
+    // nonisolated版の下半身露出チェック
+    private nonisolated func checkLowerBodyExposure(_ identifier: String) -> Bool {
+        let lowerBodyKeywords = [
+            "genital", "genitalia", "private", "buttocks", "hip", "groin",
+            "nude", "naked", "explicit", "sexual", "intimate",
+            "underwear", "lingerie", "bikini bottom"
+        ]
+        return lowerBodyKeywords.contains { identifier.contains($0) }
+    }
+    
     private func isLowerBodyExposure(_ identifier: String) -> Bool {
         let lowerBodyKeywords = [
             "genital", "genitalia", "private", "buttocks", "hip", "groin",
@@ -211,6 +228,219 @@ class VisionContentModerator: ObservableObject {
             "underwear", "lingerie", "bikini bottom"
         ]
         return lowerBodyKeywords.contains { identifier.contains($0) }
+    }
+    
+    // 非同期版のヘルパーメソッド
+    private nonisolated func analyzeNoisePatternsAsync(_ cgImage: CGImage) async -> Float {
+        return await withCheckedContinuation { continuation in
+            let result = analyzeNoisePatternsSync(cgImage)
+            continuation.resume(returning: result)
+        }
+    }
+    
+    private nonisolated func analyzeFrequencyDomainAsync(_ cgImage: CGImage) async -> Float {
+        return await withCheckedContinuation { continuation in
+            let result = analyzeFrequencyDomainSync(cgImage)
+            continuation.resume(returning: result)
+        }
+    }
+    
+    private nonisolated func detectAIArtifactsAsync(_ cgImage: CGImage) async -> Float {
+        return await withCheckedContinuation { continuation in
+            let result = detectAIArtifactsSync(cgImage)
+            continuation.resume(returning: result)
+        }
+    }
+    
+    // 同期版のヘルパーメソッド（nonisolated）
+    private nonisolated func analyzeNoisePatternsSync(_ cgImage: CGImage) -> Float {
+        // ノイズパターン解析（AI生成画像特有のパターンを検出）
+        let width = cgImage.width
+        let height = cgImage.height
+        
+        guard let dataProvider = cgImage.dataProvider,
+              let data = dataProvider.data,
+              let bytes = CFDataGetBytePtr(data) else {
+            return 0.1
+        }
+        
+        var aiScore: Float = 0.0
+        let bytesPerPixel = cgImage.bitsPerPixel / 8
+        let bytesPerRow = cgImage.bytesPerRow
+        
+        // 1. 画像サイズに基づく判定
+        let commonAISizes = [(512, 512), (1024, 1024), (768, 768), (256, 256), (640, 640)]
+        for (w, h) in commonAISizes {
+            if width == w && height == h {
+                aiScore += 0.25
+                break
+            }
+        }
+        
+        // 2. ピクセル値の異常な均一性チェック
+        var pixelVariations: [Float] = []
+        let sampleSize = min(1000, width * height / 100)
+        
+        for _ in 0..<sampleSize {
+            let randomX = Int.random(in: 0..<width-1)
+            let randomY = Int.random(in: 0..<height-1)
+            let pixelOffset = randomY * bytesPerRow + randomX * bytesPerPixel
+            
+            if pixelOffset + 2 < CFDataGetLength(data) {
+                let r1 = Float(bytes[pixelOffset])
+                let g1 = Float(bytes[pixelOffset + 1])
+                let b1 = Float(bytes[pixelOffset + 2])
+                
+                let neighborOffset = randomY * bytesPerRow + (randomX + 1) * bytesPerPixel
+                let r2 = Float(bytes[neighborOffset])
+                let g2 = Float(bytes[neighborOffset + 1])
+                let b2 = Float(bytes[neighborOffset + 2])
+                
+                let variation = sqrt(pow(r2-r1, 2) + pow(g2-g1, 2) + pow(b2-b1, 2))
+                pixelVariations.append(variation)
+            }
+        }
+        
+        if !pixelVariations.isEmpty {
+            let avgVariation = pixelVariations.reduce(0, +) / Float(pixelVariations.count)
+            let stdDev = sqrt(pixelVariations.map { pow($0 - avgVariation, 2) }.reduce(0, +) / Float(pixelVariations.count))
+            
+            // AI生成画像は異常に均一な場合が多い
+            if stdDev < 10.0 && avgVariation < 15.0 {
+                aiScore += 0.3
+            }
+        }
+        
+        // 3. エッジの不自然さ検出は簡略化
+        // let edgeConsistency = analyzeEdgeConsistencySync(cgImage)
+        // aiScore += edgeConsistency * 0.2
+        
+        return min(1.0, aiScore)
+    }
+    
+    private nonisolated func analyzeFrequencyDomainSync(_ cgImage: CGImage) -> Float {
+        // 周波数ドメイン解析（簡略化版）
+        let width = cgImage.width
+        let height = cgImage.height
+        
+        // 簡略なパターン検出
+        var artificialPatterns: Float = 0.0
+        
+        // AI特有のサイズチェック
+        let commonAISizes = [(512, 512), (1024, 1024), (768, 768)]
+        for (w, h) in commonAISizes {
+            if width == w && height == h {
+                artificialPatterns += 0.3
+                break
+            }
+        }
+        
+        return min(1.0, artificialPatterns)
+    }
+    
+    private nonisolated func detectAIArtifactsSync(_ cgImage: CGImage) -> Float {
+        var artifactScore: Float = 0.0
+        
+        // 1. グリッドパターンの検出簡略版
+        let gridPattern = detectGridPatternSync(cgImage)
+        artifactScore += gridPattern * 0.4
+        
+        // 2. 不自然な対称性の検出簡略版
+        let symmetryArtifacts = detectUnnaturalSymmetrySync(cgImage)
+        artifactScore += symmetryArtifacts * 0.3
+        
+        return min(1.0, artifactScore)
+    }
+    
+    private nonisolated func detectGridPatternSync(_ cgImage: CGImage) -> Float {
+        let width = cgImage.width
+        let height = cgImage.height
+        
+        guard let dataProvider = cgImage.dataProvider,
+              let data = dataProvider.data,
+              let bytes = CFDataGetBytePtr(data) else {
+            return 0.0
+        }
+        
+        let bytesPerPixel = cgImage.bitsPerPixel / 8
+        let bytesPerRow = cgImage.bytesPerRow
+        
+        var gridScore: Float = 0.0
+        let gridSizes = [8, 16, 32]
+        
+        for gridSize in gridSizes {
+            var matches = 0
+            var totalChecks = 0
+            
+            for y in stride(from: 0, to: height - gridSize, by: gridSize) {
+                for x in stride(from: 0, to: width - gridSize, by: gridSize) {
+                    let offset = y * bytesPerRow + x * bytesPerPixel
+                    if offset + bytesPerPixel < CFDataGetLength(data) {
+                        let r = Float(bytes[offset])
+                        
+                        if x + gridSize < width {
+                            let nextOffset = y * bytesPerRow + (x + gridSize) * bytesPerPixel
+                            let nextR = Float(bytes[nextOffset])
+                            
+                            if abs(r - nextR) > 20.0 {
+                                matches += 1
+                            }
+                            totalChecks += 1
+                        }
+                    }
+                }
+            }
+            
+            if totalChecks > 0 {
+                let gridRatio = Float(matches) / Float(totalChecks)
+                gridScore = max(gridScore, gridRatio)
+            }
+        }
+        
+        return gridScore
+    }
+    
+    private nonisolated func detectUnnaturalSymmetrySync(_ cgImage: CGImage) -> Float {
+        let width = cgImage.width
+        let height = cgImage.height
+        
+        guard let dataProvider = cgImage.dataProvider,
+              let data = dataProvider.data,
+              let bytes = CFDataGetBytePtr(data) else {
+            return 0.0
+        }
+        
+        let bytesPerPixel = cgImage.bitsPerPixel / 8
+        let bytesPerRow = cgImage.bytesPerRow
+        
+        var symmetryScore: Float = 0.0
+        let sampleSize = min(50, width / 4)
+        
+        var horizontalMatches = 0
+        for _ in 0..<sampleSize {
+            let y = Int.random(in: height/4..<3*height/4)
+            let x1 = Int.random(in: 0..<width/2)
+            let x2 = width - 1 - x1
+            
+            let offset1 = y * bytesPerRow + x1 * bytesPerPixel
+            let offset2 = y * bytesPerRow + x2 * bytesPerPixel
+            
+            if offset2 + 2 < CFDataGetLength(data) {
+                let r1 = Float(bytes[offset1])
+                let r2 = Float(bytes[offset2])
+                
+                if abs(r1 - r2) < 10.0 {
+                    horizontalMatches += 1
+                }
+            }
+        }
+        
+        let horizontalSymmetry = Float(horizontalMatches) / Float(sampleSize)
+        if horizontalSymmetry > 0.8 {
+            symmetryScore += 0.5
+        }
+        
+        return symmetryScore
     }
     
     private func analyzeNoisePatterns(_ cgImage: CGImage) -> Float {
