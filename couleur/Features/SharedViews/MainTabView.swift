@@ -16,20 +16,28 @@ struct MainTabView: View {
             Group {
                 switch selectedTab {
                 case 0:
-                    HomeFeedView(showGridMode: $showGridMode)
+                    UnifiedNavigationView {
+                        HomeFeedView(showGridMode: $showGridMode)
+                    }
                 case 1:
-                    MessagesView()
+                    UnifiedNavigationView {
+                        MessagesView()
+                    }
                 case 3:
-                    MapView()
+                    UnifiedNavigationView {
+                        MagazineFeedView()
+                    }
                 case 4:
-                    MyPageView()
+                    UnifiedNavigationView {
+                        MyPageView()
+                    }
                 default:
                     EmptyView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // カスタムタブバー
+            // カスタムタブバー（フッター）
             CustomTabBar(
                 selectedTab: $selectedTab,
                 showGridMode: $showGridMode,
@@ -40,6 +48,7 @@ struct MainTabView: View {
             )
         }
         .ignoresSafeArea(.keyboard)
+        .accentColor(MinimalDesign.Colors.accentRed)
         .fullScreenCover(isPresented: $showingCreatePost) {
             CreatePostNavigationView()
                 .transition(.move(edge: .bottom))
@@ -48,6 +57,14 @@ struct MainTabView: View {
             // Fetch conversations to get initial unread count
             Task {
                 _ = try? await messageService.fetchConversations()
+            }
+        }
+        .onChange(of: selectedTab) { _, newTab in
+            // Refresh messages when switching to messages tab
+            if newTab == 1 {
+                Task {
+                    _ = try? await messageService.fetchConversations()
+                }
             }
         }
     }

@@ -188,24 +188,21 @@ class VisionContentModerator: ObservableObject {
     private func detectAIGeneration(_ image: UIImage) async -> Float {
         guard let cgImage = image.cgImage else { return 0.0 }
         
-        return await withCheckedContinuation { continuation in
-            imageAnalysisQueue.async {
-                var aiProbability: Float = 0.0
-                
-                // 複数の手法でAI生成を検出
-                let noiseAnalysis = await self.analyzeNoisePatternsAsync(cgImage)
-                let frequencyAnalysis = await self.analyzeFrequencyDomainAsync(cgImage)
-                let artifactAnalysis = await self.detectAIArtifactsAsync(cgImage)
-                
-                // 総合スコアの計算
-                aiProbability = (noiseAnalysis + frequencyAnalysis + artifactAnalysis) / 3.0
-                
-                Task { @MainActor in
-                    self.secureLogger.debug("AI generation probability: \(aiProbability)")
-                }
-                continuation.resume(returning: aiProbability)
-            }
+        var aiProbability: Float = 0.0
+        
+        // 複数の手法でAI生成を検出
+        let noiseAnalysis = await self.analyzeNoisePatternsAsync(cgImage)
+        let frequencyAnalysis = await self.analyzeFrequencyDomainAsync(cgImage)
+        let artifactAnalysis = await self.detectAIArtifactsAsync(cgImage)
+        
+        // 総合スコアの計算
+        aiProbability = (noiseAnalysis + frequencyAnalysis + artifactAnalysis) / 3.0
+        
+        Task { @MainActor in
+            self.secureLogger.debug("AI generation probability: \(aiProbability)")
         }
+        
+        return aiProbability
     }
     
     

@@ -8,7 +8,7 @@ import Foundation
 import SwiftUI
 
 /// 過剰レコメンド破壊戦略
-enum AntiExcessiveStrategy {
+enum AntiExcessiveStrategy: CaseIterable {
     case randomChaos        // 完全ランダム注入
     case algorithmSabotage  // アルゴリズム妨害
     case humanCuration      // 人間的偶然性
@@ -330,6 +330,18 @@ class ChaosGenerator {
     }
 }
 
+/// 写真スタイル
+enum PhotographyStyle: String, CaseIterable {
+    case portrait = "portrait"
+    case landscape = "landscape"
+    case street = "street"
+    case abstract = "abstract"
+    case macro = "macro"
+    case documentary = "documentary"
+    case minimalist = "minimalist"
+    case surreal = "surreal"
+}
+
 /// ユーザー多様性プロファイル（簡略化）
 struct UserDiversityProfile {
     let userId: String
@@ -385,10 +397,10 @@ struct DiversityGap {
         
         // 各カテゴリーから最も不足している領域を抽出
         deficits.append(contentsOf: styleDeficits.sorted { $0.value > $1.value }
-            .prefix(3).map { .style($0.key) })
+            .prefix(3).map { DiversityDeficit.style($0.key) })
         
         deficits.append(contentsOf: culturalDeficits.sorted { $0.value > $1.value }
-            .prefix(2).map { .cultural($0.key) })
+            .prefix(2).map { DiversityDeficit.cultural($0.key) })
         
         return deficits
     }
@@ -544,7 +556,7 @@ class UserDiversityAnalyzer {
             corePreferences: [],
             experiencedStyles: [],
             experiencedCulturalStyles: [],
-            skillLevel: .intermediate,
+            skillLevel: SkillLevel.intermediate,
             aestheticHistory: [],
             temporalPatterns: []
         )

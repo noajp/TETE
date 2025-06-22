@@ -20,6 +20,8 @@ struct CreatePostView: View {
     @State private var selectedFilter: FilterType = .none
     @State private var showingFilterPreview = false
     @State private var filterIntensity: Float = 1.0
+    @State private var showingPhotoPicker = false
+    @State private var editorData: PhotoEditorData? = nil
     
     var body: some View {
         NavigationView {
@@ -56,7 +58,8 @@ struct CreatePostView: View {
                             showingCustomCamera: $showingCustomCamera,
                             selectedFilter: $selectedFilter,
                             showingFilterPreview: $showingFilterPreview,
-                            filterIntensity: $filterIntensity
+                            filterIntensity: $filterIntensity,
+                            showingPhotoPicker: $showingPhotoPicker
                         )
                         
                         // Quick Filter Selection
@@ -98,7 +101,22 @@ struct CreatePostView: View {
             viewModel.locationName = newLocation
         }
         .sheet(isPresented: $showingPhotoEditor) {
-            if let imageToEdit = imageToEdit {
+            if let editorData = editorData {
+                // RAW画像の編集
+                ModernPhotoEditorView(
+                    editorData: editorData,
+                    onComplete: { editedImage in
+                        viewModel.selectedImage = editedImage
+                        showingPhotoEditor = false
+                        self.editorData = nil
+                    },
+                    onCancel: {
+                        showingPhotoEditor = false
+                        self.editorData = nil
+                    }
+                )
+            } else if let imageToEdit = imageToEdit {
+                // 通常の画像編集
                 ModernPhotoEditorView(
                     image: imageToEdit,
                     onComplete: { editedImage in
@@ -117,6 +135,23 @@ struct CreatePostView: View {
                 viewModel.mediaType = .photo
                 viewModel.selectedVideoURL = nil
             }
+        }
+        .sheet(isPresented: $showingPhotoPicker) {
+            PhotoPickerView { editorData in
+                print("🟢 PhotoPickerから画像受信")
+                self.editorData = editorData
+                self.imageToEdit = editorData.previewImage
+                
+                // PhotoPickerViewを閉じてから編集画面を開く
+                self.showingPhotoPicker = false
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.showingPhotoEditor = true
+                }
+            }
+        }
+        .onChange(of: showingPhotoPicker) { _, newValue in
+            print("🟡 showingPhotoPicker changed: \(newValue)")
         }
         .onChange(of: selectedItem) { _, newItem in
             Task {
@@ -139,6 +174,28 @@ struct CreatePostView: View {
                         // TODO: 動画の処理
                     }
                 }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToEditor)) { notification in
+            print("🟢 NotificationCenter受信: \(notification)")
+            print("🟢 notification.object type: \(type(of: notification.object))")
+            
+            if let receivedEditorData = notification.object as? PhotoEditorData {
+                print("🟢 PhotoEditorData受信")
+                // RAW画像の処理
+                self.editorData = receivedEditorData
+                self.imageToEdit = receivedEditorData.previewImage
+                self.showingPhotoEditor = true
+                print("🟢 showingPhotoEditor = true設定完了")
+            } else if let image = notification.object as? UIImage {
+                print("🟢 UIImage受信")
+                // 通常の画像処理
+                self.editorData = nil
+                self.imageToEdit = image
+                self.showingPhotoEditor = true
+                print("🟢 showingPhotoEditor = true設定完了")
+            } else {
+                print("🔴 未知のオブジェクト受信: \(String(describing: notification.object))")
             }
         }
     }
@@ -185,8 +242,7 @@ struct CreatePostView: View {
         var body: some View {
             HStack {
                 Button("Cancel", action: onCancel)
-                    .font(MinimalDesign.Typography.body)
-                    .foregroundColor(MinimalDesign.Colors.secondary)
+                    .actionTextButtonStyle()
                 
                 Spacer()
                 
@@ -202,11 +258,10 @@ struct CreatePostView: View {
                             .scaleEffect(0.8)
                     } else {
                         Text("Post")
-                            .font(MinimalDesign.Typography.body)
+                            .actionTextButtonStyle()
                             .fontWeight(.semibold)
                     }
                 }
-                .foregroundColor(canPost ? MinimalDesign.Colors.accent : MinimalDesign.Colors.tertiary)
                 .disabled(!canPost || isLoading)
             }
             .padding(.horizontal, MinimalDesign.Spacing.md)
@@ -227,6 +282,7 @@ struct CreatePostView: View {
         @Binding var selectedFilter: FilterType
         @Binding var showingFilterPreview: Bool
         @Binding var filterIntensity: Float
+        @Binding var showingPhotoPicker: Bool
         
         var body: some View {
             PhotosPicker(
@@ -308,15 +364,32 @@ struct CreatePostView: View {
                                 .foregroundColor(MinimalDesign.Colors.secondary)
                         }
                         
-                        // Camera Button
-                        Button(action: { showingCustomCamera = true }) {
-                            HStack(spacing: MinimalDesign.Spacing.xs) {
-                                Image(systemName: "camera")
-                                    .font(.caption)
-                                Text("Camera")
-                                    .font(MinimalDesign.Typography.caption)
+                        // Action Buttons
+                        HStack(spacing: MinimalDesign.Spacing.sm) {
+                            // Camera Button
+                            Button(action: { showingCustomCamera = true }) {
+                                HStack(spacing: MinimalDesign.Spacing.xs) {
+                                    Image(systemName: "camera")
+                                        .font(.caption)
+                                    Text("Camera")
+                                        .font(MinimalDesign.Typography.caption)
+                                }
+                                .minimalButton(style: .secondary)
                             }
-                            .minimalButton(style: .secondary)
+                            
+                            // Photo Picker Button
+                            Button(action: { 
+                                print("🟡 Browse ボタンが押されました")
+                                showingPhotoPicker = true 
+                            }) {
+                                HStack(spacing: MinimalDesign.Spacing.xs) {
+                                    Image(systemName: "photo.stack")
+                                        .font(.caption)
+                                    Text("Browse")
+                                        .font(MinimalDesign.Typography.caption)
+                                }
+                                .minimalButton(style: .secondary)
+                            }
                         }
                     }
                     .frame(height: 280)

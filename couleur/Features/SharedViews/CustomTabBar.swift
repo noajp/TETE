@@ -109,11 +109,11 @@ struct CustomTabBar: View {
             }
             .frame(maxWidth: .infinity)
             
-            // マップボタン
+            // 雑誌ボタン
             Button(action: {
                 selectedTab = 3
             }) {
-                Image(systemName: selectedTab == 3 ? "map.fill" : "map")
+                Image(systemName: selectedTab == 3 ? "book.fill" : "book")
                     .font(.system(size: 20))
                     .foregroundColor(selectedTab == 3 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }

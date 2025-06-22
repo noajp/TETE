@@ -15,10 +15,19 @@ extension Notification.Name {
 
 struct PhotoPickerView: View {
     @Environment(\.dismiss) var dismiss
+    let onImageSelected: ((PhotoEditorData) -> Void)?
+    
+    init(onImageSelected: ((PhotoEditorData) -> Void)? = nil) {
+        self.onImageSelected = onImageSelected
+    }
     @State private var selectedImage: UIImage?
     @State private var selectedImages: [UIImage] = []
     @State private var recentPhotos: [UIImage] = []
+    @State private var recentAssets: [PHAsset] = []
+    @State private var selectedIndex: Int? = nil
+    @State private var selectedAsset: PHAsset? = nil
     @State private var isLoadingPhotos = true
+    @State private var rawProcessor = RAWImageProcessor.shared
     @State private var showingCamera = false
     
     var body: some View {
@@ -34,6 +43,9 @@ struct PhotoPickerView: View {
                     VStack(spacing: 0) {
                         // 選択中の写真
                         selectedPhotoView
+                        
+                        // セパレーター
+                        separatorView
                         
                         // サムネイルグリッド
                         thumbnailGridView
@@ -65,15 +77,45 @@ struct PhotoPickerView: View {
             
             Spacer()
             
-            Text("新規投稿")
+            Text("New Post")
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.white)
             
             Spacer()
             
             Button("次へ") {
-                if let image = selectedImage {
-                    NotificationCenter.default.post(name: .navigateToEditor, object: image)
+                print("🔵 次へボタンが押されました")
+                
+                if let asset = selectedAsset {
+                    print("🔵 Asset選択済み: \(asset)")
+                    // RAW画像かどうかを判定してエディターに渡す
+                    let rawInfo = rawProcessor.getRAWInfo(for: asset)
+                    print("🔵 RAW情報: \(rawInfo)")
+                    
+                    // AssetとRAW情報をセットで渡す
+                    let editorData = PhotoEditorData(asset: asset, rawInfo: rawInfo, previewImage: selectedImage)
+                    print("🔵 Completion handler呼び出し")
+                    print("🔵 onImageSelected is nil: \(onImageSelected == nil)")
+                    
+                    // completion handlerで直接渡す
+                    if let handler = onImageSelected {
+                        print("🔵 ハンドラー実行中...")
+                        handler(editorData)
+                        print("🔵 ハンドラー実行完了")
+                    } else {
+                        print("🔴 ハンドラーがnil!")
+                    }
+                } else if let image = selectedImage {
+                    print("🔵 UIImage fallback")
+                    // UIImageの場合、ダミーのassetでPhotoEditorDataを作成
+                    if let asset = selectedAsset {
+                        let rawInfo = RAWImageInfo(isRAW: false, format: nil, fileSize: 0, 
+                                                 dimensions: image.size, asset: asset)
+                        let editorData = PhotoEditorData(asset: asset, rawInfo: rawInfo, previewImage: image)
+                        onImageSelected?(editorData)
+                    }
+                } else {
+                    print("🔴 画像が選択されていません")
                 }
             }
             .font(.system(size: 17, weight: .semibold))
@@ -90,14 +132,43 @@ struct PhotoPickerView: View {
         )
     }
     
+    private var separatorView: some View {
+        VStack(spacing: 0) {
+            // 上部のシャドウ
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black.opacity(0.3),
+                    Color.black.opacity(0.0)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 6)
+            
+            // メインセパレーター
+            HStack {
+                // カメラロールテキスト
+                Text("Camera Roll")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
+            .background(Color(white: 0.05))
+        }
+    }
+    
     private var selectedPhotoView: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack(alignment: .topLeading) {
             if let image = selectedImage {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(1, contentMode: .fill)
                     .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width)
                     .clipped()
+                
             } else {
                 Rectangle()
                     .fill(Color(white: 0.1))
@@ -123,11 +194,56 @@ struct PhotoPickerView: View {
                 Button(action: {
                     selectedImage = recentPhotos[index]
                     selectedImages = [recentPhotos[index]]
+                    selectedIndex = index
+                    selectedAsset = recentAssets[index]
                 }) {
-                    Image(uiImage: recentPhotos[index])
-                        .resizable()
-                        .aspectRatio(1, contentMode: .fill)
-                        .clipped()
+                    ZStack(alignment: .topLeading) {
+                        Image(uiImage: recentPhotos[index])
+                            .resizable()
+                            .aspectRatio(1, contentMode: .fill)
+                            .clipped()
+                        
+                        // RAWバッジ
+                        if index < recentAssets.count {
+                            let rawInfo = rawProcessor.getRAWInfo(for: recentAssets[index])
+                            if rawInfo.isRAW {
+                                HStack {
+                                    Spacer()
+                                    VStack {
+                                        Text(rawInfo.displayFormat)
+                                            .font(.system(size: 8, weight: .bold))
+                                            .foregroundColor(.black)
+                                            .padding(.horizontal, 4)
+                                            .padding(.vertical, 2)
+                                            .background(Color.white.opacity(0.9))
+                                            .cornerRadius(4)
+                                        Spacer()
+                                    }
+                                }
+                                .padding(4)
+                            }
+                        }
+                        
+                        // 選択中の画像にチェックマーク表示
+                        if selectedIndex == index {
+                            VStack {
+                                HStack {
+                                    ZStack {
+                                        Rectangle()
+                                            .fill(MinimalDesign.Colors.accentRed)
+                                            .frame(width: 14, height: 14)
+                                        
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 8, weight: .bold))
+                                            .foregroundColor(.white)
+                                    }
+                                    Spacer()
+                                }
+                                Spacer()
+                            }
+                            .padding(6)
+                        }
+                    }
                 }
             }
             
@@ -154,6 +270,7 @@ struct PhotoPickerView: View {
             
             let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
             var photos: [UIImage] = []
+            var assetArray: [PHAsset] = []
             
             let imageManager = PHImageManager.default()
             let targetSize = CGSize(width: 200, height: 200)
@@ -170,16 +287,20 @@ struct PhotoPickerView: View {
                 ) { image, _ in
                     if let image = image {
                         photos.append(image)
+                        assetArray.append(asset)
                     }
                 }
             }
             
             await MainActor.run {
                 self.recentPhotos = photos
+                self.recentAssets = assetArray
                 self.isLoadingPhotos = false
-                if !photos.isEmpty {
+                if !photos.isEmpty && !assetArray.isEmpty {
                     self.selectedImage = photos[0]
                     self.selectedImages = [photos[0]]
+                    self.selectedAsset = assetArray[0]
+                    self.selectedIndex = 0
                 }
             }
         }

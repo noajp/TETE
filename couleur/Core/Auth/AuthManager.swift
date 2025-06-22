@@ -4,6 +4,7 @@
 //======================================================================
 import Foundation
 import Supabase
+import AuthenticationServices
 
 extension Notification.Name {
     static let authStateChanged = Notification.Name("authStateChanged")
@@ -90,6 +91,9 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             self.isAuthenticated = true
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
+            // Ensure user profile exists for existing session
+            await ensureUserProfileExists(for: user)
+            
             secureLogger.authEvent("Current user session found", userID: user.id.uuidString)
         } catch {
             self.currentUser = nil
@@ -117,6 +121,7 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
         // レート制限チェック
         try checkRateLimit(for: validEmail)
         
+        print("🔵 Attempting sign in with email: \(validEmail)")
         secureLogger.authEvent("Sign in attempt", userID: nil)
         isLoading = true
         
@@ -127,6 +132,11 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             )
             
             let user = session.user
+            print("✅ Sign in successful")
+            print("🔵 User ID: \(user.id.uuidString)")
+            print("🔵 User email: \(user.email ?? "nil")")
+            print("🔵 User email confirmed: \(user.emailConfirmedAt != nil)")
+            print("🔵 User created at: \(user.createdAt)")
             
             self.currentUser = AppUser(
                 id: user.id.uuidString,
@@ -139,8 +149,34 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             // ログイン成功時はレート制限をリセット
             resetLoginAttempts(for: validEmail)
             
+            // Ensure user profile exists
+            await ensureUserProfileExists(for: user)
+            
             secureLogger.authEvent("Sign in successful", userID: user.id.uuidString)
         } catch {
+            print("❌ Sign in failed: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
+            
+            if let authError = error as? AuthError {
+                print("❌ AuthError: \(authError.localizedDescription)")
+            }
+            
+            // Check if it's a Supabase specific error
+            if let nsError = error as NSError? {
+                print("❌ Error domain: \(nsError.domain)")
+                print("❌ Error code: \(nsError.code)")
+                print("❌ Error userInfo: \(nsError.userInfo)")
+                
+                // Handle common Supabase auth errors
+                if nsError.localizedDescription.lowercased().contains("invalid") {
+                    print("⚠️ This might be an invalid email/password combination")
+                } else if nsError.localizedDescription.lowercased().contains("confirm") {
+                    print("⚠️ This might be an unconfirmed email address")
+                } else if nsError.localizedDescription.lowercased().contains("disabled") {
+                    print("⚠️ This account might be disabled")
+                }
+            }
+            
             recordFailedLoginAttempt(for: validEmail)
             secureLogger.securityEvent("Sign in failed", details: ["error": error.localizedDescription])
             isLoading = false
@@ -170,6 +206,8 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             throw AuthError.weakPassword(passwordValidation.errors)
         }
         
+        print("🔵 Attempting sign up with email: \(validEmail)")
+        print("🔵 Password validation passed")
         isLoading = true
         secureLogger.authEvent("Sign up attempt", userID: nil)
         
@@ -180,6 +218,39 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             )
             
             let user = session.user
+            print("✅ Sign up successful")
+            print("🔵 User ID: \(user.id.uuidString)")
+            print("🔵 User email: \(user.email ?? "nil")")
+            print("🔵 User email confirmed: \(user.emailConfirmedAt != nil)")
+            if let sessionData = session.session {
+                print("🔵 Session access token exists: \(!sessionData.accessToken.isEmpty)")
+            } else {
+                print("🔵 No session data available")
+            }
+            
+            // Check if email confirmation is required
+            if user.emailConfirmedAt == nil {
+                print("⚠️ Email confirmation required - user needs to check their email")
+                print("⚠️ User will need to click confirmation link before they can sign in")
+                print("⚠️ Check Gmail inbox and spam folder for confirmation email from Supabase")
+                print("⚠️ Alternatively, disable email confirmation in Supabase Dashboard > Authentication > Settings")
+                
+                // Store user ID for later profile creation
+                let unconfirmedUserId = user.id.uuidString
+                print("🔵 Storing unconfirmed user ID: \(unconfirmedUserId)")
+                
+                // Sign out immediately to prevent access without email confirmation
+                print("🔵 Signing out user until email is confirmed")
+                try await client.auth.signOut()
+                
+                self.currentUser = nil
+                self.isAuthenticated = false
+                isLoading = false
+                
+                // Return the user ID instead of throwing error, so profile can be created
+                return unconfirmedUserId
+            }
+            
             self.currentUser = AppUser(
                 id: user.id.uuidString,
                 email: user.email,
@@ -191,31 +262,83 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             secureLogger.authEvent("Sign up successful", userID: user.id.uuidString)
             return user.id.uuidString
         } catch {
+            print("❌ Sign up failed: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
+            
+            if let nsError = error as NSError? {
+                print("❌ Error domain: \(nsError.domain)")
+                print("❌ Error code: \(nsError.code)")
+                print("❌ Error userInfo: \(nsError.userInfo)")
+                
+                // Handle common sign up errors
+                if nsError.localizedDescription.lowercased().contains("already") {
+                    print("⚠️ This email is already registered")
+                } else if nsError.localizedDescription.lowercased().contains("weak") {
+                    print("⚠️ Password is too weak")
+                }
+            }
+            
             secureLogger.securityEvent("Sign up failed", details: ["error": error.localizedDescription])
             isLoading = false
             throw error
         }
     }
     
-    // MARK: - Google Authentication (Web OAuth)
+    // MARK: - Google Authentication
     
     func signInWithGoogle() async throws {
         print("🔵 Starting Google OAuth sign in")
         isLoading = true
+        secureLogger.authEvent("Google Sign In attempt", userID: nil)
         
         do {
-            // Start OAuth flow - this will open the browser
             let redirectURL = URL(string: "com.takanorinakano.couleur://auth")!
+            print("🔵 Using redirect URL: \(redirectURL)")
+            
+            // WebAuthenticationSessionエラー（error 1）の詳細説明を追加
+            print("ℹ️ WebAuthenticationSession error 1 usually means:")
+            print("ℹ️ - User cancelled the authentication")
+            print("ℹ️ - OAuth provider not configured in Supabase")
+            print("ℹ️ - URL scheme not properly registered")
+            
             try await client.auth.signInWithOAuth(
                 provider: .google,
                 redirectTo: redirectURL
             )
             
             print("✅ Google OAuth flow initiated - waiting for callback")
+            secureLogger.authEvent("Google Sign In initiated", userID: nil)
             // Note: isLoading will be set to false in handleAuthCallback
         } catch {
             print("❌ Google sign in failed: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
+            
+            if let nsError = error as NSError? {
+                print("❌ Error domain: \(nsError.domain)")
+                print("❌ Error code: \(nsError.code)")
+                print("❌ Error userInfo: \(nsError.userInfo)")
+                
+                // WebAuthenticationSession specific error handling
+                if nsError.domain == "com.apple.AuthenticationServices.WebAuthenticationSession" {
+                    switch nsError.code {
+                    case 1:
+                        print("⚠️ User cancelled authentication or OAuth not configured")
+                        print("⚠️ Please check:")
+                        print("⚠️ 1. Google OAuth is enabled in Supabase Dashboard")
+                        print("⚠️ 2. Client ID and Secret are configured")
+                        print("⚠️ 3. Redirect URL is added to Google OAuth settings")
+                    case 2:
+                        print("⚠️ Session was cancelled")
+                    case 3:
+                        print("⚠️ Context unavailable")
+                    default:
+                        print("⚠️ Unknown WebAuthenticationSession error")
+                    }
+                }
+            }
+            
             isLoading = false
+            secureLogger.securityEvent("Google Sign In failed", details: ["error": error.localizedDescription])
             throw error
         }
     }
@@ -337,6 +460,39 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
         print("✅ Password reset email sent to: \(email)")
     }
     
+    // MARK: - Apple Authentication
+    
+    func signInWithApple() async throws {
+        print("🔵 Starting Apple OAuth sign in")
+        isLoading = true
+        secureLogger.authEvent("Apple Sign In attempt", userID: nil)
+        
+        do {
+            let redirectURL = URL(string: "com.takanorinakano.couleur://auth")!
+            print("🔵 Using redirect URL: \(redirectURL)")
+            
+            try await client.auth.signInWithOAuth(
+                provider: .apple,
+                redirectTo: redirectURL
+            )
+            
+            print("✅ Apple OAuth flow initiated - waiting for callback")
+            secureLogger.authEvent("Apple Sign In initiated", userID: nil)
+            // Note: isLoading will be set to false in handleAuthCallback
+        } catch {
+            print("❌ Apple sign in failed: \(error)")
+            print("❌ Error details: \(error.localizedDescription)")
+            if let nsError = error as NSError? {
+                print("❌ Error domain: \(nsError.domain)")
+                print("❌ Error code: \(nsError.code)")
+                print("❌ Error userInfo: \(nsError.userInfo)")
+            }
+            isLoading = false
+            secureLogger.securityEvent("Apple Sign In failed", details: ["error": error.localizedDescription])
+            throw error
+        }
+    }
+    
     // MARK: - OAuth URL Handling
     
     func handleAuthCallback(url: URL) async throws {
@@ -360,11 +516,50 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             self.isLoading = false
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
+            // Check if user profile exists, create if not
+            await ensureUserProfileExists(for: user)
+            
             print("✅ OAuth authentication successful: \(user.email ?? "")")
         } catch {
             print("❌ Auth callback failed: \(error)")
             self.isLoading = false
             throw error
+        }
+    }
+    
+    private func ensureUserProfileExists(for user: Supabase.User) async {
+        do {
+            // Check if profile already exists
+            let profileCount = try await client
+                .from("user_profiles")
+                .select("id", head: true, count: .exact)
+                .eq("id", value: user.id.uuidString)
+                .execute()
+                .count ?? 0
+            
+            if profileCount == 0 {
+                print("🔵 Creating user profile for OAuth user: \(user.id.uuidString)")
+                
+                // Extract username from email (fallback if no email)
+                let username = user.email?.components(separatedBy: "@").first ?? "user\(String(user.id.uuidString.prefix(8)))"
+                
+                // For OAuth users, use email as display name initially
+                let displayName = user.email ?? username
+                
+                try await createUserProfile(
+                    userId: user.id.uuidString,
+                    username: username,
+                    displayName: displayName,
+                    bio: "New to couleur!"
+                )
+                
+                print("✅ User profile created for OAuth user: \(username)")
+            } else {
+                print("🔵 User profile already exists for: \(user.id.uuidString)")
+            }
+        } catch {
+            print("❌ Error ensuring user profile exists: \(error)")
+            // Don't throw error here - authentication should still succeed even if profile creation fails
         }
     }
     

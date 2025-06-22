@@ -22,18 +22,9 @@ struct EditorFooterView: View {
                 }) {
                     VStack(spacing: 4) {
                         // アイコン
-                        Group {
-                            if tab == .effects {
-                                // FXテキストアイコン
-                                Text("FX")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .frame(height: 24)
-                            } else {
-                                Image(systemName: tab.icon)
-                                    .font(.system(size: 20))
-                                    .frame(height: 24)
-                            }
-                        }
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 20))
+                            .frame(height: 24)
                         .foregroundColor(selectedTab == tab ? .white : Color(white: 0.56))
                         
                         // タブ名（オプショナル - デザインに応じて表示/非表示）
@@ -76,17 +67,9 @@ struct ExtendedEditorFooterView: View {
                 }) {
                     VStack(spacing: 4) {
                         // アイコン
-                        Group {
-                            if tab == .effects {
-                                Text("FX")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .frame(height: 24)
-                            } else {
-                                Image(systemName: tab.icon)
-                                    .font(.system(size: 20))
-                                    .frame(height: 24)
-                            }
-                        }
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 20))
+                            .frame(height: 24)
                         
                         // タブ名
                         Text(tab.title)
@@ -118,7 +101,7 @@ struct EditorFooterView_Previews: PreviewProvider {
             .previewDisplayName("Simple Footer")
             
             ExtendedEditorFooterView(
-                selectedTab: .constant(.effects),
+                selectedTab: .constant(.presets),
                 onTabSelected: { _ in }
             )
             .background(Color.black)

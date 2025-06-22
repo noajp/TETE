@@ -101,6 +101,19 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	
+	<!-- URL Schemes for OAuth -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.takanorinakano.couleur.oauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.takanorinakano.couleur</string>
+			</array>
+		</dict>
+	</array>
+	
 	<!-- Main storyboard file base name -->
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

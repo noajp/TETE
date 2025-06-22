@@ -55,21 +55,21 @@ struct EditProfileView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(MinimalDesign.Colors.accentRed)
+                    .actionTextButtonStyle()
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         saveProfile()
                     }
+                    .actionTextButtonStyle()
                     .fontWeight(.semibold)
-                    .foregroundColor(MinimalDesign.Colors.accentRed)
                     .disabled(username.isEmpty || displayName.isEmpty)
                 }
             }
             .alert("Error", isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
-                    .foregroundColor(MinimalDesign.Colors.accentRed)
+                    .actionTextButtonStyle()
             } message: {
                 Text(alertMessage)
             }

@@ -16,9 +16,11 @@ struct ModernPhotoEditorView: View {
     
     @StateObject private var viewModel: PhotoEditorViewModel
     @State private var selectedPreset: PresetType = .none
-    @State private var selectedCategory: PresetCategory = .allPresets
+    @State private var selectedCategory: PresetCategory = .basePresets
     @State private var selectedTab: EditorTab = .presets
     @State private var filterIntensity: Float = 1.0
+    @State private var currentFilterSettings = FilterSettings()
+    @State private var currentToneCurve = ToneCurve()
     
     // MARK: - Initialization
     init(image: UIImage,
@@ -28,6 +30,20 @@ struct ModernPhotoEditorView: View {
         self.onComplete = onComplete
         self.onCancel = onCancel
         self._viewModel = StateObject(wrappedValue: PhotoEditorViewModel(image: image))
+    }
+    
+    // RAW画像対応のイニシャライザ
+    init(editorData: PhotoEditorData,
+         onComplete: @escaping (UIImage) -> Void,
+         onCancel: @escaping () -> Void) {
+        self.originalImage = editorData.previewImage ?? UIImage()
+        self.onComplete = onComplete
+        self.onCancel = onCancel
+        self._viewModel = StateObject(wrappedValue: PhotoEditorViewModel(
+            asset: editorData.asset,
+            rawInfo: editorData.rawInfo,
+            previewImage: editorData.previewImage
+        ))
     }
     
     // MARK: - Body
@@ -43,18 +59,37 @@ struct ModernPhotoEditorView: View {
                 editMenuView
             }
             
-            // カスタム戻るボタン
-            Button(action: onCancel) {
-                Text("Back")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.red)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color.black.opacity(0.6))
-                    .cornerRadius(20)
+            // ヘッダーボタン
+            HStack {
+                // 戻るボタン
+                Button(action: onCancel) {
+                    Text("Back")
+                        .actionTextButtonStyle()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.black.opacity(0.6))
+                        .cornerRadius(20)
+                }
+                
+                Spacer()
+                
+                // 完了ボタン
+                Button(action: {
+                    if let editedImage = viewModel.currentImage {
+                        onComplete(editedImage)
+                    }
+                }) {
+                    Text("Done")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(MinimalDesign.Colors.accentRed)
+                        .cornerRadius(20)
+                }
             }
-            .padding(.top, 50) // Safe Area対応
-            .padding(.leading, 16)
+            .padding(.top, 60) // Safe Area対応
+            .padding(.horizontal, 16)
         }
         .gesture(
             DragGesture()
@@ -106,21 +141,14 @@ struct ModernPhotoEditorView: View {
                 )
                 .frame(height: 180)
                 
-            case .effects:
-                // エフェクト選択ビュー（後で実装）
-                effectsPlaceholderView
-                
             case .adjust:
-                // 調整スライダービュー（後で実装）
-                adjustmentPlaceholderView
-                
-            case .tools:
-                // ツールビュー（後で実装）
-                toolsPlaceholderView
-                
-            case .export:
-                // エクスポート設定ビュー（後で実装）
-                exportPlaceholderView
+                // 詳細調整ビュー
+                AdjustmentView(
+                    filterSettings: $currentFilterSettings,
+                    toneCurve: $currentToneCurve,
+                    onSettingsChanged: applyFilterSettings,
+                    onToneCurveChanged: applyToneCurve
+                )
             }
             
             // フッターボタン
@@ -136,67 +164,22 @@ struct ModernPhotoEditorView: View {
         .background(Color(red: 28/255, green: 28/255, blue: 30/255))
     }
     
-    // MARK: - Placeholder Views
-    
-    private var effectsPlaceholderView: some View {
-        VStack {
-            Text("エフェクト")
-                .foregroundColor(.white)
-                .padding()
-            Spacer()
-        }
-        .frame(height: 180)
-    }
-    
-    private var adjustmentPlaceholderView: some View {
-        VStack {
-            Text("調整")
-                .foregroundColor(.white)
-                .padding()
-            Spacer()
-        }
-        .frame(height: 180)
-    }
-    
-    private var toolsPlaceholderView: some View {
-        VStack {
-            Text("ツール")
-                .foregroundColor(.white)
-                .padding()
-            Spacer()
-        }
-        .frame(height: 180)
-    }
-    
-    private var exportPlaceholderView: some View {
-        VStack(spacing: 20) {
-            Text("書き出し設定")
-                .foregroundColor(.white)
-                .font(.headline)
-            
-            Button(action: {
-                if let editedImage = viewModel.currentImage {
-                    onComplete(editedImage)
-                }
-            }) {
-                Text("完了")
-                    .foregroundColor(.white)
-                    .font(.system(size: 16, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(MinimalDesign.Colors.accentRed)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal, 40)
-        }
-        .frame(height: 180)
-    }
-    
     // MARK: - Methods
     
     private func applyPreset(_ preset: PresetType) {
         let settings = preset.filterSettings
-        viewModel.applyFilterSettings(settings)
+        currentFilterSettings = settings
+        viewModel.applyFilterSettings(settings, toneCurve: currentToneCurve)
+    }
+    
+    private func applyFilterSettings(_ settings: FilterSettings) {
+        currentFilterSettings = settings
+        viewModel.applyFilterSettings(settings, toneCurve: currentToneCurve)
+    }
+    
+    private func applyToneCurve(_ curve: ToneCurve) {
+        currentToneCurve = curve
+        viewModel.applyFilterSettings(currentFilterSettings, toneCurve: curve)
     }
 }
 
@@ -204,7 +187,9 @@ struct ModernPhotoEditorView: View {
 struct ShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]
     
-    func makeUIViewController(context: Context) -> UIActivityViewController {
+    typealias UIViewControllerType = UIActivityViewController
+    
+    func makeUIViewController(context: UIViewControllerRepresentableContext<ShareSheet>) -> UIActivityViewController {
         let controller = UIActivityViewController(
             activityItems: activityItems,
             applicationActivities: nil
@@ -212,7 +197,7 @@ struct ShareSheet: UIViewControllerRepresentable {
         return controller
     }
     
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: UIViewControllerRepresentableContext<ShareSheet>) {}
 }
 
 // MARK: - Preview

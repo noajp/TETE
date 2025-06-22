@@ -72,17 +72,9 @@ struct SingleCardView: View {
             Button(action: {
                 onLikeTapped(post)
             }) {
-                HStack(spacing: 4) {
-                    Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
-                        .font(.system(size: 24))
-                        .foregroundColor(post.isLikedByMe ? .red : MinimalDesign.Colors.primary)
-                    
-                    if post.likeCount > 0 {
-                        Text("\(post.likeCount)")
-                            .font(.system(size: 14))
-                            .foregroundColor(MinimalDesign.Colors.primary)
-                    }
-                }
+                Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                    .font(.system(size: 24))
+                    .foregroundColor(post.isLikedByMe ? .red : MinimalDesign.Colors.primary)
             }
             
             // コメントボタン

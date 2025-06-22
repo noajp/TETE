@@ -16,7 +16,10 @@ struct MetalPreviewView: UIViewRepresentable {
     @Binding var filterIntensity: Float
     let metalDevice = MTLCreateSystemDefaultDevice()
     
-    func makeUIView(context: Context) -> MTKView {
+    typealias UIViewType = MTKView
+    typealias Coordinator = MetalCoordinator
+    
+    func makeUIView(context: UIViewRepresentableContext<MetalPreviewView>) -> MTKView {
         let mtkView = MTKView()
         mtkView.device = metalDevice
         mtkView.delegate = context.coordinator
@@ -33,17 +36,17 @@ struct MetalPreviewView: UIViewRepresentable {
         return mtkView
     }
     
-    func updateUIView(_ mtkView: MTKView, context: Context) {
+    func updateUIView(_ mtkView: MTKView, context: UIViewRepresentableContext<MetalPreviewView>) {
         // フィルター変更を通知
         context.coordinator.updateFilter(filterType, intensity: filterIntensity)
     }
     
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+    func makeCoordinator() -> MetalCoordinator {
+        MetalCoordinator(self)
     }
     
-    // MARK: - Coordinator (Optimized)
-    class Coordinator: NSObject, MTKViewDelegate {
+    // MARK: - MetalCoordinator (Optimized)
+    class MetalCoordinator: NSObject, MTKViewDelegate {
         var parent: MetalPreviewView
         private let ciContext: CIContext
         private let imageProcessor = UnifiedImageProcessor.shared

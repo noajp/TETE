@@ -23,7 +23,7 @@ struct HomeFeedView: View {
     }
     
     var body: some View {
-        NavigationView {
+        ScrollableHeaderView(title: "Feed") {
             ZStack {
                 // 背景色
                 MinimalDesign.Colors.background
@@ -37,10 +37,7 @@ struct HomeFeedView: View {
                     contentView
                 }
             }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
         .accentColor(MinimalDesign.Colors.accentRed)
     }
     
@@ -113,18 +110,7 @@ struct HomeFeedView: View {
                     }
                 }
             }
-            .refreshable {
-                await viewModel.loadPosts()
-            }
-            
-            // ステータスバー保護用のヘッダー
-            VStack {
-                Rectangle()
-                    .fill(MinimalDesign.Colors.background)
-                    .frame(height: 50)
-                    .ignoresSafeArea(edges: .top)
-                Spacer()
-            }
+            .padding(.bottom, 100) // タブバー分のスペース
         }
     }
 }
@@ -217,17 +203,9 @@ struct ModernFeedCard: View {
             HStack(spacing: MinimalDesign.Spacing.md) {
                 // Like Button
                 Button(action: onLikeTapped) {
-                    HStack(spacing: MinimalDesign.Spacing.xs) {
-                        Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
-                            .font(.system(size: 20, weight: .light))
-                            .foregroundColor(post.isLikedByMe ? .red : MinimalDesign.Colors.primary)
-                        
-                        if post.likeCount > 0 {
-                            Text("\(post.likeCount)")
-                                .font(MinimalDesign.Typography.caption)
-                                .foregroundColor(MinimalDesign.Colors.secondary)
-                        }
-                    }
+                    Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                        .font(.system(size: 20, weight: .light))
+                        .foregroundColor(post.isLikedByMe ? .red : MinimalDesign.Colors.primary)
                 }
                 
                 // Comment Button
@@ -287,21 +265,14 @@ struct ModernGridCard: View {
             .clipped()
             
             // Overlay
-            if post.isLikedByMe || post.likeCount > 0 {
+            if post.isLikedByMe {
                 VStack {
                     Spacer()
                     HStack {
                         Spacer()
-                        if post.isLikedByMe {
-                            Image(systemName: "heart.fill")
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
-                        if post.likeCount > 0 {
-                            Text("\(post.likeCount)")
-                                .font(MinimalDesign.Typography.small)
-                                .foregroundColor(.white)
-                        }
+                        Image(systemName: "heart.fill")
+                            .font(.caption)
+                            .foregroundColor(.red)
                     }
                 }
                 .padding(MinimalDesign.Spacing.xs)

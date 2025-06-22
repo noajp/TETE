@@ -106,58 +106,45 @@ struct InputValidator {
     
     // MARK: - Password Validation
     
-    /// パスワードの検証
+    /// パスワードの検証（軽量版：6文字以上、文字と数字があればOK）
     static func validatePassword(_ password: String) -> PasswordValidationResult {
         var errors: [String] = []
         var strength: PasswordStrength = .weak
         
-        // 長さチェック
-        if password.count < 8 {
-            errors.append("Password must be at least 8 characters long")
+        // 長さチェック（6文字以上に変更）
+        if password.count < 6 {
+            errors.append("Password must be at least 6 characters long")
         }
         
         if password.count > 128 {
             errors.append("Password must be less than 128 characters")
         }
         
-        // 文字種チェック
-        let hasUppercase = password.contains { $0.isUppercase }
-        let hasLowercase = password.contains { $0.isLowercase }
+        // 簡易文字種チェック（文字と数字があればOK）
+        let hasLetter = password.contains { $0.isLetter }
         let hasDigit = password.contains { $0.isNumber }
-        let hasSpecialChar = password.contains { "!@#$%^&*()_+-=[]{}|;:,.<>?".contains($0) }
         
-        if !hasUppercase {
-            errors.append("Password must contain at least one uppercase letter")
-        }
-        
-        if !hasLowercase {
-            errors.append("Password must contain at least one lowercase letter")
+        if !hasLetter {
+            errors.append("Password must contain at least one letter")
         }
         
         if !hasDigit {
             errors.append("Password must contain at least one number")
         }
         
-        if !hasSpecialChar {
-            errors.append("Password must contain at least one special character")
-        }
-        
-        // 強度判定
-        let criteria = [hasUppercase, hasLowercase, hasDigit, hasSpecialChar, password.count >= 12]
-        let metCriteria = criteria.filter { $0 }.count
-        
-        switch metCriteria {
-        case 5: strength = .veryStrong
-        case 4: strength = .strong
-        case 3: strength = .medium
-        case 2: strength = .weak
-        default: strength = .veryWeak
+        // 強度判定（簡易版）
+        if password.count >= 8 && hasLetter && hasDigit {
+            strength = .strong
+        } else if password.count >= 6 && hasLetter && hasDigit {
+            strength = .medium
+        } else {
+            strength = .weak
         }
         
         // 一般的な脆弱パスワードチェック
         if isCommonPassword(password) {
             errors.append("Password is too common. Please choose a more unique password")
-            strength = .veryWeak
+            strength = .weak
         }
         
         return PasswordValidationResult(

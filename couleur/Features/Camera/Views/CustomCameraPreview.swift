@@ -13,14 +13,16 @@ struct CustomCameraPreview: UIViewRepresentable {
     let session: AVCaptureSession
     let currentFilter: FilterType
     
-    func makeUIView(context: Context) -> CameraPreviewView {
+    typealias UIViewType = CameraPreviewView
+    
+    func makeUIView(context: UIViewRepresentableContext<CustomCameraPreview>) -> CameraPreviewView {
         let previewView = CameraPreviewView()
         previewView.session = session
         previewView.currentFilter = currentFilter
         return previewView
     }
     
-    func updateUIView(_ uiView: CameraPreviewView, context: Context) {
+    func updateUIView(_ uiView: CameraPreviewView, context: UIViewRepresentableContext<CustomCameraPreview>) {
         uiView.currentFilter = currentFilter
     }
 }

@@ -92,6 +92,76 @@ struct SignInView: View {
                     }
                     .disabled(email.isEmpty || password.isEmpty || authManager.isLoading)
                     
+                    // OAuth機能は設定完了まで一時的に無効化
+                    // TODO: Supabase DashboardでGoogle/Apple OAuth設定完了後に有効化
+                    /*
+                    // OR Divider
+                    HStack {
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(.secondary.opacity(0.3))
+                        Text("OR")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 15)
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(.secondary.opacity(0.3))
+                    }
+                    .padding(.vertical, 10)
+                    
+                    // OAuth Buttons
+                    VStack(spacing: 12) {
+                        // Google Sign In
+                        Button(action: {
+                            Task {
+                                await signInWithGoogle()
+                            }
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "globe")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.primary)
+                                Text("Sign in with Google")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                Rectangle()
+                                    .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                                    .background(Color(.systemBackground))
+                            )
+                        }
+                        .disabled(authManager.isLoading)
+                        
+                        // Apple Sign In
+                        Button(action: {
+                            Task {
+                                await signInWithApple()
+                            }
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "applelogo")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.primary)
+                                Text("Sign in with Apple")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                Rectangle()
+                                    .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                                    .background(Color(.systemBackground))
+                            )
+                        }
+                        .disabled(authManager.isLoading)
+                    }
+                    */
+                    
                     // Register Button
                     Button(action: {
                         showSignUp = true
@@ -134,6 +204,28 @@ struct SignInView: View {
     private func signInWithEmail() async {
         do {
             try await authManager.signInWithEmail(email: email, password: password)
+        } catch {
+            await MainActor.run {
+                errorMessage = handleAuthError(error)
+                showError = true
+            }
+        }
+    }
+    
+    private func signInWithGoogle() async {
+        do {
+            try await authManager.signInWithGoogle()
+        } catch {
+            await MainActor.run {
+                errorMessage = handleAuthError(error)
+                showError = true
+            }
+        }
+    }
+    
+    private func signInWithApple() async {
+        do {
+            try await authManager.signInWithApple()
         } catch {
             await MainActor.run {
                 errorMessage = handleAuthError(error)

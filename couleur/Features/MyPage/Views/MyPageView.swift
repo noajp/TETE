@@ -14,45 +14,31 @@ struct MyPageView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Custom Header
-                ModernProfileHeader(
-                    onSettings: { showSettings = true }
+        ScrollableHeaderView(
+            title: "Profile",
+            rightButton: HeaderButton(
+                icon: "gearshape",
+                action: { showSettings = true }
+            )
+        ) {
+            LazyVStack(spacing: MinimalDesign.Spacing.xl) {
+                // Profile Section
+                ModernProfileSection(
+                    profile: viewModel.userProfile,
+                    isLoading: viewModel.isLoading,
+                    onEditProfile: { showEditProfile = true },
+                    selectedPhotoItem: $selectedPhotoItem
                 )
                 
-                Divider()
-                    .foregroundColor(MinimalDesign.Colors.border)
                 
-                // Content
-                ScrollView {
-                    LazyVStack(spacing: MinimalDesign.Spacing.xl) {
-                        // Profile Section
-                        ModernProfileSection(
-                            profile: viewModel.userProfile,
-                            isLoading: viewModel.isLoading,
-                            onEditProfile: { showEditProfile = true },
-                            selectedPhotoItem: $selectedPhotoItem
-                        )
-                        
-                        // Stats Section
-                        ModernStatsSection(
-                            postsCount: viewModel.postsCount,
-                            followersCount: viewModel.followersCount,
-                            followingCount: viewModel.followingCount,
-                            onFollowersTap: { viewModel.navigateToFollowers() },
-                            onFollowingTap: { viewModel.navigateToFollowing() }
-                        )
-                        
-                        // Posts Tab Section
-                        ModernPostsTabSection(posts: viewModel.userPosts)
-                    }
-                    .padding(.vertical, MinimalDesign.Spacing.md)
-                }
+                // Posts Tab Section
+                ModernPostsTabSection(posts: viewModel.userPosts)
             }
-            .background(MinimalDesign.Colors.background)
-            .navigationBarHidden(true)
-            .sheet(isPresented: $showEditProfile) {
+            .padding(.vertical, MinimalDesign.Spacing.md)
+            .padding(.bottom, 100) // タブバー分のスペース
+        }
+        .background(MinimalDesign.Colors.background)
+        .sheet(isPresented: $showEditProfile) {
                 EditProfileView(viewModel: viewModel)
             }
             .sheet(isPresented: $showSettings) {
@@ -67,8 +53,6 @@ struct MyPageView: View {
                     await viewModel.updateProfilePhoto(item: newItem)
                 }
             }
-        }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 
@@ -174,71 +158,7 @@ struct ModernProfileSection: View {
     }
 }
 
-struct ModernStatsSection: View {
-    let postsCount: Int
-    let followersCount: Int
-    let followingCount: Int
-    let onFollowersTap: () -> Void
-    let onFollowingTap: () -> Void
-    
-    var body: some View {
-        HStack(spacing: 0) {
-            ModernStatItem(value: "\(postsCount)", label: "Posts", action: nil)
-            
-            Rectangle()
-                .fill(MinimalDesign.Colors.border)
-                .frame(width: 1, height: 48)
-            
-            ModernStatItem(value: "\(followersCount)", label: "Followers", action: onFollowersTap)
-            
-            Rectangle()
-                .fill(MinimalDesign.Colors.border)
-                .frame(width: 1, height: 48)
-            
-            ModernStatItem(value: "\(followingCount)", label: "Following", action: onFollowingTap)
-        }
-        .background(MinimalDesign.Colors.background)
-        .overlay(
-            Rectangle()
-                .stroke(MinimalDesign.Colors.border, lineWidth: 1)
-        )
-        .padding(.horizontal, MinimalDesign.Spacing.md)
-    }
-}
 
-struct ModernStatItem: View {
-    let value: String
-    let label: String
-    let action: (() -> Void)?
-    
-    var body: some View {
-        Group {
-            if let action = action {
-                Button(action: action) {
-                    statContent
-                }
-                .buttonStyle(PlainButtonStyle())
-            } else {
-                statContent
-            }
-        }
-    }
-    
-    private var statContent: some View {
-        VStack(spacing: MinimalDesign.Spacing.xs) {
-            Text(value)
-                .font(MinimalDesign.Typography.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(MinimalDesign.Colors.primary)
-            
-            Text(label)
-                .font(MinimalDesign.Typography.caption)
-                .foregroundColor(MinimalDesign.Colors.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, MinimalDesign.Spacing.md)
-    }
-}
 
 struct ModernPostsTabSection: View {
     @State private var showGridMode = false
@@ -264,29 +184,55 @@ struct ModernPostsTabSection: View {
                 }) {
                     Group {
                         if showGridMode {
-                            // Grid mode - 4 small squares
-                            VStack(spacing: 2) {
-                                HStack(spacing: 2) {
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
+                            if selectedTab == .posts {
+                                // Grid mode - 4 small squares (red when posts tab is selected)
+                                VStack(spacing: 2) {
+                                    HStack(spacing: 2) {
+                                        Rectangle()
+                                            .fill(MinimalDesign.Colors.accentRed)
+                                            .frame(width: 8, height: 8)
+                                        Rectangle()
+                                            .fill(MinimalDesign.Colors.accentRed)
+                                            .frame(width: 8, height: 8)
+                                    }
+                                    HStack(spacing: 2) {
+                                        Rectangle()
+                                            .fill(MinimalDesign.Colors.accentRed)
+                                            .frame(width: 8, height: 8)
+                                        Rectangle()
+                                            .fill(MinimalDesign.Colors.accentRed)
+                                            .frame(width: 8, height: 8)
+                                    }
                                 }
-                                HStack(spacing: 2) {
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
+                            } else {
+                                // Grid mode - 4 small squares (gray when magazine tab is selected)
+                                VStack(spacing: 2) {
+                                    HStack(spacing: 2) {
+                                        Rectangle()
+                                            .stroke(MinimalDesign.Colors.tertiary, lineWidth: 1)
+                                            .frame(width: 8, height: 8)
+                                        Rectangle()
+                                            .stroke(MinimalDesign.Colors.tertiary, lineWidth: 1)
+                                            .frame(width: 8, height: 8)
+                                    }
+                                    HStack(spacing: 2) {
+                                        Rectangle()
+                                            .stroke(MinimalDesign.Colors.tertiary, lineWidth: 1)
+                                            .frame(width: 8, height: 8)
+                                        Rectangle()
+                                            .stroke(MinimalDesign.Colors.tertiary, lineWidth: 1)
+                                            .frame(width: 8, height: 8)
+                                    }
                                 }
                             }
                         } else {
-                            // Single mode - 1 large square (only stroke when not selected)
+                            // Single mode - 1 large square 
                             Rectangle()
-                                .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                .fill(selectedTab == .posts ? MinimalDesign.Colors.accentRed : Color.clear)
+                                .overlay(
+                                    Rectangle()
+                                        .stroke(selectedTab == .posts ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.tertiary, lineWidth: 1)
+                                )
                                 .frame(width: 20, height: 20)
                         }
                     }
@@ -386,17 +332,9 @@ struct SingleCardGridView: View {
                             // Actions
                             HStack(spacing: MinimalDesign.Spacing.md) {
                                 Button(action: {}) {
-                                    HStack(spacing: MinimalDesign.Spacing.xs) {
-                                        Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
-                                            .font(.system(size: 24, weight: .regular))
-                                            .foregroundColor(post.isLikedByMe ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
-                                        
-                                        if post.likeCount > 0 {
-                                            Text("\(post.likeCount)")
-                                                .font(MinimalDesign.Typography.body)
-                                                .foregroundColor(MinimalDesign.Colors.primary)
-                                        }
-                                    }
+                                    Image(systemName: post.isLikedByMe ? "heart.fill" : "heart")
+                                        .font(.system(size: 24, weight: .regular))
+                                        .foregroundColor(post.isLikedByMe ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 

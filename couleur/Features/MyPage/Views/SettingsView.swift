@@ -92,13 +92,13 @@ struct SettingsView: View {
                             Text("Sign Out")
                                 .font(.system(size: 16))
                         }
-                        .foregroundColor(.red)
+                        .destructiveTextButtonStyle()
                         .frame(maxWidth: .infinity)
                     }
                     
                     Button(action: {}) {
                         Text("アカウントを削除")
-                            .foregroundColor(.red)
+                            .destructiveTextButtonStyle()
                             .frame(maxWidth: .infinity)
                     }
                 }
@@ -110,7 +110,7 @@ struct SettingsView: View {
                     Button("完了") {
                         dismiss()
                     }
-                    .foregroundColor(MinimalDesign.Colors.accentRed)
+                    .actionTextButtonStyle()
                 }
             }
             .alert("Sign Out", isPresented: $showSignOutAlert) {

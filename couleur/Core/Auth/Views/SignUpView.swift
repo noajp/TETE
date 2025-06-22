@@ -7,7 +7,7 @@ import SwiftUI
 struct SignUpView: View {
     @State private var email = ""
     @State private var password = ""
-    @State private var surname = ""
+    @State private var userid = ""
     @State private var name = ""
     @State private var newsletter = false
     @State private var showError = false
@@ -81,15 +81,26 @@ struct SignUpView: View {
                                 )
                         }
                         
-                        // Surname Field
+                        // User ID Field
                         VStack(alignment: .leading, spacing: 5) {
-                            Text("SURNAME")
+                            Text("USERID")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(.secondary)
                             
-                            TextField("", text: $surname)
+                            TextField("", text: $userid)
                                 .font(.system(size: 18))
                                 .foregroundColor(.primary)
+                                .autocapitalization(.none)
+                                .autocorrectionDisabled()
+                                .onChange(of: userid) { oldValue, newValue in
+                                    // Allow only alphanumeric, dot, underscore, and hyphen
+                                    let filtered = newValue.filter { char in
+                                        char.isLetter || char.isNumber || char == "." || char == "_" || char == "-"
+                                    }
+                                    if filtered != newValue {
+                                        userid = filtered
+                                    }
+                                }
                                 .padding(.bottom, 10)
                                 .overlay(
                                     Rectangle()
@@ -141,6 +152,76 @@ struct SignUpView: View {
                         }
                     }
                     
+                    // OAuth機能は設定完了まで一時的に無効化
+                    // TODO: Supabase DashboardでGoogle/Apple OAuth設定完了後に有効化
+                    /*
+                    // OR Divider
+                    HStack {
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(.secondary.opacity(0.3))
+                        Text("OR")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 15)
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundColor(.secondary.opacity(0.3))
+                    }
+                    .padding(.vertical, 10)
+                    
+                    // OAuth Buttons
+                    VStack(spacing: 12) {
+                        // Google Sign Up
+                        Button(action: {
+                            Task {
+                                await signUpWithGoogle()
+                            }
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "globe")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.primary)
+                                Text("Sign up with Google")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                Rectangle()
+                                    .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                                    .background(Color(.systemBackground))
+                            )
+                        }
+                        .disabled(authManager.isLoading)
+                        
+                        // Apple Sign Up
+                        Button(action: {
+                            Task {
+                                await signUpWithApple()
+                            }
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "applelogo")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.primary)
+                                Text("Sign up with Apple")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(
+                                Rectangle()
+                                    .stroke(Color.primary.opacity(0.3), lineWidth: 1)
+                                    .background(Color(.systemBackground))
+                            )
+                        }
+                        .disabled(authManager.isLoading)
+                    }
+                    */
+                    
                     // Create Account Button
                     Button(action: {
                         Task {
@@ -158,7 +239,7 @@ struct SignUpView: View {
                                     .background(Color(.systemBackground))
                             )
                     }
-                    .disabled(email.isEmpty || password.isEmpty || surname.isEmpty || name.isEmpty || authManager.isLoading)
+                    .disabled(email.isEmpty || password.isEmpty || userid.isEmpty || name.isEmpty || authManager.isLoading)
                 }
                 .padding(.horizontal, 20)
                 
@@ -177,22 +258,51 @@ struct SignUpView: View {
     // MARK: - Methods
     
     private func signUp() async {
-        guard !email.isEmpty && !password.isEmpty && !surname.isEmpty && !name.isEmpty else { return }
+        guard !email.isEmpty && !password.isEmpty && !userid.isEmpty && !name.isEmpty else { return }
         
         do {
             // Create account with Supabase
             let userId = try await authManager.signUpWithEmail(email: email, password: password)
             
-            // Create user profile with surname + name as display name
-            let displayName = "\(surname) \(name)"
-            let username = email.components(separatedBy: "@").first ?? "user"
-            
+            // Create user profile with userid as username and name as display name
             try await authManager.createUserProfile(
                 userId: userId,
-                username: username,
-                displayName: displayName
+                username: userid,
+                displayName: name
             )
             
+            print("✅ User profile created successfully")
+            
+            await MainActor.run {
+                // Show success message about email confirmation
+                errorMessage = "Account created successfully! Please check your email and click the confirmation link to complete registration."
+                showError = true
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = handleSignUpError(error)
+                showError = true
+            }
+        }
+    }
+    
+    private func signUpWithGoogle() async {
+        do {
+            try await authManager.signInWithGoogle()
+            await MainActor.run {
+                dismiss()
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = handleSignUpError(error)
+                showError = true
+            }
+        }
+    }
+    
+    private func signUpWithApple() async {
+        do {
+            try await authManager.signInWithApple()
             await MainActor.run {
                 dismiss()
             }
@@ -207,7 +317,9 @@ struct SignUpView: View {
     private func handleSignUpError(_ error: Error) -> String {
         let errorDescription = error.localizedDescription.lowercased()
         
-        if errorDescription.contains("user already registered") {
+        if errorDescription.contains("confirmation link") {
+            return "Account created! Please check your email and click the confirmation link to complete registration."
+        } else if errorDescription.contains("user already registered") {
             return "This email address is already registered"
         } else if errorDescription.contains("password") && errorDescription.contains("weak") {
             return "Password is too weak. Please use a stronger password"

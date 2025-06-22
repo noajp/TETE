@@ -90,15 +90,10 @@ struct PresetSelectionView: View {
     
     private var filteredPresets: [Preset] {
         switch selectedCategory {
-        case .allPresets:
-            return presets
-        case .forThisPhoto:
-            // AI推奨プリセット（仮実装）
-            return presets.filter { [.au1, .av4, .fa1].contains($0.type) }
-        case .favorites:
-            return presets.filter { $0.isFavorite }
-        case .popular:
-            return presets.sorted { $0.usageCount > $1.usageCount }.prefix(5).map { $0 }
+        case .basePresets:
+            return presets.filter { $0.type.category == .basePresets }
+        case .colorPresets:
+            return presets.filter { $0.type.category == .colorPresets }
         }
     }
     
@@ -221,8 +216,8 @@ struct PresetThumbnailItemView: View {
 struct PresetSelectionView_Previews: PreviewProvider {
     static var previews: some View {
         PresetSelectionView(
-            selectedPreset: .constant(.au1),
-            selectedCategory: .constant(.allPresets),
+            selectedPreset: .constant(.natural),
+            selectedCategory: .constant(.basePresets),
             originalImage: UIImage(systemName: "photo")!,
             onPresetSelected: { _ in }
         )

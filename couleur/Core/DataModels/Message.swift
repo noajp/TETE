@@ -65,8 +65,65 @@ struct Conversation: Identifiable, Codable {
     
     func displayName(currentUserId: String?) -> String {
         // For now, show other participant's name for direct messages
-        let participant = otherParticipant(currentUserId: currentUserId)
-        return participant?.displayName ?? participant?.username ?? "Unknown"
+        let otherUser = otherParticipant(currentUserId: currentUserId)
+        
+        // Debug: Print participant information
+        if let otherUser = otherUser {
+            print("🔵 Found other participant user: \(otherUser.id)")
+            print("🔵 Username: \(otherUser.username)")
+            print("🔵 Display name: \(otherUser.displayName ?? "nil")")
+            
+            return otherUser.preferredDisplayName
+        } else {
+            print("⚠️ No other participant found via participants list")
+            print("⚠️ Current user ID: \(currentUserId ?? "nil")")
+            print("⚠️ Total participants: \(participants?.count ?? 0)")
+            
+            // Try to find other participant manually from participants list
+            if let participants = participants, let currentUserId = currentUserId {
+                let otherParticipant = participants.first { $0.userId.lowercased() != currentUserId.lowercased() }
+                if let otherParticipant = otherParticipant {
+                    print("🔵 Found other participant (manual): \(otherParticipant.userId)")
+                    if let user = otherParticipant.user {
+                        print("🔵 Other participant username: \(user.username)")
+                        return user.preferredDisplayName
+                    } else {
+                        print("⚠️ Other participant has no user profile")
+                        return "User-\(String(otherParticipant.userId.prefix(8)))"
+                    }
+                }
+            }
+            
+            // Last resort: Try to get from messages if available
+            print("🔵 Messages available: \(messages?.count ?? 0)")
+            if let messages = messages, let currentUserId = currentUserId {
+                print("🔵 Trying to find other user from messages...")
+                print("🔵 Looking for messages not from: \(currentUserId)")
+                
+                for (index, message) in messages.enumerated() {
+                    print("🔵 Message \(index): from \(message.senderId), isOther: \(message.senderId.lowercased() != currentUserId.lowercased())")
+                }
+                
+                // Find a message from someone other than current user
+                if let otherMessage = messages.first(where: { $0.senderId.lowercased() != currentUserId.lowercased() }) {
+                    print("🔵 Found message from other user: \(otherMessage.senderId)")
+                    if let sender = otherMessage.sender {
+                        print("🔵 Other user from message: \(sender.username)")
+                        return sender.preferredDisplayName
+                    } else {
+                        print("🔵 No sender profile, using partial ID")
+                        // Return partial user ID if no profile data
+                        return "User-\(String(otherMessage.senderId.prefix(8)))"
+                    }
+                } else {
+                    print("⚠️ No messages from other users found")
+                }
+            } else {
+                print("⚠️ No messages available or no current user ID")
+            }
+            
+            return "Unknown"
+        }
     }
     
     func displayAvatar(currentUserId: String?) -> String? {

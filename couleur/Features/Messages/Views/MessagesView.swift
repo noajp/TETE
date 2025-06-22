@@ -3,73 +3,85 @@ import SwiftUI
 struct MessagesView: View {
     @StateObject private var viewModel = MessagesViewModel()
     @State private var showNewMessage = false
+    @State private var selectedConversationId: String?
     @EnvironmentObject var authManager: AuthManager
     
     var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    ProgressView("Loading conversations...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.conversations.isEmpty {
-                    EmptyStateView()
-                } else {
-                    ScrollView {
-                        VStack(spacing: 0) {
-                            ForEach(viewModel.conversations) { conversation in
-                                NavigationLink(destination: ConversationView(conversationId: conversation.id, conversation: conversation)) {
-                                    ConversationRow(
-                                        conversation: conversation,
-                                        timestamp: viewModel.formatTimestamp(conversation.lastMessageAt)
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                .contextMenu {
-                                    Button("Delete", role: .destructive) {
-                                        Task {
-                                            await viewModel.deleteConversation(conversation.id)
-                                        }
-                                    }
-                                } preview: {
-                                    ConversationPreview(conversation: conversation)
-                                        .environmentObject(authManager)
-                                        .frame(width: 300, height: 400)
-                                }
-                                
-                                if conversation.id != viewModel.conversations.last?.id {
-                                    Divider()
-                                        .padding(.leading, 70)
+        ScrollableHeaderView(
+            title: "Messages",
+            rightButton: HeaderButton(
+                icon: "square.and.pencil",
+                action: { showNewMessage = true }
+            )
+        ) {
+            if viewModel.isLoading {
+                ProgressView("Loading conversations...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.conversations.isEmpty {
+                EmptyStateView()
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(viewModel.conversations) { conversation in
+                        NavigationLink(destination: ConversationView(conversationId: conversation.id, conversation: conversation)) {
+                            ConversationRow(
+                                conversation: conversation,
+                                timestamp: viewModel.formatTimestamp(conversation.lastMessageAt)
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .contextMenu {
+                            Button("Delete", role: .destructive) {
+                                Task {
+                                    await viewModel.deleteConversation(conversation.id)
                                 }
                             }
+                        } preview: {
+                            ConversationPreview(conversation: conversation)
+                                .environmentObject(authManager)
+                                .frame(width: 300, height: 400)
+                        }
+                        
+                        if conversation.id != viewModel.conversations.last?.id {
+                            Divider()
+                                .padding(.leading, 70)
                         }
                     }
                 }
+                .padding(.bottom, 100) // タブバー分のスペース
             }
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { showNewMessage = true }) {
-                        Image(systemName: "square.and.pencil")
-                            .foregroundColor(MinimalDesign.Colors.accentRed)
-                    }
-                }
-            }
-            .refreshable {
+        }
+        .refreshable {
                 await viewModel.loadConversations()
+            }
+            .onAppear {
+                Task {
+                    await viewModel.loadConversations()
+                }
             }
             .sheet(isPresented: $showNewMessage) {
                 NewMessageView { userId in
                     Task {
-                        if await viewModel.createNewConversation(with: userId) != nil {
-                            // Reload conversations to show the new one
-                            await viewModel.loadConversations()
+                        if let conversationId = await viewModel.createNewConversation(with: userId) {
+                            // Navigate directly to the conversation
+                            selectedConversationId = conversationId
                         }
                     }
                 }
             }
-        }
+            .navigationDestination(item: Binding(
+                get: { selectedConversationId.map { ConversationDestination(id: $0) } },
+                set: { _ in selectedConversationId = nil }
+            )) { destination in
+                if let conversation = viewModel.conversations.first(where: { $0.id == destination.id }) {
+                    ConversationView(conversationId: destination.id, conversation: conversation)
+                }
+            }
         .accentColor(MinimalDesign.Colors.accentRed)
     }
+}
+
+struct ConversationDestination: Identifiable, Hashable {
+    let id: String
 }
 
 struct ConversationRow: View {
