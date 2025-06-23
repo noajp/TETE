@@ -11,8 +11,14 @@ class ProfileViewModel: ObservableObject {
     @Published var isLoading = false
     
     private let postService = PostService()
+    private var hasLoadedInitially = false
     
     init() {
+        loadUserDataIfNeeded()
+    }
+    
+    func loadUserDataIfNeeded() {
+        guard !hasLoadedInitially else { return }
         loadUserData()
     }
     
@@ -29,6 +35,7 @@ class ProfileViewModel: ObservableObject {
             do {
                 let userPosts = try await postService.fetchUserPosts(userId: userId)
                 self.posts = userPosts
+                self.hasLoadedInitially = true
             } catch {
                 print("Error loading user posts: \(error)")
             }

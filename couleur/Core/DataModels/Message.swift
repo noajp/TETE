@@ -55,79 +55,75 @@ struct Conversation: Identifiable, Codable {
     
     // Helper computed properties
     func otherParticipant(currentUserId: String?) -> UserProfile? {
-        // For direct messages, get the other participant
+        // Get the other participant (supports both direct messages and group chats)
         guard let participants = participants,
-              participants.count == 2,
-              let currentUserId = currentUserId else { return nil }
+              let currentUserId = currentUserId else { 
+            print("🔵 otherParticipant: participants=\(participants?.count ?? 0), currentUserId=\(currentUserId ?? "nil")")
+            return nil 
+        }
         
-        return participants.first { $0.userId != currentUserId }?.user
+        print("🔵 otherParticipant: Total participants=\(participants.count), currentUserId=\(currentUserId)")
+        for (index, participant) in participants.enumerated() {
+            print("🔵 Participant \(index): userId=\(participant.userId), user=\(participant.user?.username ?? "nil")")
+        }
+        
+        // Find first participant that is not the current user
+        let otherParticipant = participants.first { $0.userId != currentUserId }
+        print("🔵 otherParticipant found: \(otherParticipant?.user?.username ?? "nil")")
+        return otherParticipant?.user
     }
     
     func displayName(currentUserId: String?) -> String {
-        // For now, show other participant's name for direct messages
-        let otherUser = otherParticipant(currentUserId: currentUserId)
-        
-        // Debug: Print participant information
-        if let otherUser = otherUser {
-            print("🔵 Found other participant user: \(otherUser.id)")
-            print("🔵 Username: \(otherUser.username)")
-            print("🔵 Display name: \(otherUser.displayName ?? "nil")")
-            
-            return otherUser.preferredDisplayName
-        } else {
-            print("⚠️ No other participant found via participants list")
-            print("⚠️ Current user ID: \(currentUserId ?? "nil")")
-            print("⚠️ Total participants: \(participants?.count ?? 0)")
-            
-            // Try to find other participant manually from participants list
-            if let participants = participants, let currentUserId = currentUserId {
-                let otherParticipant = participants.first { $0.userId.lowercased() != currentUserId.lowercased() }
-                if let otherParticipant = otherParticipant {
-                    print("🔵 Found other participant (manual): \(otherParticipant.userId)")
-                    if let user = otherParticipant.user {
-                        print("🔵 Other participant username: \(user.username)")
-                        return user.preferredDisplayName
-                    } else {
-                        print("⚠️ Other participant has no user profile")
-                        return "User-\(String(otherParticipant.userId.prefix(8)))"
-                    }
-                }
-            }
-            
-            // Last resort: Try to get from messages if available
-            print("🔵 Messages available: \(messages?.count ?? 0)")
-            if let messages = messages, let currentUserId = currentUserId {
-                print("🔵 Trying to find other user from messages...")
-                print("🔵 Looking for messages not from: \(currentUserId)")
-                
-                for (index, message) in messages.enumerated() {
-                    print("🔵 Message \(index): from \(message.senderId), isOther: \(message.senderId.lowercased() != currentUserId.lowercased())")
-                }
-                
-                // Find a message from someone other than current user
-                if let otherMessage = messages.first(where: { $0.senderId.lowercased() != currentUserId.lowercased() }) {
-                    print("🔵 Found message from other user: \(otherMessage.senderId)")
-                    if let sender = otherMessage.sender {
-                        print("🔵 Other user from message: \(sender.username)")
-                        return sender.preferredDisplayName
-                    } else {
-                        print("🔵 No sender profile, using partial ID")
-                        // Return partial user ID if no profile data
-                        return "User-\(String(otherMessage.senderId.prefix(8)))"
-                    }
-                } else {
-                    print("⚠️ No messages from other users found")
-                }
-            } else {
-                print("⚠️ No messages available or no current user ID")
-            }
-            
+        guard let participants = participants, let currentUserId = currentUserId else {
             return "Unknown"
+        }
+        
+        // Filter out current user from participants
+        let otherParticipants = participants.filter { $0.userId != currentUserId }
+        
+        
+        if otherParticipants.isEmpty {
+            return "Unknown"
+        }
+        
+        // For direct messages (1 other participant)
+        if otherParticipants.count == 1 {
+            if let otherUser = otherParticipants.first?.user {
+                return otherUser.preferredDisplayName
+            } else {
+                return "User-\(String(otherParticipants.first!.userId.prefix(8)))"
+            }
+        }
+        
+        // For group chats (multiple other participants)
+        let participantNames = otherParticipants.compactMap { participant in
+            participant.user?.username ?? "User-\(String(participant.userId.prefix(8)))"
+        }
+        
+        if participantNames.count <= 3 {
+            // Show all names for small groups
+            let groupName = participantNames.joined(separator: ", ")
+            return groupName
+        } else {
+            // Show first few names + count for large groups
+            let firstNames = participantNames.prefix(2).joined(separator: ", ")
+            let remainingCount = participantNames.count - 2
+            let groupName = "\(firstNames) +\(remainingCount) others"
+            return groupName
         }
     }
     
     func displayAvatar(currentUserId: String?) -> String? {
-        return otherParticipant(currentUserId: currentUserId)?.avatarUrl
+        // For direct messages, show the other participant's avatar
+        // For group chats, show the first other participant's avatar (or could be a group icon)
+        guard let participants = participants, let currentUserId = currentUserId else {
+            return nil
+        }
+        
+        let otherParticipants = participants.filter { $0.userId != currentUserId }
+        
+        // Return the first other participant's avatar
+        return otherParticipants.first?.user?.avatarUrl
     }
 }
 

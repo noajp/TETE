@@ -112,6 +112,9 @@ struct HomeFeedView: View {
             }
             .padding(.bottom, 100) // タブバー分のスペース
         }
+        .refreshable {
+            await viewModel.loadPosts()
+        }
     }
 }
 

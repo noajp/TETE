@@ -55,7 +55,7 @@ struct MessagesView: View {
             }
             .onAppear {
                 Task {
-                    await viewModel.loadConversations()
+                    await viewModel.loadConversationsIfNeeded()
                 }
             }
             .sheet(isPresented: $showNewMessage) {
@@ -112,7 +112,9 @@ struct ConversationRow: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(conversation.displayName(currentUserId: authManager.currentUser?.id))
+                    Text({
+                        conversation.displayName(currentUserId: authManager.currentUser?.id)
+                    }())
                         .font(.system(size: 16, weight: hasUnread ? .semibold : .regular))
                         .foregroundColor(MinimalDesign.Colors.primary)
                     
@@ -149,18 +151,13 @@ struct ConversationRow: View {
 
 struct EmptyStateView: View {
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "message")
-                .font(.system(size: 60))
-                .foregroundColor(.gray)
-            
-            Text("No messages yet")
-                .font(.title2)
-                .fontWeight(.semibold)
-            
+        VStack {
+            Spacer()
+            Spacer()
             Text("Start a conversation with someone")
                 .font(.body)
                 .foregroundColor(.gray)
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

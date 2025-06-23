@@ -34,6 +34,7 @@ final class MyPageViewModel: BaseViewModelClass {
     
     // MARK: - Private Properties
     
+    private var hasLoadedInitially = false
     private var currentUserId: String? {
         authManager.currentUser?.id
     }
@@ -49,11 +50,17 @@ final class MyPageViewModel: BaseViewModelClass {
         super.init()
         
         Task {
-            await loadUserData()
+            await loadUserDataIfNeeded()
         }
     }
     
     // MARK: - Public Methods
+    
+    /// Loads user data only if not already loaded
+    func loadUserDataIfNeeded() async {
+        guard !hasLoadedInitially else { return }
+        await loadUserData()
+    }
     
     /// Loads all user data including profile, posts, and statistics
     func loadUserData() async {
@@ -76,6 +83,7 @@ final class MyPageViewModel: BaseViewModelClass {
             followersCount = try await userRepository.fetchFollowersCount(userId: userId)
             followingCount = try await userRepository.fetchFollowingCount(userId: userId)
             
+            hasLoadedInitially = true
             hideLoading()
             Logger.shared.info("User data loaded successfully")
             

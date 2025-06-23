@@ -17,10 +17,11 @@ class MessagesViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     private let messageService = MessageService.shared
+    private var hasLoadedInitially = false
     
     init() {
         Task {
-            await loadConversations()
+            await loadConversationsIfNeeded()
         }
         
         // Listen for real-time updates
@@ -38,12 +39,10 @@ class MessagesViewModel: ObservableObject {
                 // Update the specific conversation's unread count to 0
                 print("🔵 Received notification to mark conversation \(conversationId) as read")
                 if let index = self.conversations.firstIndex(where: { $0.id == conversationId }) {
-                    print("🔵 Found conversation at index \(index), setting unread count to 0")
                     self.conversations[index].unreadCount = 0
                     // Force UI update
                     self.objectWillChange.send()
                 } else {
-                    print("⚠️ Could not find conversation with ID \(conversationId)")
                 }
             }
             .store(in: &cancellables)
@@ -59,15 +58,21 @@ class MessagesViewModel: ObservableObject {
         }
     }
     
+    func loadConversationsIfNeeded() async {
+        // 既に読み込み済みの場合はスキップ
+        guard !hasLoadedInitially else { return }
+        await loadConversations()
+    }
+    
     func loadConversations() async {
         isLoading = true
         errorMessage = nil
         
         do {
             conversations = try await messageService.fetchConversations()
+            hasLoadedInitially = true
         } catch {
             errorMessage = "Failed to load conversations: \(error.localizedDescription)"
-            print("❌ Error loading conversations: \(error)")
         }
         
         isLoading = false
@@ -80,7 +85,6 @@ class MessagesViewModel: ObservableObject {
             return conversationId
         } catch {
             errorMessage = "Failed to create conversation: \(error.localizedDescription)"
-            print("❌ Error creating conversation: \(error)")
             return nil
         }
     }
@@ -125,7 +129,6 @@ class MessagesViewModel: ObservableObject {
             conversations.removeAll { $0.id == conversationId }
         } catch {
             errorMessage = "Failed to delete conversation: \(error.localizedDescription)"
-            print("❌ Error deleting conversation: \(error)")
         }
     }
 }

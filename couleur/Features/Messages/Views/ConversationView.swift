@@ -16,10 +16,12 @@ class ConversationViewModel: ObservableObject {
     let conversation: Conversation?
     private let messageService = MessageService.shared
     private var cancellables = Set<AnyCancellable>()
+    private var hasLoadedInitialMessages = false
     
     init(conversationId: String, conversation: Conversation? = nil) {
         self.conversationId = conversationId
         self.conversation = conversation
+        
         
         Task {
             await loadMessages()
@@ -56,20 +58,43 @@ class ConversationViewModel: ObservableObject {
         let now = Date()
         if now.timeIntervalSince(lastRefresh) > 3.0 { // Minimum 3 seconds between refreshes
             lastRefresh = now
-            await loadMessages()
+            await forceLoadMessages()
         }
+    }
+    
+    func forceLoadMessages() async {
+        
+        isLoading = true
+        
+        do {
+            let fetchedMessages = try await messageService.fetchMessages(for: conversationId)
+            // Filter out deleted messages as a safety check
+            messages = fetchedMessages.filter { !$0.isDeleted }
+        } catch {
+            errorMessage = "Failed to load messages: \(error.localizedDescription)"
+        }
+        
+        isLoading = false
     }
     
     private var lastRefresh = Date.distantPast
     
     func loadMessages() async {
+        
+        // Skip reload if already loaded to preserve local changes (like deletions)
+        guard !hasLoadedInitialMessages else {
+            return
+        }
+        
         isLoading = true
         
         do {
-            messages = try await messageService.fetchMessages(for: conversationId)
+            let fetchedMessages = try await messageService.fetchMessages(for: conversationId)
+            // Filter out deleted messages as a safety check
+            messages = fetchedMessages.filter { !$0.isDeleted }
+            hasLoadedInitialMessages = true
         } catch {
             errorMessage = "Failed to load messages: \(error.localizedDescription)"
-            print("❌ Error loading messages: \(error)")
         }
         
         isLoading = false
@@ -88,7 +113,6 @@ class ConversationViewModel: ObservableObject {
             }
         } catch {
             errorMessage = "Failed to send message: \(error.localizedDescription)"
-            print("❌ Error sending message: \(error)")
         }
         
         isSending = false
@@ -98,9 +122,9 @@ class ConversationViewModel: ObservableObject {
         do {
             try await messageService.markConversationAsRead(conversationId)
         } catch {
-            print("❌ Error marking conversation as read: \(error)")
         }
     }
+    
 }
 
 struct ConversationView: View {
@@ -126,8 +150,8 @@ struct ConversationView: View {
                         } else {
                             ForEach(viewModel.messages) { message in
                                 MessageBubble(message: message)
-                                    .environmentObject(authManager)
-                                    .id(message.id)
+                                .environmentObject(authManager)
+                                .id(message.id)
                             }
                         }
                     }
@@ -193,13 +217,15 @@ struct MessageBubble: View {
     
     private var isCurrentUser: Bool {
         guard let currentUserId = authManager.currentUser?.id else { 
-            print("⚠️ No current user ID available")
-            return false 
+                return false 
         }
         
         // Compare with lowercase to handle UUID case differences  
-        let result = message.senderId.lowercased() == currentUserId.lowercased()
-        print("🔵 Message from: \(message.senderId), Current user: \(currentUserId), Is current user: \(result)")
+        let senderIdLower = message.senderId.lowercased()
+        let currentIdLower = currentUserId.lowercased()
+        let result = senderIdLower == currentIdLower
+        
+        
         return result
     }
     

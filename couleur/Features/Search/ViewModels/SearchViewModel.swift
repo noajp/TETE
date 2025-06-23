@@ -14,9 +14,10 @@ class SearchViewModel: ObservableObject {
     @Published var popularPosts: [Post] = []
     
     private let postService = PostService()
+    private var hasLoadedInitially = false
     
     init() {
-        loadPopularPosts()
+        loadPopularPostsIfNeeded()
     }
     
     func search(_ query: String) {
@@ -45,12 +46,23 @@ class SearchViewModel: ObservableObject {
         }
     }
     
+    private func loadPopularPostsIfNeeded() {
+        guard !hasLoadedInitially else { return }
+        loadPopularPosts()
+    }
+    
+    func refreshPopularPosts() {
+        hasLoadedInitially = false // Reset flag to force reload
+        loadPopularPosts()
+    }
+    
     private func loadPopularPosts() {
         Task {
             do {
                 let allPosts = try await postService.fetchFeedPosts()
                 // いいね数で人気投稿をソート
                 self.popularPosts = allPosts.sorted { $0.likeCount > $1.likeCount }
+                self.hasLoadedInitially = true
             } catch {
                 print("人気投稿の取得に失敗: \(error)")
             }

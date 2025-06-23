@@ -56,6 +56,9 @@ struct SearchView: View {
                         }
                         .padding()
                     }
+                    .refreshable {
+                        viewModel.refreshPopularPosts()
+                    }
                 }
             }
             .background(Color(.systemBackground))

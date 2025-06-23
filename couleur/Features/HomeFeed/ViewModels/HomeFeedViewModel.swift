@@ -20,6 +20,7 @@ final class HomeFeedViewModel: BaseViewModelClass {
     
     // MARK: - Private Properties
     
+    private var hasLoadedInitially = false
     private var currentUserId: String? {
         authManager.currentUser?.id
     }
@@ -35,11 +36,17 @@ final class HomeFeedViewModel: BaseViewModelClass {
         super.init()
         
         Task {
-            await loadPosts()
+            await loadPostsIfNeeded()
         }
     }
     
     // MARK: - Public Methods
+    
+    /// Loads posts only if not already loaded
+    func loadPostsIfNeeded() async {
+        guard !hasLoadedInitially else { return }
+        await loadPosts()
+    }
     
     /// Loads posts for the main feed
     func loadPosts() async {
@@ -48,6 +55,7 @@ final class HomeFeedViewModel: BaseViewModelClass {
         do {
             let fetchedPosts = try await postService.fetchFeedPosts(currentUserId: currentUserId)
             posts = fetchedPosts
+            hasLoadedInitially = true
             hideLoading()
             Logger.shared.info("Loaded \(fetchedPosts.count) posts")
         } catch {

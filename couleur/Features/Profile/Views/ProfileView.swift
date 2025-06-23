@@ -58,6 +58,9 @@ struct ProfileView: View {
                     }
                 }
             }
+            .refreshable {
+                viewModel.loadUserData()
+            }
             .navigationTitle("")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

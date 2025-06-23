@@ -46,7 +46,7 @@ struct MyPageView: View {
                     .environmentObject(authManager)
             }
             .task {
-                await viewModel.loadUserData()
+                await viewModel.loadUserDataIfNeeded()
             }
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
