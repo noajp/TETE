@@ -83,8 +83,7 @@ struct MagazineArticleCard: View {
     let article: MagazineArticle
     
     var body: some View {
-        NavigationLink(destination: PostDetailView(post: article.post)) {
-            VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 16) {
                 // Featured image
                 if article.post.mediaUrl != "" {
                     let imageUrl = article.post.mediaUrl
@@ -188,8 +187,6 @@ struct MagazineArticleCard: View {
                 Divider()
                     .background(MinimalDesign.Colors.tertiary)
             }
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 

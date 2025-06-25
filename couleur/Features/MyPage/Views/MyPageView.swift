@@ -26,6 +26,8 @@ struct MyPageView: View {
                 ModernProfileSection(
                     profile: viewModel.userProfile,
                     isLoading: viewModel.isLoading,
+                    postsCount: viewModel.postsCount,
+                    followersCount: viewModel.followersCount,
                     onEditProfile: { showEditProfile = true },
                     selectedPhotoItem: $selectedPhotoItem
                 )
@@ -84,77 +86,100 @@ struct ModernProfileHeader: View {
 struct ModernProfileSection: View {
     let profile: UserProfile?
     let isLoading: Bool
+    let postsCount: Int
+    let followersCount: Int
     let onEditProfile: () -> Void
     @Binding var selectedPhotoItem: PhotosPickerItem?
+    @State private var showGridMode = false
     
     var body: some View {
-        VStack(spacing: MinimalDesign.Spacing.lg) {
-            // Profile Image
-            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                ZStack {
-                    // Avatar
+        VStack(spacing: 24) {
+            HStack(alignment: .top, spacing: 16) {
+                // Profile Image - Rounded Square (Left aligned)
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                     if let avatarUrl = profile?.avatarUrl {
                         FastAsyncImage(urlString: avatarUrl) {
-                            Rectangle()
-                                .fill(MinimalDesign.Colors.tertiaryBackground)
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.gray.opacity(0.3))
                         }
-                        .frame(width: 120, height: 120)
-                        .clipped()
+                        .frame(width: 100, height: 100)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     } else {
-                        Rectangle()
-                            .fill(MinimalDesign.Colors.tertiaryBackground)
-                            .frame(width: 120, height: 120)
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 100, height: 100)
                             .overlay(
                                 Image(systemName: "person.fill")
-                                    .font(.system(size: 48, weight: .light))
-                                    .foregroundColor(MinimalDesign.Colors.tertiary)
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
                             )
                     }
-                    
-                    // Edit Indicator
-                    Rectangle()
-                        .fill(MinimalDesign.Colors.primary)
-                        .frame(width: 32, height: 32)
-                        .overlay(
-                            Image(systemName: "camera")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white)
-                        )
-                        .offset(x: 44, y: 44)
                 }
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            if isLoading {
-                ProgressView()
-                    .scaleEffect(0.8)
-            } else {
-                VStack(spacing: MinimalDesign.Spacing.sm) {
-                    // Name
-                    Text(profile?.displayName ?? profile?.username ?? "User")
-                        .font(MinimalDesign.Typography.title)
-                        .fontWeight(.medium)
-                        .foregroundColor(MinimalDesign.Colors.primary)
-                    
-                    // Bio
-                    if let bio = profile?.bio, !bio.isEmpty {
-                        Text(bio)
-                            .font(MinimalDesign.Typography.body)
-                            .foregroundColor(MinimalDesign.Colors.secondary)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(3)
-                            .padding(.horizontal, MinimalDesign.Spacing.lg)
+                .buttonStyle(PlainButtonStyle())
+                
+                // Profile Info
+                VStack(alignment: .leading, spacing: 8) {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        // Name with verified badge
+                        HStack {
+                            Text(profile?.displayName ?? profile?.username ?? "User")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.primary)
+                            
+                            // Verified badge
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.green)
+                        }
+                        
+                        // Bio
+                        if let bio = profile?.bio, !bio.isEmpty {
+                            Text(bio)
+                                .font(.system(size: 16))
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(3)
+                        }
                     }
-                    
-                    // Edit Button
+                }
+                
+                Spacer()
+            }
+            
+            // Action Buttons
+            HStack(spacing: 12) {
+                    // Edit Profile Button
                     Button(action: onEditProfile) {
                         Text("Edit Profile")
-                            .minimalButton(style: .secondary)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
                     }
-                }
+                    
+                    // Share Profile Button
+                    Button(action: { shareProfile() }) {
+                        Text("Share Profile")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                    }
             }
         }
         .padding(.horizontal, MinimalDesign.Spacing.md)
+    }
+    
+    private func shareProfile() {
+        // TODO: Implement share profile functionality
+        print("Share profile tapped")
     }
 }
 

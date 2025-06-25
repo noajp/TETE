@@ -71,27 +71,13 @@ struct CustomTabBar: View {
             }
             .frame(maxWidth: .infinity)
             
-            // メッセージボタン
+            // 雑誌ボタン
             Button(action: {
                 selectedTab = 1
             }) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: selectedTab == 1 ? "message.fill" : "message")
-                        .font(.system(size: 20))
-                        .foregroundColor(selectedTab == 1 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
-                    
-                    // Badge for unread messages
-                    if unreadMessageCount > 0 {
-                        Text(unreadMessageCount > 99 ? "99+" : "\(unreadMessageCount)")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 4)
-                            .frame(minWidth: 16, minHeight: 16)
-                            .background(Color.red)
-                            .clipShape(Capsule())
-                            .offset(x: 10, y: -8)
-                    }
-                }
+                Image(systemName: selectedTab == 1 ? "book.fill" : "book")
+                    .font(.system(size: 20, weight: .light))
+                    .foregroundColor(selectedTab == 1 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }
             .frame(maxWidth: .infinity)
             
@@ -109,12 +95,12 @@ struct CustomTabBar: View {
             }
             .frame(maxWidth: .infinity)
             
-            // 雑誌ボタン
+            // マップボタン
             Button(action: {
                 selectedTab = 3
             }) {
-                Image(systemName: selectedTab == 3 ? "book.fill" : "book")
-                    .font(.system(size: 20))
+                Image(systemName: selectedTab == 3 ? "map.fill" : "map")
+                    .font(.system(size: 20, weight: .light))
                     .foregroundColor(selectedTab == 3 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }
             .frame(maxWidth: .infinity)
@@ -124,7 +110,7 @@ struct CustomTabBar: View {
                 selectedTab = 4
             }) {
                 Image(systemName: selectedTab == 4 ? "person.fill" : "person")
-                    .font(.system(size: 20))
+                    .font(.system(size: 20, weight: .light))
                     .foregroundColor(selectedTab == 4 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }
             .frame(maxWidth: .infinity)

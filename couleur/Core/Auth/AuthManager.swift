@@ -228,29 +228,17 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
                 print("🔵 No session data available")
             }
             
-            // Check if email confirmation is required
+            // Check if email confirmation is required  
             if user.emailConfirmedAt == nil {
-                print("⚠️ Email confirmation required - user needs to check their email")
-                print("⚠️ User will need to click confirmation link before they can sign in")
-                print("⚠️ Check Gmail inbox and spam folder for confirmation email from Supabase")
-                print("⚠️ Alternatively, disable email confirmation in Supabase Dashboard > Authentication > Settings")
+                print("⚠️ Email confirmation required")
                 
-                // Store user ID for later profile creation
-                let unconfirmedUserId = user.id.uuidString
-                print("🔵 Storing unconfirmed user ID: \(unconfirmedUserId)")
-                
-                // Sign out immediately to prevent access without email confirmation
-                print("🔵 Signing out user until email is confirmed")
+                // サインアウトして確認待ち状態にする
                 try await client.auth.signOut()
-                
-                self.currentUser = nil
-                self.isAuthenticated = false
-                isLoading = false
-                
-                // Return the user ID instead of throwing error, so profile can be created
-                return unconfirmedUserId
+                secureLogger.authEvent("Sign up successful - email confirmation required", userID: user.id.uuidString)
+                return user.id.uuidString
             }
             
+            // サインアップ成功時もログインした状態を維持
             self.currentUser = AppUser(
                 id: user.id.uuidString,
                 email: user.email,
@@ -406,39 +394,13 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     // MARK: - Security Helper Methods
     
     private func checkRateLimit(for email: String) throws {
-        let currentTime = Date()
-        
-        if let attempts = loginAttempts[email] {
-            // ロックアウト期間中かチェック
-            if attempts.count >= maxLoginAttempts {
-                let timeSinceLastAttempt = currentTime.timeIntervalSince(attempts.lastAttempt)
-                if timeSinceLastAttempt < lockoutDuration {
-                    let remainingTime = lockoutDuration - timeSinceLastAttempt
-                    secureLogger.securityEvent("Rate limit exceeded", details: ["email": email, "remaining_time": remainingTime])
-                    throw AuthError.rateLimitExceeded(remainingTime)
-                } else {
-                    // ロックアウト期間が過ぎたのでリセット
-                    loginAttempts.removeValue(forKey: email)
-                }
-            }
-        }
+        // レート制限機能は無効化
+        return
     }
     
     private func recordFailedLoginAttempt(for email: String) {
-        let currentTime = Date()
-        
-        if var attempts = loginAttempts[email] {
-            attempts.count += 1
-            attempts.lastAttempt = currentTime
-            loginAttempts[email] = attempts
-        } else {
-            loginAttempts[email] = (count: 1, lastAttempt: currentTime)
-        }
-        
-        secureLogger.securityEvent("Failed login attempt recorded", details: [
-            "email": email,
-            "attempt_count": loginAttempts[email]?.count ?? 0
-        ])
+        // ログイン失敗記録は簡素化
+        secureLogger.securityEvent("Failed login attempt", details: ["email": email])
     }
     
     private func resetLoginAttempts(for email: String) {
@@ -540,8 +502,19 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             if profileCount == 0 {
                 print("🔵 Creating user profile for OAuth user: \(user.id.uuidString)")
                 
-                // Extract username from email (fallback if no email)
-                let username = user.email?.components(separatedBy: "@").first ?? "user\(String(user.id.uuidString.prefix(8)))"
+                // Generate valid username from email (must match [a-z0-9_-]{3,30})
+                let baseUsername = user.email?.components(separatedBy: "@").first?
+                    .lowercased()
+                    .replacingOccurrences(of: ".", with: "_")
+                    .replacingOccurrences(of: "+", with: "_")
+                    .filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" } ?? ""
+                
+                // Ensure username meets constraints
+                let username = if baseUsername.count >= 3 && baseUsername.count <= 30 {
+                    String(baseUsername)
+                } else {
+                    "user\(String(user.id.uuidString.lowercased().replacingOccurrences(of: "-", with: "").prefix(8)))"
+                }
                 
                 // For OAuth users, use email as display name initially
                 let displayName = user.email ?? username

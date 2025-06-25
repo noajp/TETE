@@ -9,6 +9,29 @@ struct HomeFeedView: View {
     @StateObject private var viewModel = HomeFeedViewModel()
     @Binding var showGridMode: Bool
     
+    // 投稿をグループ化（横長1枚+正方形1枚、正方形6枚のパターン）
+    private var groupedPosts: [(Int, [Post])] {
+        let posts = viewModel.posts
+        var groups: [(Int, [Post])] = []
+        var currentIndex = 0
+        
+        while currentIndex < posts.count {
+            if (groups.count + 1) % 2 == 1 {
+                // 奇数行：横長1枚+正方形1枚
+                let group = Array(posts[currentIndex..<min(currentIndex + 2, posts.count)])
+                groups.append((groups.count, group))
+                currentIndex += 2
+            } else {
+                // 偶数行：正方形6枚（2x3グリッド）
+                let group = Array(posts[currentIndex..<min(currentIndex + 6, posts.count)])
+                groups.append((groups.count, group))
+                currentIndex += 6
+            }
+        }
+        
+        return groups
+    }
+    
     private var columns: [GridItem] {
         if showGridMode {
             // グリッドモード（2x2）
@@ -70,22 +93,13 @@ struct HomeFeedView: View {
         ZStack(alignment: .top) {
             ScrollView {
                 if showGridMode {
-                    // グリッドモード
-                    LazyVGrid(columns: columns, spacing: 1) {
-                        ForEach(viewModel.posts) { post in
-                            NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
-                                Task {
-                                    await viewModel.toggleLike(for: post)
-                                }
-                            })) {
-                                PinCardView(post: post, onLikeTapped: { post in
-                                    Task {
-                                        await viewModel.toggleLike(for: post)
-                                    }
-                                })
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .background(Color.clear)
+                    // 複数枚フィードモード（グリッドビュー）
+                    LazyVStack(spacing: 2) {
+                        ForEach(groupedPosts, id: \.0) { (groupIndex, group) in
+                            MultiPhotoRowView(posts: group, onLikeTapped: { post in
+                                // グリッドビューで写真をタップしたらシングルビューに切り替え
+                                showGridMode = false
+                            })
                         }
                     }
                     .padding(.horizontal, 0)
@@ -93,17 +107,11 @@ struct HomeFeedView: View {
                     // シングルモード（1枚ずつ表示）
                     LazyVStack(spacing: 0) {
                         ForEach(viewModel.posts) { post in
-                            NavigationLink(destination: PostDetailView(post: post, onLikeTapped: { post in
+                            SingleCardView(post: post, onLikeTapped: { post in
                                 Task {
                                     await viewModel.toggleLike(for: post)
                                 }
-                            })) {
-                                SingleCardView(post: post, onLikeTapped: { post in
-                                    Task {
-                                        await viewModel.toggleLike(for: post)
-                                    }
-                                })
-                            }
+                            })
                             .buttonStyle(PlainButtonStyle())
                             .background(Color.clear)
                         }
@@ -115,6 +123,140 @@ struct HomeFeedView: View {
         .refreshable {
             await viewModel.loadPosts()
         }
+    }
+}
+
+// MARK: - Multi Photo Row Component
+
+struct MultiPhotoRowView: View {
+    let posts: [Post]
+    let onLikeTapped: (Post) -> Void
+    
+    var body: some View {
+        if posts.count == 1 {
+            // 単体表示
+            SinglePhotoView(post: posts[0], onLikeTapped: onLikeTapped)
+        } else if posts.count == 2 {
+            // 横長1枚+正方形1枚
+            LandscapeSquareRowView(posts: posts, onLikeTapped: onLikeTapped)
+        } else if posts.count == 3 {
+            // 正方形3枚（一時的に3枚処理）
+            ThreeSquareRowView(posts: posts, onLikeTapped: onLikeTapped)
+        } else if posts.count >= 4 {
+            // 正方形6枚（4枚の場合は4枚、6枚以上の場合は6枚）
+            SixSquareRowView(posts: Array(posts.prefix(6)), onLikeTapped: onLikeTapped)
+        }
+    }
+}
+
+// 横長1枚+正方形1枚の行
+struct LandscapeSquareRowView: View {
+    let posts: [Post]
+    let onLikeTapped: (Post) -> Void
+    
+    var body: some View {
+        HStack(spacing: 2) {
+            if posts.count >= 1 {
+                // 横長写真（左側）余白2ptを考慮して274pt
+                MultiPhotoCard(post: posts[0], width: 274, height: 117, onLikeTapped: onLikeTapped)
+            }
+            
+            if posts.count >= 2 {
+                // 正方形写真（右側）117x117の正方形
+                MultiPhotoCard(post: posts[1], width: 117, height: 117, onLikeTapped: onLikeTapped)
+            }
+        }
+    }
+}
+
+// 正方形3枚の行（一時的処理用）
+struct ThreeSquareRowView: View {
+    let posts: [Post]
+    let onLikeTapped: (Post) -> Void
+    
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(0..<3, id: \.self) { index in
+                if index < posts.count {
+                    MultiPhotoCard(post: posts[index], width: 129.67, height: 129.67, onLikeTapped: onLikeTapped)
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 129.67, height: 129.67)
+                }
+            }
+        }
+    }
+}
+
+// 正方形6枚の行（2x3グリッド）
+struct SixSquareRowView: View {
+    let posts: [Post]
+    let onLikeTapped: (Post) -> Void
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            // 上段：3枚
+            HStack(spacing: 2) {
+                ForEach(0..<3, id: \.self) { index in
+                    if index < posts.count {
+                        MultiPhotoCard(post: posts[index], width: 129.67, height: 129.67, onLikeTapped: onLikeTapped)
+                    } else {
+                        // 投稿が不足している場合は空のスペース
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 129.67, height: 129.67)
+                    }
+                }
+            }
+            
+            // 下段：3枚
+            HStack(spacing: 2) {
+                ForEach(3..<6, id: \.self) { index in
+                    if index < posts.count {
+                        MultiPhotoCard(post: posts[index], width: 129.67, height: 129.67, onLikeTapped: onLikeTapped)
+                    } else {
+                        // 投稿が不足している場合は空のスペース
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 129.67, height: 129.67)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 単体写真表示
+struct SinglePhotoView: View {
+    let post: Post
+    let onLikeTapped: (Post) -> Void
+    
+    var body: some View {
+        SingleCardView(post: post, onLikeTapped: onLikeTapped)
+    }
+}
+
+// マルチフォト用カード
+struct MultiPhotoCard: View {
+    let post: Post
+    let width: CGFloat
+    let height: CGFloat
+    let onLikeTapped: (Post) -> Void
+    
+    var body: some View {
+        Button(action: {
+            onLikeTapped(post)
+        }) {
+            // 画像
+            FastAsyncImage(urlString: post.mediaUrl) {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+            }
+            .frame(width: width, height: height)
+            .clipped()
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

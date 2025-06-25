@@ -56,10 +56,7 @@ struct UnifiedHeader: View {
             }
             .frame(height: 56)
             .background(MinimalDesign.Colors.background)
-            
-            // Separator
-            Divider()
-                .background(MinimalDesign.Colors.tertiary)
+            .padding(.top, -15)
         }
         .background(MinimalDesign.Colors.background.ignoresSafeArea(edges: .top))
     }

@@ -26,6 +26,19 @@ class MessagesViewModel: ObservableObject {
         
         // Listen for real-time updates
         setupRealtimeListeners()
+        
+        // Listen for auth state changes to reset the loaded flag
+        NotificationCenter.default.publisher(for: .authStateChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                print("🔵 [DEBUG] Auth state changed - resetting hasLoadedInitially flag")
+                self?.hasLoadedInitially = false
+                self?.conversations = []
+                Task {
+                    await self?.loadConversationsIfNeeded()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     private func setupRealtimeListeners() {
@@ -59,19 +72,26 @@ class MessagesViewModel: ObservableObject {
     }
     
     func loadConversationsIfNeeded() async {
+        print("🔵 [DEBUG] loadConversationsIfNeeded() CALLED - hasLoadedInitially: \(hasLoadedInitially)")
         // 既に読み込み済みの場合はスキップ
-        guard !hasLoadedInitially else { return }
+        guard !hasLoadedInitially else { 
+            print("🔵 [DEBUG] Skipping load - already loaded initially")
+            return 
+        }
         await loadConversations()
     }
     
     func loadConversations() async {
+        print("🔵 [DEBUG] loadConversations() CALLED - starting fetch")
         isLoading = true
         errorMessage = nil
         
         do {
             conversations = try await messageService.fetchConversations()
+            print("🔵 [DEBUG] Successfully fetched \(conversations.count) conversations")
             hasLoadedInitially = true
         } catch {
+            print("🔴 [DEBUG] Failed to fetch conversations: \(error)")
             errorMessage = "Failed to load conversations: \(error.localizedDescription)"
         }
         

@@ -89,7 +89,7 @@ struct Conversation: Identifiable, Codable {
         // For direct messages (1 other participant)
         if otherParticipants.count == 1 {
             if let otherUser = otherParticipants.first?.user {
-                return otherUser.preferredDisplayName
+                return otherUser.userIdForDisplay
             } else {
                 return "User-\(String(otherParticipants.first!.userId.prefix(8)))"
             }
@@ -97,7 +97,7 @@ struct Conversation: Identifiable, Codable {
         
         // For group chats (multiple other participants)
         let participantNames = otherParticipants.compactMap { participant in
-            participant.user?.username ?? "User-\(String(participant.userId.prefix(8)))"
+            participant.user?.userIdForDisplay ?? "User-\(String(participant.userId.prefix(8)))"
         }
         
         if participantNames.count <= 3 {

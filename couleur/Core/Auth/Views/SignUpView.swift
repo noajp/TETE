@@ -12,6 +12,7 @@ struct SignUpView: View {
     @State private var newsletter = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var isSuccessMessage = false
     
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authManager: AuthManager
@@ -93,9 +94,9 @@ struct SignUpView: View {
                                 .autocapitalization(.none)
                                 .autocorrectionDisabled()
                                 .onChange(of: userid) { oldValue, newValue in
-                                    // Allow only alphanumeric, dot, underscore, and hyphen
-                                    let filtered = newValue.filter { char in
-                                        char.isLetter || char.isNumber || char == "." || char == "_" || char == "-"
+                                    // Allow only lowercase letters, numbers, underscore, and hyphen (as per DB constraint)
+                                    let filtered = newValue.lowercased().filter { char in
+                                        char.isLetter || char.isNumber || char == "_" || char == "-"
                                     }
                                     if filtered != newValue {
                                         userid = filtered
@@ -247,7 +248,7 @@ struct SignUpView: View {
             }
             .background(Color(.systemBackground))
             .navigationBarHidden(true)
-            .alert("Error", isPresented: $showError) {
+            .alert(isSuccessMessage ? "Success" : "Error", isPresented: $showError) {
                 Button("OK") { }
             } message: {
                 Text(errorMessage)
@@ -274,13 +275,20 @@ struct SignUpView: View {
             print("✅ User profile created successfully")
             
             await MainActor.run {
-                // Show success message about email confirmation
-                errorMessage = "Account created successfully! Please check your email and click the confirmation link to complete registration."
+                // 開発・テスト用: 成功時は直接ディスミス
+                errorMessage = "Account created successfully!"
+                isSuccessMessage = true
                 showError = true
+                
+                // 1秒後に自動的に画面を閉じる
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    dismiss()
+                }
             }
         } catch {
             await MainActor.run {
                 errorMessage = handleSignUpError(error)
+                isSuccessMessage = false
                 showError = true
             }
         }

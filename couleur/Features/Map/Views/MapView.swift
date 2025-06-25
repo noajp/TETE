@@ -127,12 +127,6 @@ struct MapView: View {
                 }
             }
             .navigationBarHidden(true)
-            .navigationDestination(for: Post.self) { post in
-                PostDetailView(post: post) { post in
-                    // Handle like action from post detail
-                    viewModel.toggleLike(for: post)
-                }
-            }
         }
         .accentColor(MinimalDesign.Colors.accentRed)
     }
@@ -144,7 +138,7 @@ struct PhotoMapPin: View {
     let onLikeTapped: (Post) -> Void
     
     var body: some View {
-        NavigationLink(value: post) {
+        Button(action: {}) {
             AsyncImage(url: URL(string: post.mediaUrl)) { image in
                 image
                     .resizable()

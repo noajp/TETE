@@ -236,6 +236,15 @@ struct MessageBubble: View {
             }
             
             VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: 4) {
+                // 相手のメッセージの場合はユーザーIDを表示
+                if !isCurrentUser, let sender = message.sender {
+                    Text(sender.userIdForDisplay)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 4)
+                }
+                
                 Text(message.content)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)

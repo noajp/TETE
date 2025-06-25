@@ -280,15 +280,19 @@ class MessageService: ObservableObject {
         do {
             // Ensure userId is a valid UUID format
             guard UUID(uuidString: userId) != nil else {
+                print("❌ CREATE CONVERSATION: Invalid user ID format: \(userId)")
                 throw NSError(domain: "MessageService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid user ID format"])
             }
             
+            print("🔵 CREATE CONVERSATION: Calling RPC with other_user_id: \(userId)")
             let conversationId: String = try await supabase
                 .rpc("get_or_create_direct_conversation", params: ["other_user_id": AnyJSON.string(userId)])
                 .execute()
                 .value
+            print("✅ CREATE CONVERSATION: Got conversation ID: \(conversationId)")
             return conversationId
         } catch {
+            print("❌ CREATE CONVERSATION: RPC failed: \(error)")
             throw error
         }
     }
@@ -362,8 +366,14 @@ class MessageService: ObservableObject {
     /// Send a message
     func sendMessage(to conversationId: String, content: String) async throws -> Message {
         guard let userId = AuthManager.shared.currentUser?.id else {
+            print("❌ SEND MESSAGE: User not authenticated")
             throw NSError(domain: "MessageService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
+        
+        print("🔵 SEND MESSAGE: Starting to send message")
+        print("🔵 SEND MESSAGE: Conversation ID: \(conversationId)")
+        print("🔵 SEND MESSAGE: Sender ID: \(userId)")
+        print("🔵 SEND MESSAGE: Content: \(content)")
         
         let messageData = [
             "conversation_id": conversationId,
@@ -382,8 +392,15 @@ class MessageService: ObservableObject {
             .execute()
             .value
         
+        print("✅ SEND MESSAGE: Successfully sent message with ID: \(message.id)")
+        
         // Mark conversation as read after sending
-        try await markConversationAsRead(conversationId)
+        do {
+            try await markConversationAsRead(conversationId)
+            print("🔵 SEND MESSAGE: Marked conversation as read")
+        } catch {
+            print("⚠️ SEND MESSAGE: Failed to mark as read: \(error)")
+        }
         
         // Update unread count for all users (sender's count might decrease, receiver's might increase)
         Task {

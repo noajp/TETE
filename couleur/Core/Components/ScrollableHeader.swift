@@ -33,9 +33,9 @@ struct ScrollableHeaderView<Content: View>: View {
             // Main ScrollView
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    // Header space
+                    // Header space - 短くして写真表示を上に
                     Color.clear
-                        .frame(height: headerHeight)
+                        .frame(height: headerHeight - 15)
                     
                     // Content
                     content

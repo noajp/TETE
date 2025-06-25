@@ -48,11 +48,9 @@ struct ProfileView: View {
                             GridItem(.flexible(), spacing: 2)
                         ], spacing: 2) {
                             ForEach(viewModel.posts) { post in
-                                NavigationLink(destination: PostDetailView(post: post)) {
-                                    RemoteImageView(imageURL: post.mediaUrl)
-                                        .aspectRatio(1, contentMode: .fill)
-                                        .clipped()
-                                }
+                                RemoteImageView(imageURL: post.mediaUrl)
+                                    .aspectRatio(1, contentMode: .fill)
+                                    .clipped()
                             }
                         }
                     }

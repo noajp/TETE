@@ -268,13 +268,15 @@ struct UserRowView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(user.displayName ?? user.username)
+                    Text(user.userIdForDisplay)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.black)
                     
-                    Text("@\(user.username)")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
+                    if let displayName = user.displayName, !displayName.isEmpty {
+                        Text(displayName)
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                    }
                     
                     if let bio = user.bio, !bio.isEmpty {
                         Text(bio)
