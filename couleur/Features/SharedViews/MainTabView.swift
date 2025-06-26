@@ -24,7 +24,7 @@ struct MainTabView: View {
                     switch selectedTab {
                     case 0:
                         UnifiedNavigationView {
-                            HomeFeedView(showGridMode: $showGridMode)
+                            HomeFeedView(showGridMode: $showGridMode, showingCreatePost: $showingCreatePost)
                         }
                     case 1:
                         UnifiedNavigationView {

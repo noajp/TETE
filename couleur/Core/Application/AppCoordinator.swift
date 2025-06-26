@@ -15,6 +15,7 @@ final class AppCoordinator: ObservableObject {
     // MARK: - Published Properties
     @Published var currentTab: MainTab = .home
     @Published var showGridMode = false
+    @Published var showingCreatePost = false
     
     // MARK: - Services
     private let imageCache = ImageCacheManager.shared
@@ -178,7 +179,7 @@ struct EnhancedMainTabView: View {
     var body: some View {
         TabView(selection: $coordinator.currentTab) {
             // Home Feed
-            HomeFeedView(showGridMode: $coordinator.showGridMode)
+            HomeFeedView(showGridMode: $coordinator.showGridMode, showingCreatePost: $coordinator.showingCreatePost)
                 .tabItem {
                     Image(systemName: MainTab.home.iconName)
                     Text(MainTab.home.title)
@@ -217,6 +218,9 @@ struct EnhancedMainTabView: View {
         }
         .onChange(of: coordinator.currentTab) { _, newTab in
             coordinator.switchTab(to: newTab)
+        }
+        .fullScreenCover(isPresented: $coordinator.showingCreatePost) {
+            CreatePostNavigationView()
         }
         .environmentObject(coordinator)
     }

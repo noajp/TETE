@@ -45,7 +45,10 @@ struct UnifiedHeader: View {
                 
                 // Right button area
                 if let rightButton = rightButton {
-                    Button(action: rightButton.action) {
+                    Button(action: {
+                        print("🔴 Header button action triggered")
+                        rightButton.action()
+                    }) {
                         Image(systemName: rightButton.icon)
                             .font(.system(size: 20, weight: .regular))
                             .actionTextButtonStyle()

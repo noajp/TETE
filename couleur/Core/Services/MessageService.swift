@@ -272,7 +272,7 @@ class MessageService: ObservableObject {
         
         // Try to get session
         do {
-            let session = try await supabase.auth.session
+            _ = try await supabase.auth.session
         } catch {
         }
         

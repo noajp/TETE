@@ -8,6 +8,7 @@ import SwiftUI
 struct HomeFeedView: View {
     @StateObject private var viewModel = HomeFeedViewModel()
     @Binding var showGridMode: Bool
+    @Binding var showingCreatePost: Bool
     
     // 投稿をグループ化（横長1枚+正方形1枚、正方形6枚のパターン）
     private var groupedPosts: [(Int, [Post])] {
@@ -46,7 +47,14 @@ struct HomeFeedView: View {
     }
     
     var body: some View {
-        ScrollableHeaderView(title: "Feed") {
+        ScrollableHeaderView(
+            title: "Feed",
+            rightButton: HeaderButton(icon: "plus", action: {
+                print("🟢 Plus button tapped! Current state: \(showingCreatePost)")
+                showingCreatePost = true
+                print("🟢 After setting: \(showingCreatePost)")
+            })
+        ) {
             ZStack {
                 // 背景色
                 MinimalDesign.Colors.background
@@ -122,6 +130,9 @@ struct HomeFeedView: View {
         }
         .refreshable {
             await viewModel.loadPosts()
+        }
+        .onChange(of: showingCreatePost) { oldValue, newValue in
+            print("🔵 showingCreatePost changed from \(oldValue) to \(newValue)")
         }
     }
 }
@@ -429,7 +440,7 @@ struct ModernGridCard: View {
 // MARK: - Preview
 struct HomeFeedView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeFeedView(showGridMode: .constant(false))
+        HomeFeedView(showGridMode: .constant(false), showingCreatePost: .constant(false))
     }
 }
 

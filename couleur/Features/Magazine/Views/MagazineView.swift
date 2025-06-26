@@ -5,7 +5,7 @@ struct MagazineFeedView: View {
     @State private var selectedCategory: MagazineCategory = .all
     
     var body: some View {
-        ScrollableHeaderView(title: "Magazine") {
+        ScrollableHeaderView(title: "Article") {
             VStack(spacing: 0) {
                 // Category tabs
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -39,10 +39,37 @@ struct MagazineFeedView: View {
                     .background(MinimalDesign.Colors.background)
                     
                     // Magazine content
-                    LazyVStack(spacing: 32) {
-                        ForEach(viewModel.articles.filter { selectedCategory == .all || $0.category == selectedCategory }) { article in
-                            MagazineArticleCard(article: article)
-                                .padding(.horizontal, 20)
+                    LazyVStack(spacing: 0) {
+                        let filteredArticles = viewModel.articles.filter { selectedCategory == .all || $0.category == selectedCategory }
+                        let articleGroups = filteredArticles.chunked(into: 4) // Group by 4 (1 big + 3 small)
+                        
+                        ForEach(Array(articleGroups.enumerated()), id: \.offset) { groupIndex, group in
+                            VStack(spacing: 40) {
+                                // First article - big horizontal photo
+                                if let firstArticle = group.first {
+                                    ArticleFormatCard(article: firstArticle)
+                                        .padding(.horizontal, 20)
+                                }
+                                
+                                // Next 3 articles - small magazine covers
+                                if group.count > 1 {
+                                    HStack(spacing: 12) {
+                                        ForEach(Array(group.dropFirst().prefix(3)), id: \.id) { article in
+                                            MagazineFormatCard(article: article)
+                                        }
+                                        
+                                        // Add spacers if less than 3 articles
+                                        if group.count == 2 {
+                                            Spacer().frame(maxWidth: .infinity)
+                                            Spacer().frame(maxWidth: .infinity)
+                                        } else if group.count == 3 {
+                                            Spacer().frame(maxWidth: .infinity)
+                                        }
+                                    }
+                                    .padding(.horizontal, 20)
+                                }
+                            }
+                            .padding(.bottom, 40)
                         }
                     }
                     .padding(.top, 24)
@@ -78,115 +105,166 @@ enum MagazineCategory: String, CaseIterable {
     }
 }
 
-// Magazine article card component
-struct MagazineArticleCard: View {
+// Article format card (large horizontal photo with text below)
+struct ArticleFormatCard: View {
     let article: MagazineArticle
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-                // Featured image
-                if article.post.mediaUrl != "" {
-                    let imageUrl = article.post.mediaUrl
-                    AsyncImage(url: URL(string: imageUrl)) { phase in
+            // Large horizontal image
+            if article.post.mediaUrl != "" {
+                let imageUrl = article.post.mediaUrl
+                AsyncImage(url: URL(string: imageUrl)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(16/9, contentMode: .fill)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 220)
+                            .clipped()
+                    case .failure(_):
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiary)
+                            .frame(height: 220)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(MinimalDesign.Colors.secondary)
+                            )
+                    case .empty:
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiary)
+                            .frame(height: 220)
+                            .overlay(
+                                ProgressView()
+                            )
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            }
+            
+            // Article content below image
+            VStack(alignment: .leading, spacing: 8) {
+                // Category and date
+                HStack {
+                    Text(article.category.displayName.uppercased())
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(MinimalDesign.Colors.accentRed)
+                    
+                    Text("•")
+                        .font(.system(size: 12))
+                        .foregroundColor(MinimalDesign.Colors.secondary)
+                    
+                    Text(article.post.createdAt.formatted(.dateTime.month(.abbreviated).day()))
+                        .font(.system(size: 12))
+                        .foregroundColor(MinimalDesign.Colors.secondary)
+                    
+                    Spacer()
+                }
+                
+                // Title
+                Text(article.title)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(MinimalDesign.Colors.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                
+                // Description
+                Text(article.description)
+                    .font(.system(size: 16))
+                    .foregroundColor(MinimalDesign.Colors.secondary)
+                    .lineLimit(3)
+                    .multilineTextAlignment(.leading)
+                
+                // Author info
+                HStack {
+                    AsyncImage(url: URL(string: article.post.user?.avatarUrl ?? "")) { phase in
                         switch phase {
                         case .success(let image):
                             image
                                 .resizable()
-                                .aspectRatio(16/9, contentMode: .fill)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 200)
-                                .clipped()
-                                .cornerRadius(8)
-                        case .failure(_):
-                            Rectangle()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 24, height: 24)
+                                .clipShape(Circle())
+                        default:
+                            Circle()
                                 .fill(MinimalDesign.Colors.tertiary)
-                                .frame(height: 200)
-                                .cornerRadius(8)
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .foregroundColor(MinimalDesign.Colors.secondary)
-                                )
-                        case .empty:
-                            Rectangle()
-                                .fill(MinimalDesign.Colors.tertiary)
-                                .frame(height: 200)
-                                .cornerRadius(8)
-                                .overlay(
-                                    ProgressView()
-                                )
-                        @unknown default:
-                            EmptyView()
+                                .frame(width: 24, height: 24)
                         }
                     }
-                }
-                
-                // Article content
-                VStack(alignment: .leading, spacing: 8) {
-                    // Category and date
-                    HStack {
-                        Text(article.category.displayName.uppercased())
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(MinimalDesign.Colors.accentRed)
-                        
-                        Text("•")
-                            .font(.system(size: 12))
-                            .foregroundColor(MinimalDesign.Colors.secondary)
-                        
-                        Text(article.post.createdAt.formatted(.dateTime.month(.abbreviated).day()))
-                            .font(.system(size: 12))
-                            .foregroundColor(MinimalDesign.Colors.secondary)
-                        
-                        Spacer()
-                    }
                     
-                    // Title
-                    Text(article.title)
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(MinimalDesign.Colors.primary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                    
-                    // Description
-                    Text(article.description)
-                        .font(.system(size: 16))
+                    Text("by \(article.post.user?.username ?? "Unknown")")
+                        .font(.system(size: 14))
                         .foregroundColor(MinimalDesign.Colors.secondary)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.leading)
                     
-                    // Author info
-                    HStack {
-                        AsyncImage(url: URL(string: article.post.user?.avatarUrl ?? "")) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 24, height: 24)
-                                    .clipShape(Circle())
-                            default:
-                                Circle()
-                                    .fill(MinimalDesign.Colors.tertiary)
-                                    .frame(width: 24, height: 24)
-                            }
-                        }
-                        
-                        Text("by \(article.post.user?.username ?? "Unknown")")
-                            .font(.system(size: 14))
-                            .foregroundColor(MinimalDesign.Colors.secondary)
-                        
-                        Spacer()
-                        
-                        // Read time
-                        Text("\(article.readTime) min read")
-                            .font(.system(size: 14))
-                            .foregroundColor(MinimalDesign.Colors.secondary)
-                    }
-                    .padding(.top, 4)
+                    Spacer()
+                    
+                    Text("\(article.readTime) min read")
+                        .font(.system(size: 14))
+                        .foregroundColor(MinimalDesign.Colors.secondary)
                 }
-                
-                Divider()
-                    .background(MinimalDesign.Colors.tertiary)
+                .padding(.top, 4)
             }
+            .padding(.horizontal, 16) // Add horizontal padding to text content
+        }
+    }
+}
+
+// Magazine format card (small vertical layout)
+struct MagazineFormatCard: View {
+    let article: MagazineArticle
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Small vertical magazine-style image
+            if article.post.mediaUrl != "" {
+                let imageUrl = article.post.mediaUrl
+                AsyncImage(url: URL(string: imageUrl)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(3/4, contentMode: .fill)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 150)
+                            .clipped()
+                    case .failure(_):
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiary)
+                            .frame(height: 150)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(MinimalDesign.Colors.secondary)
+                                    .font(.system(size: 20))
+                            )
+                    case .empty:
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiary)
+                            .frame(height: 150)
+                            .overlay(
+                                ProgressView()
+                            )
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            }
+            
+            // Simple text below
+            VStack(alignment: .leading, spacing: 4) {
+                Text(article.category.displayName.uppercased())
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(MinimalDesign.Colors.accentRed)
+                
+                Text(article.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(MinimalDesign.Colors.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -252,5 +330,14 @@ class MagazineViewModel: ObservableObject {
     private func generateDescription(from post: Post) -> String {
         // Generate engaging description
         return "Discover the story behind this captivating moment captured by \(post.user?.username ?? "a talented photographer")."
+    }
+}
+
+// Helper extension to chunk arrays
+extension Array {
+    func chunked(into size: Int) -> [[Element]] {
+        return stride(from: 0, to: count, by: size).map {
+            Array(self[$0 ..< Swift.min($0 + size, count)])
+        }
     }
 }

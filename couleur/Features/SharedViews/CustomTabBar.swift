@@ -81,7 +81,8 @@ struct CustomTabBar: View {
             }
             .frame(maxWidth: .infinity)
             
-            // 投稿ボタン（中央）
+            // 投稿ボタン（中央）- 非表示にする
+            /*
             Button(action: onCreatePost) {
                 ZStack {
                     Circle()
@@ -94,6 +95,7 @@ struct CustomTabBar: View {
                 }
             }
             .frame(maxWidth: .infinity)
+            */
             
             // マップボタン
             Button(action: {

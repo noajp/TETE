@@ -7,7 +7,7 @@ import Foundation
 
 /// Simple dependency injection container for managing app dependencies
 final class DependencyContainer {
-    static let shared = DependencyContainer()
+    nonisolated(unsafe) static let shared = DependencyContainer()
     
     private var dependencies: [String: Any] = [:]
     private let queue = DispatchQueue(label: "com.couleur.di", attributes: .concurrent)

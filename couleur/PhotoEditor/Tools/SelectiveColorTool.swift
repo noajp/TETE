@@ -6,12 +6,31 @@
 
 import SwiftUI
 
+enum SelectiveColorToolPreviewMode: String, CaseIterable, Identifiable {
+    case original = "Original"
+    case split = "Split"
+    case beforeAfter = "Before/After"
+
+    var id: String { self.rawValue }
+    var displayName: String {
+        return rawValue
+    }
+
+    var iconName: String {
+        switch self {
+        case .original: return "photo"
+        case .split: return "rectangle.split.2x1"
+        case .beforeAfter: return "arrow.left.arrow.right"
+        }
+    }
+}
+
 struct SelectiveColorTool: View {
     @ObservedObject var editingEngine: AdvancedEditingEngine
     @State private var selectedColorRange: ColorRange = .reds
     @State private var adjustments: [ColorRange: ColorAdjustment] = [:]
     @State private var showPresets = false
-    @State private var previewMode: PreviewMode = .split
+    @State private var previewMode: SelectiveColorToolPreviewMode = .split
     
     var body: some View {
         VStack(spacing: 20) {
@@ -68,7 +87,7 @@ struct SelectiveColorTool: View {
     
     private var previewModeSelector: some View {
         Menu {
-            ForEach(PreviewMode.allCases, id: \.self) { mode in
+            ForEach(SelectiveColorToolPreviewMode.allCases, id: \.self) { mode in
                 Button(action: {
                     previewMode = mode
                 }) {
@@ -444,23 +463,7 @@ extension ColorRange {
 
 // MARK: - Preview Mode
 
-enum PreviewMode: String, CaseIterable {
-    case normal = "Normal"
-    case split = "Split"
-    case mask = "Mask"
-    
-    var displayName: String {
-        return rawValue
-    }
-    
-    var iconName: String {
-        switch self {
-        case .normal: return "eye"
-        case .split: return "rectangle.split.2x1"
-        case .mask: return "circle.dotted"
-        }
-    }
-}
+
 
 // MARK: - Selective Color Presets
 
