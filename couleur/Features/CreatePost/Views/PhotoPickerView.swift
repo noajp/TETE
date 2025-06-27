@@ -13,6 +13,7 @@ extension Notification.Name {
     static let navigateToEditor = Notification.Name("navigateToEditor")
 }
 
+
 struct PhotoPickerView: View {
     @Environment(\.dismiss) var dismiss
     let onImageSelected: ((PhotoEditorData) -> Void)?
@@ -43,26 +44,15 @@ struct PhotoPickerView: View {
                     headerView
                         .frame(height: 56)
                     
-                    // 残りの領域をZStackで管理
-                    ZStack(alignment: .bottom) {
-                        // セクション1: 選択写真表示画面（上部に配置、可変高さ）
-                        VStack {
-                            selectedPhotoView
-                                .frame(height: getPreviewHeight(geometry: geometry))
-                            Spacer()
-                        }
+                    // 残りの領域を2つのセクションで分割
+                    VStack(spacing: 0) {
+                        // セクション1: 選択写真表示画面（4:3固定）
+                        selectedPhotoView
+                            .frame(height: getPreviewHeight(geometry: geometry))
                         
-                        // 下部固定領域（セクション2+3）
-                        VStack(spacing: 0) {
-                            // セクション2: 仕切り線（固定高さ: 70pt）
-                            separatorView
-                                .frame(height: 70)
-                            
-                            // セクション3: カメラロール（固定高さ）
-                            ScrollView(showsIndicators: false) {
-                                thumbnailGridView
-                            }
-                            .frame(height: getCameraRollHeight(geometry: geometry))
+                        // セクション3: カメラロール（残り領域）
+                        ScrollView(showsIndicators: false) {
+                            thumbnailGridView
                         }
                     }
                 }
@@ -82,51 +72,46 @@ struct PhotoPickerView: View {
     
     // MARK: - Helper Methods
     
+    private func resetImagePosition() {
+        imageOffset = .zero
+        currentImageOffset = .zero
+    }
+    
     private func getPreviewHeight(geometry: GeometryProxy) -> CGFloat {
         let screenWidth = geometry.size.width
-        
-        if isSquareMode {
-            return screenWidth // 正方形
-        } else if let image = selectedImage {
-            // 元画像のアスペクト比で高さを計算
-            let imageAspectRatio = image.size.width / image.size.height
-            return screenWidth / imageAspectRatio
-        } else {
-            return screenWidth // デフォルトは正方形
-        }
+        // ビューポート幅（画面幅の85%）
+        let viewportWidth = screenWidth * 0.85
+        // 4:3のアスペクト比で固定
+        return viewportWidth * (3.0 / 4.0)
     }
     
     private func calculateImageSize(image: UIImage, in geometry: GeometryProxy) -> CGSize {
         let imageAspectRatio = image.size.width / image.size.height
         let viewWidth = geometry.size.width
-        let viewHeight = geometry.size.height
-        let viewAspectRatio = viewWidth / viewHeight
         
-        if imageAspectRatio > viewAspectRatio {
-            // 画像の方が横長 - 高さに合わせる
-            let height = viewHeight
-            let width = height * imageAspectRatio
-            return CGSize(width: width, height: height)
+        // ビューポートサイズ（4:3固定）
+        let viewportWidth = viewWidth * 0.85
+        let viewportHeight = getPreviewHeight(geometry: geometry)
+        let viewportAspectRatio = viewportWidth / viewportHeight // 4:3 = 1.333...
+        
+        if isSquareMode {
+            // 正方形モード: ビューポートを完全にカバーする
+            if imageAspectRatio > viewportAspectRatio {
+                // 横長画像: 高さでビューポートをカバー
+                return CGSize(width: viewportHeight * imageAspectRatio, height: viewportHeight)
+            } else {
+                // 縦長画像: 幅でビューポートをカバー
+                return CGSize(width: viewportWidth, height: viewportWidth / imageAspectRatio)
+            }
         } else {
-            // 画像の方が縦長 - 幅に合わせる
-            let width = viewWidth
-            let height = width / imageAspectRatio
-            return CGSize(width: width, height: height)
+            // 元画像モード: 横にははみ出さないよう幅でフィット、縦は可変
+            return CGSize(width: viewportWidth, height: viewportWidth / imageAspectRatio)
         }
     }
     
-    private func getCameraRollHeight(geometry: GeometryProxy) -> CGFloat {
-        // 画面全体の高さから固定要素を引いた残り
-        let totalHeight = geometry.size.height
-        let headerHeight: CGFloat = 56
-        let separatorHeight: CGFloat = 70
-        let bottomSafeArea = geometry.safeAreaInsets.bottom
-        
-        // カメラロールに割り当てる固定の高さ（例：画面の40%）
-        return totalHeight * 0.4
-    }
     
     // MARK: - Views
+    
     
     private var headerView: some View {
         HStack {
@@ -193,86 +178,76 @@ struct PhotoPickerView: View {
         )
     }
     
-    private var separatorView: some View {
-        VStack(spacing: 0) {
-            // 上部のシャドウ
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.black.opacity(0.3),
-                    Color.black.opacity(0.0)
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 6)
-            
-            // メインセパレーター
-            HStack {
-                // カメラロールテキスト
-                Text("Camera Roll")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-                
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-            .background(Color(white: 0.05))
-        }
-    }
     
     private var selectedPhotoView: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .bottomLeading) {
+            ZStack {
+                // 背景（ビューポートの範囲を示す）
+                Rectangle()
+                    .fill(Color.black)
+                
                 if let image = selectedImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .frame(width: calculateImageSize(image: image, in: geometry).width,
-                               height: calculateImageSize(image: image, in: geometry).height)
-                        .offset(x: imageOffset.width + currentImageOffset.width,
-                               y: imageOffset.height + currentImageOffset.height)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    imageOffset = value.translation
-                                }
-                                .onEnded { value in
-                                    currentImageOffset.width += value.translation.width
-                                    currentImageOffset.height += value.translation.height
-                                    imageOffset = .zero
-                                }
-                        )
-                        .clipped()
+                    // ビューポート（クリッピング領域）を画面中央に配置
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.clear)
+                            .frame(width: geometry.size.width * 0.85, height: getPreviewHeight(geometry: geometry))
+                        
+                        Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: calculateImageSize(image: image, in: geometry).width,
+                                   height: calculateImageSize(image: image, in: geometry).height)
+                            .offset(x: imageOffset.width + currentImageOffset.width,
+                                   y: imageOffset.height + currentImageOffset.height)
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        imageOffset = value.translation
+                                    }
+                                    .onEnded { value in
+                                        currentImageOffset.width += value.translation.width
+                                        currentImageOffset.height += value.translation.height
+                                        imageOffset = .zero
+                                    }
+                            )
+                    }
+                    .frame(width: geometry.size.width * 0.85, height: getPreviewHeight(geometry: geometry))
+                    .clipped()
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 } else {
-                    Rectangle()
-                        .fill(Color(white: 0.1))
-                        .overlay(
-                            VStack(spacing: 10) {
-                                Image(systemName: "photo.on.rectangle.angled")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.gray)
-                                Text("写真を選択")
-                                    .foregroundColor(.gray)
-                            }
-                        )
+                    // プレースホルダー
+                    VStack(spacing: 10) {
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .font(.system(size: 40))
+                            .foregroundColor(.gray)
+                        Text("写真を選択")
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 
-                // アスペクト比切り替えボタン
+                // アスペクト比切り替えボタン（左下に配置）
                 if selectedImage != nil {
-                    Button(action: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            isSquareMode.toggle()
-                            // モード切り替え時にオフセットをリセット
-                            imageOffset = .zero
-                            currentImageOffset = .zero
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    isSquareMode.toggle()
+                                    // モード切り替え時にオフセットをリセット
+                                    resetImagePosition()
+                                }
+                            }) {
+                                Image(systemName: isSquareMode ? "crop" : "arrow.up.left.and.arrow.down.right")
+                                    .font(.system(size: 20, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .padding(10)
+                                    .background(Color.black.opacity(0.6))
+                                    .clipShape(Circle())
+                            }
+                            Spacer()
                         }
-                    }) {
-                        Image(systemName: isSquareMode ? "arrow.up.left.and.arrow.down.right" : "square")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(10)
-                            .background(Color.black.opacity(0.6))
-                            .clipShape(Circle())
                     }
                     .padding(16)
                 }
@@ -291,8 +266,7 @@ struct PhotoPickerView: View {
                     // 高品質な画像を選択時に取得
                     loadHighQualityImage(for: recentAssets[index])
                     // オフセットをリセット
-                    imageOffset = .zero
-                    currentImageOffset = .zero
+                    resetImagePosition()
                 }) {
                     ZStack(alignment: .topLeading) {
                         Image(uiImage: recentPhotos[index])

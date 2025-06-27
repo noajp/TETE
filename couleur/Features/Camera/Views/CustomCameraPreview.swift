@@ -143,17 +143,18 @@ class CameraPreviewView: UIView {
 // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
 extension CameraPreviewView: AVCaptureVideoDataOutputSampleBufferDelegate {
     
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+    nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
         
-        // フィルター適用
-        let filteredImage = filterManager.applyFilterRealtime(currentFilter, to: ciImage, intensity: 1.0)
-        
-        // Metalビューに表示
-        DispatchQueue.main.async {
-            self.metalView?.displayImage(filteredImage)
+        // Extract data in nonisolated context to avoid data race
+        Task { @MainActor in
+            // フィルター適用
+            let filteredImage = filterManager.applyFilterRealtime(currentFilter, to: ciImage, intensity: 1.0)
+            
+            // Metalビューに表示
+            metalView?.displayImage(filteredImage)
         }
     }
 }

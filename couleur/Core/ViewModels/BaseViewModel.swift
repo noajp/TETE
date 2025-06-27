@@ -4,7 +4,7 @@
 // Usage: All ViewModels should conform to this protocol
 //======================================================================
 import SwiftUI
-import Combine
+@preconcurrency import Combine
 
 /// Base protocol for all ViewModels providing common functionality
 /// such as loading states, error handling, and lifecycle management
@@ -82,6 +82,7 @@ class BaseViewModelClass: BaseViewModel {
     var cancellables = Set<AnyCancellable>()
     
     deinit {
-        cancellables.forEach { $0.cancel() }
+        // Note: In Swift 6, deinit cannot access MainActor-isolated properties
+        // Cancellables will be automatically cleaned up when the object is deallocated
     }
 }

@@ -290,11 +290,13 @@ struct ExportOptionsView: View {
         
         // プログレス更新をシミュレート
         let _ = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            exportProgress += 0.1
-            if exportProgress >= 1.0 {
-                timer.invalidate()
-                isExporting = false
-                onExport(settings)
+            Task { @MainActor in
+                exportProgress += 0.1
+                if exportProgress >= 1.0 {
+                    timer.invalidate()
+                    isExporting = false
+                    onExport(settings)
+                }
             }
         }
     }

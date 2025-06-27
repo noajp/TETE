@@ -7,7 +7,7 @@ import Foundation
 import os.log
 
 /// セキュアなログ管理システム
-final class SecureLogger {
+final class SecureLogger: @unchecked Sendable {
     static let shared = SecureLogger()
     
     private let subsystem = Bundle.main.bundleIdentifier ?? "com.couleur"

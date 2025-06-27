@@ -318,7 +318,7 @@ struct Pattern {
 }
 
 /// 混沌生成器
-class ChaosGenerator {
+final class ChaosGenerator: @unchecked Sendable {
     func generateCompletelyRandom(count: Int) async throws -> [Post] {
         // 完全にランダムな投稿を生成
         return try await PostService().getRandomPosts(limit: count)
@@ -524,7 +524,7 @@ enum ComplexityLevel: String, CaseIterable {
 
 // MARK: - Traditional Recommendation Engine (従来型)
 
-class TraditionalRecommendationEngine {
+final class TraditionalRecommendationEngine: @unchecked Sendable {
     func getPredictedRecommendations(userId: String) async throws -> AlgorithmicPredictions {
         // 従来のアルゴリズムの予測を取得
         let posts = try await PostService().fetchFeedPosts(currentUserId: userId)

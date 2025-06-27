@@ -6,7 +6,7 @@
 import Foundation
 import Supabase
 
-class SupabaseManager {
+final class SupabaseManager: @unchecked Sendable {
     static let shared = SupabaseManager()
     
     let client: SupabaseClient

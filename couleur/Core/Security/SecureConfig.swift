@@ -3,7 +3,7 @@ import Security
 
 /// セキュアな設定管理クラス
 /// 機密情報をKeychainに保存し、安全にアクセスする
-class SecureConfig {
+final class SecureConfig: @unchecked Sendable {
     
     // MARK: - Singleton
     static let shared = SecureConfig()

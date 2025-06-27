@@ -10,7 +10,7 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 
 // MARK: - Core Image Manager
-final class CoreImageManager {
+final class CoreImageManager: @unchecked Sendable {
     
     // MARK: - Singleton
     static let shared = CoreImageManager()

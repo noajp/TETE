@@ -42,7 +42,7 @@ struct MetalPreviewView: UIViewRepresentable {
     }
     
     func makeCoordinator() -> MetalCoordinator {
-        MetalCoordinator(self)
+        MetalCoordinator(self, device: metalDevice)
     }
     
     // MARK: - MetalCoordinator (Optimized)
@@ -54,11 +54,11 @@ struct MetalPreviewView: UIViewRepresentable {
         private var currentIntensity: Float = 1.0
         private let commandQueue: MTLCommandQueue?
         
-        init(_ parent: MetalPreviewView) {
+        nonisolated init(_ parent: MetalPreviewView, device: MTLDevice?) {
             self.parent = parent
             
             // Metal用のCIContext作成
-            if let device = parent.metalDevice {
+            if let device = device {
                 self.ciContext = CIContext(mtlDevice: device, options: [
                     .workingColorSpace: CGColorSpace(name: CGColorSpace.sRGB)!,
                     .outputColorSpace: CGColorSpace(name: CGColorSpace.sRGB)!,

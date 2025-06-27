@@ -7,7 +7,7 @@ import Foundation
 import os.log
 
 /// Centralized logging system
-final class Logger {
+final class Logger: @unchecked Sendable {
     static let shared = Logger()
     
     private let subsystem = Bundle.main.bundleIdentifier ?? "com.couleur"

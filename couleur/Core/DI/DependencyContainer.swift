@@ -34,7 +34,7 @@ final class DependencyContainer {
     
     /// Resolve a dependency
     func resolve<T>(_ type: T.Type) -> T? {
-        queue.sync {
+        return queue.sync {
             let key = String(describing: type)
             
             if let instance = dependencies[key] as? T {
@@ -64,10 +64,10 @@ final class DependencyContainer {
             UserRepository()
         }
         
-        // Register AuthManager as protocol
-        register((any AuthManagerProtocol).self) {
-            AuthManager.shared as any AuthManagerProtocol
-        }
+        // Skip AuthManager registration for now - will be registered when needed
+        // register((any AuthManagerProtocol).self) {
+        //     AuthManager.shared as any AuthManagerProtocol
+        // }
         register(SupabaseManager.self) {
             SupabaseManager.shared
         }

@@ -99,7 +99,7 @@ struct OpeningHours: Codable {
 }
 
 // MARK: - サービスクラス
-class RestaurantSearchService {
+final class RestaurantSearchService: @unchecked Sendable {
     static let shared = RestaurantSearchService()
     private let apiKey = Config.googlePlacesAPIKey
     private let baseURL = "https://maps.googleapis.com/maps/api/place"

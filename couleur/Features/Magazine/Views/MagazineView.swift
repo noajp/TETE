@@ -3,9 +3,15 @@ import SwiftUI
 struct MagazineFeedView: View {
     @StateObject private var viewModel = MagazineViewModel()
     @State private var selectedCategory: MagazineCategory = .all
+    @State private var showingCreatePost = false
     
     var body: some View {
-        ScrollableHeaderView(title: "Article") {
+        ScrollableHeaderView(
+            title: "Article",
+            rightButton: HeaderButton(icon: "plus", action: {
+                showingCreatePost = true
+            })
+        ) {
             VStack(spacing: 0) {
                 // Category tabs
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -80,6 +86,9 @@ struct MagazineFeedView: View {
             Task {
                 await viewModel.loadArticles()
             }
+        }
+        .fullScreenCover(isPresented: $showingCreatePost) {
+            ArticleEditorNavigationView()
         }
     }
 }

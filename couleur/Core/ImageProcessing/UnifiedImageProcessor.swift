@@ -5,18 +5,18 @@
 //======================================================================
 
 import UIKit
-import CoreImage
+@preconcurrency import CoreImage
 import CoreImage.CIFilterBuiltins
 import Metal
 import MetalPerformanceShaders
 
 // MARK: - Filter Operation Protocol
-protocol FilterOperation {
+protocol FilterOperation: Sendable {
     func apply(to image: CIImage, context: CIContext) -> CIImage
 }
 
 // MARK: - Unified Image Processor
-final class UnifiedImageProcessor: ObservableObject {
+final class UnifiedImageProcessor: ObservableObject, @unchecked Sendable {
     
     // MARK: - Singleton
     static let shared = UnifiedImageProcessor()
@@ -87,20 +87,15 @@ final class UnifiedImageProcessor: ObservableObject {
     func applyFilterPipeline(filters: [FilterOperation], to image: CIImage) async -> CIImage {
         let startTime = CFAbsoluteTimeGetCurrent()
         
-        let result = await withCheckedContinuation { continuation in
-            filterQueue.async { [weak self] in
-                guard let self = self else {
-                    continuation.resume(returning: image)
-                    return
-                }
-                
-                let processedImage = filters.reduce(image) { currentImage, operation in
-                    operation.apply(to: currentImage, context: self.ciContext)
-                }
-                
-                continuation.resume(returning: processedImage)
+        let result = await Task.detached { [weak self] in
+            guard let self = self else {
+                return image
             }
-        }
+            
+            return filters.reduce(image) { currentImage, operation in
+                operation.apply(to: currentImage, context: self.ciContext)
+            }
+        }.value
         
         let processingTime = CFAbsoluteTimeGetCurrent() - startTime
         await MainActor.run {

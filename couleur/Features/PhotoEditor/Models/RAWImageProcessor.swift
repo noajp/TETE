@@ -75,7 +75,8 @@ struct RAWProcessingOptions {
 }
 
 // MARK: - RAW Image Processor
-class RAWImageProcessor: ObservableObject {
+@MainActor
+final class RAWImageProcessor: ObservableObject, @unchecked Sendable {
     static let shared = RAWImageProcessor()
     
     private let context = CIContext(options: [
@@ -305,10 +306,12 @@ enum RAWProcessorError: LocalizedError {
 
 // MARK: - Extensions
 extension PHAsset {
+    @MainActor
     var isRAW: Bool {
         return RAWImageProcessor.shared.getRAWInfo(for: self).isRAW
     }
     
+    @MainActor
     var rawFormat: String? {
         return RAWImageProcessor.shared.getRAWInfo(for: self).format
     }

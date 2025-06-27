@@ -322,7 +322,6 @@ struct FastAsyncImage: View {
     let urlString: String
     let placeholder: AnyView
     
-    @StateObject private var cacheManager = ImageCacheManager.shared
     @State private var image: UIImage?
     
     init(urlString: String, @ViewBuilder placeholder: () -> some View) {
@@ -340,7 +339,7 @@ struct FastAsyncImage: View {
             }
         }
         .task {
-            image = await cacheManager.loadImage(from: urlString)
+            image = await ImageCacheManager.shared.loadImage(from: urlString)
         }
     }
 }

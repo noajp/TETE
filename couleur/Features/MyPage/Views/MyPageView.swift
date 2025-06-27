@@ -97,22 +97,24 @@ struct ModernProfileSection: View {
             HStack(alignment: .top, spacing: 16) {
                 // Profile Image - Rounded Square (Left aligned)
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                    if let avatarUrl = profile?.avatarUrl {
-                        FastAsyncImage(urlString: avatarUrl) {
+                    Group {
+                        if let avatarUrl = profile?.avatarUrl {
+                            FastAsyncImage(urlString: avatarUrl) {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.3))
+                            }
+                            .frame(width: 100, height: 100)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        } else {
                             RoundedRectangle(cornerRadius: 12)
                                 .fill(Color.gray.opacity(0.3))
+                                .frame(width: 100, height: 100)
+                                .overlay(
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.gray)
+                                )
                         }
-                        .frame(width: 100, height: 100)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    } else {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 100, height: 100)
-                            .overlay(
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.gray)
-                            )
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -172,8 +174,8 @@ struct ModernProfileSection: View {
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
                     }
+                }
             }
-        }
         .padding(.horizontal, MinimalDesign.Spacing.md)
     }
     

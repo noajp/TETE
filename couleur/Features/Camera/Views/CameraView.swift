@@ -3,7 +3,7 @@
 // Path: couleur/Features/Camera/Views/CameraView.swift
 //======================================================================
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
 
 struct CameraView: View {
     @Namespace private var filmAnimationNamespace

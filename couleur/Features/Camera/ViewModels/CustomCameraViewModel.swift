@@ -491,6 +491,9 @@ extension CustomCameraViewModel: AVCapturePhotoCaptureDelegate {
     
     nonisolated func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         
+        // Extract data immediately in nonisolated context to avoid sending non-Sendable photo
+        let imageData = photo.fileDataRepresentation()
+        
         Task { @MainActor in
             defer { isCapturing = false }
             
@@ -499,8 +502,8 @@ extension CustomCameraViewModel: AVCapturePhotoCaptureDelegate {
                 return
             }
             
-            guard let imageData = photo.fileDataRepresentation(),
-                  let uiImage = UIImage(data: imageData) else {
+            guard let data = imageData,
+                  let uiImage = UIImage(data: data) else {
                 showCameraError("画像データの処理に失敗しました")
                 return
             }

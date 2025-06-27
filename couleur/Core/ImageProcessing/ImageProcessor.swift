@@ -114,7 +114,7 @@ enum ExportQuality: CaseIterable, Identifiable {
 }
 
 // MARK: - Processing Queue Manager
-final class ProcessingQueueManager {
+final class ProcessingQueueManager: @unchecked Sendable {
     static let shared = ProcessingQueueManager()
     
     private let processingQueue = OperationQueue()

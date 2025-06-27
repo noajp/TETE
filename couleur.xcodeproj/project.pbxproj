@@ -413,7 +413,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_COMPILATION_MODE = incremental;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -450,7 +450,7 @@
 				SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljY2psa2N4cXlieHFld3pjaGVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NzUzMjUsImV4cCI6MjA2NDQ1MTMyNX0.sKAfALsKR6wzYfhu3HybrWVl3Pi5qttL6ychxg7L05Q;
 				SUPABASE_URL = "https://yccjlkcxqybxqewzchen.supabase.co";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -486,7 +486,7 @@
 				SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljY2psa2N4cXlieHFld3pjaGVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4NzUzMjUsImV4cCI6MjA2NDQ1MTMyNX0.sKAfALsKR6wzYfhu3HybrWVl3Pi5qttL6ychxg7L05Q;
 				SUPABASE_URL = "https://yccjlkcxqybxqewzchen.supabase.co";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -503,7 +503,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = a.couleurTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/couleur.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/couleur";
 			};
@@ -521,7 +521,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = a.couleurTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/couleur.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/couleur";
 			};
@@ -537,7 +537,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = a.couleurUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = couleur;
 			};
@@ -553,7 +553,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = a.couleurUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = couleur;
 			};

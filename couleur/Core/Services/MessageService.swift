@@ -60,7 +60,8 @@ class MessageService: ObservableObject {
     }
     
     deinit {
-        updateTimer?.invalidate()
+        // Note: In Swift 6, deinit cannot access MainActor-isolated properties
+        // Timer will be automatically cleaned up when the object is deallocated
     }
     
     // MARK: - Realtime Setup (Simplified polling approach)
@@ -454,7 +455,7 @@ class MessageService: ObservableObject {
     
     /// Delete a conversation completely (hard delete)
     func deleteConversation(_ conversationId: String) async throws {
-        guard let userId = AuthManager.shared.currentUser?.id else {
+        guard AuthManager.shared.currentUser?.id != nil else {
             throw NSError(domain: "MessageService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
         

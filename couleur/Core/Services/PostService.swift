@@ -10,8 +10,28 @@ class PostService {
     private let likeService = LikeService()
     static let useMockData = false // 写真共有アプリ用モックデータ
     
-    // モックデータ用のいいね状態を保存
-    private static var mockLikedPosts: Set<String> = ["1", "3"] // 初期状態
+    // モックデータ用のいいね状態を保存（actor-based thread safety）
+    private actor MockLikedPostsManager {
+        private var likedPosts: Set<String> = ["1", "3"] // 初期状態
+        
+        func contains(_ postId: String) -> Bool {
+            return likedPosts.contains(postId)
+        }
+        
+        func insert(_ postId: String) {
+            likedPosts.insert(postId)
+        }
+        
+        func remove(_ postId: String) {
+            likedPosts.remove(postId)
+        }
+        
+        func getAllPosts() -> Set<String> {
+            return likedPosts
+        }
+    }
+    
+    private static let mockLikedPostsManager = MockLikedPostsManager()
     
     // フィード用の投稿一覧を取得
     func fetchFeedPosts(currentUserId: String? = nil) async throws -> [Post] {
@@ -276,13 +296,13 @@ class PostService {
     func toggleLike(postId: String, userId: String) async throws -> Bool {
         if PostService.useMockData {
             // モックデータ用のいいね処理
-            let isCurrentlyLiked = PostService.mockLikedPosts.contains(postId)
+            let isCurrentlyLiked = await PostService.mockLikedPostsManager.contains(postId)
             if isCurrentlyLiked {
-                PostService.mockLikedPosts.remove(postId)
+                await PostService.mockLikedPostsManager.remove(postId)
                 print("✅ PostService (Mock): Post \(postId) unliked")
                 return false
             } else {
-                PostService.mockLikedPosts.insert(postId)
+                await PostService.mockLikedPostsManager.insert(postId)
                 print("✅ PostService (Mock): Post \(postId) liked")
                 return true
             }
@@ -305,7 +325,7 @@ class PostService {
     
     private func checkMockLikeStatus(postId: String, userId: String) async -> Bool {
         // モックデータ用：動的ないいね状態を返す
-        return PostService.mockLikedPosts.contains(postId)
+        return await PostService.mockLikedPostsManager.contains(postId)
     }
 }
 
