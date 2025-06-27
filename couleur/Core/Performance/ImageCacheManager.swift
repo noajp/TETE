@@ -318,12 +318,14 @@ struct OptimizedAsyncImage<Content: View>: View {
 }
 
 // MARK: - Simple Optimized AsyncImage
+@MainActor
 struct FastAsyncImage: View {
     let urlString: String
     let placeholder: AnyView
     
     @State private var image: UIImage?
     
+    @MainActor
     init(urlString: String, @ViewBuilder placeholder: () -> some View) {
         self.urlString = urlString
         self.placeholder = AnyView(placeholder())

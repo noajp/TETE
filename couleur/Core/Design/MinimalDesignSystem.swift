@@ -78,6 +78,7 @@ struct MinimalDesign {
 }
 
 // MARK: - Custom View Modifiers
+@MainActor
 extension View {
     func minimalCard() -> some View {
         self

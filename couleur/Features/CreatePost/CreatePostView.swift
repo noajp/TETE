@@ -270,6 +270,7 @@ struct CreatePostView: View {
     }
     
     // Media Picker Component
+    @MainActor
     struct MinimalMediaPickerSection: View {
         @Binding var selectedImage: UIImage?
         @Binding var selectedVideoURL: URL?
@@ -285,11 +286,49 @@ struct CreatePostView: View {
         @Binding var showingPhotoPicker: Bool
         
         var body: some View {
+            // Capture main actor properties as local values
+            let currentSelectedImage = selectedImage
+            let currentMediaType = mediaType
+            let currentSelectedFilter = selectedFilter
+            
             PhotosPicker(
                 selection: $selectedItem,
                 matching: .any(of: [.images, .videos])
             ) {
-                if let image = selectedImage {
+                MediaPickerContent(
+                    selectedImage: currentSelectedImage,
+                    mediaType: currentMediaType,
+                    selectedFilter: currentSelectedFilter,
+                    onEditImage: { @MainActor image in
+                        imageToEdit = image
+                        showingPhotoEditor = true
+                    },
+                    onToggleFilterPreview: { @MainActor in
+                        showingFilterPreview.toggle()
+                    },
+                    onShowCustomCamera: { @MainActor in
+                        showingCustomCamera = true
+                    },
+                    onShowPhotoPicker: { @MainActor in
+                        showingPhotoPicker = true
+                    }
+                )
+            }
+            .padding(.horizontal, MinimalDesign.Spacing.md)
+        }
+    }
+    
+    struct MediaPickerContent: View {
+        let selectedImage: UIImage?
+        let mediaType: Post.MediaType
+        let selectedFilter: FilterType
+        let onEditImage: @MainActor (UIImage) -> Void
+        let onToggleFilterPreview: @MainActor () -> Void
+        let onShowCustomCamera: @MainActor () -> Void
+        let onShowPhotoPicker: @MainActor () -> Void
+        
+        var body: some View {
+            if let image = selectedImage {
                     ZStack {
                         // Image Display
                         Image(uiImage: image)
@@ -317,8 +356,7 @@ struct CreatePostView: View {
                                     if mediaType == .photo {
                                         VStack(spacing: 4) {
                                             Button(action: {
-                                                imageToEdit = image
-                                                showingPhotoEditor = true
+                                                onEditImage(image)
                                             }) {
                                                 Image(systemName: "wand.and.stars")
                                                     .font(.caption)
@@ -330,7 +368,7 @@ struct CreatePostView: View {
                                             
                                             // Quick Filter Button
                                             Button(action: {
-                                                showingFilterPreview.toggle()
+                                                onToggleFilterPreview()
                                             }) {
                                                 Image(systemName: "camera.filters")
                                                     .font(.caption)
@@ -367,7 +405,7 @@ struct CreatePostView: View {
                         // Action Buttons
                         HStack(spacing: MinimalDesign.Spacing.sm) {
                             // Camera Button
-                            Button(action: { showingCustomCamera = true }) {
+                            Button(action: { onShowCustomCamera() }) {
                                 HStack(spacing: MinimalDesign.Spacing.xs) {
                                     Image(systemName: "camera")
                                         .font(.caption)
@@ -380,7 +418,7 @@ struct CreatePostView: View {
                             // Photo Picker Button
                             Button(action: { 
                                 print("🟡 Browse ボタンが押されました")
-                                showingPhotoPicker = true 
+                                onShowPhotoPicker()
                             }) {
                                 HStack(spacing: MinimalDesign.Spacing.xs) {
                                     Image(systemName: "photo.stack")
@@ -397,12 +435,11 @@ struct CreatePostView: View {
                     .background(MinimalDesign.Colors.tertiaryBackground)
                     .minimalCardBorder()
                 }
-            }
-            .padding(.horizontal, MinimalDesign.Spacing.md)
         }
     }
     
     // Quick Filter Section Component  
+    @MainActor
     struct QuickFilterSection: View {
         let originalImage: UIImage?
         @Binding var selectedFilter: FilterType
@@ -487,6 +524,7 @@ struct CreatePostView: View {
     }
     
     // Filter Quick Preview Component
+    @MainActor
     struct FilterQuickPreview: View {
         let filter: FilterType
         let originalImage: UIImage?
@@ -575,6 +613,7 @@ struct CreatePostView: View {
     }
     
     // Caption Field Component
+    @MainActor
     struct MinimalCaptionField: View {
         @Binding var caption: String
         @FocusState private var isFocused: Bool
@@ -605,6 +644,7 @@ struct CreatePostView: View {
     }
     
     // Location Field Component
+    @MainActor
     struct MinimalLocationField: View {
         @Binding var locationName: String
         

@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Combine
-import CoreImage
+@preconcurrency import CoreImage
 import Photos
 
 @MainActor
@@ -89,13 +89,16 @@ class PhotoEditorViewModel: ObservableObject {
                 to: originalCIImage,
                 intensity: intensity
             ) { [weak self] result in
-                switch result {
-                case .success(let filteredImage):
-                    self?.currentImage = filteredImage
-                    
-                case .failure(let error):
-                    print("❌ Filter application failed: \(error)")
-                    self?.currentImage = self?.originalImage
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let filteredImage):
+                        self.currentImage = filteredImage
+                        
+                    case .failure(let error):
+                        print("❌ Filter application failed: \(error)")
+                        self.currentImage = self.originalImage
+                    }
                 }
             }
         }
@@ -274,7 +277,7 @@ class PhotoEditorViewModel: ObservableObject {
         // 各フィルターのサムネイルを非同期で生成
         await withTaskGroup(of: (FilterType, UIImage?).self) { group in
             for filterType in FilterType.allCases {
-                group.addTask { [weak self] in
+                group.addTask { @Sendable [weak self] in
                     guard let self = self else { return (filterType, nil) }
                     
                     if filterType == .none {
@@ -282,7 +285,7 @@ class PhotoEditorViewModel: ObservableObject {
                     }
                     
                     // フィルター適用
-                    let filtered = await self.coreImageManager.applyFilterSync(
+                    let filtered = self.coreImageManager.applyFilterSync(
                         filterType,
                         to: thumbnailCIImage,
                         intensity: filterType.previewIntensity

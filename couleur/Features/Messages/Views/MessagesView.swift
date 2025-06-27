@@ -18,7 +18,7 @@ struct MessagesView: View {
                 ProgressView("Loading conversations...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if viewModel.conversations.isEmpty {
-                EmptyStateView()
+                MessagesEmptyStateView()
             } else {
                 VStack(spacing: 0) {
                     ForEach(viewModel.conversations) { conversation in
@@ -149,7 +149,7 @@ struct ConversationRow: View {
     }
 }
 
-struct EmptyStateView: View {
+struct MessagesEmptyStateView: View {
     var body: some View {
         VStack {
             Spacer()

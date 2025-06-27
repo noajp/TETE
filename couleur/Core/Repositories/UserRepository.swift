@@ -7,7 +7,7 @@ import Foundation
 import Supabase
 
 /// Protocol defining user data operations
-protocol UserRepositoryProtocol {
+protocol UserRepositoryProtocol: Sendable {
     func fetchUserProfile(userId: String) async throws -> UserProfile
     func fetchUserPosts(userId: String) async throws -> [Post]
     func updateUserProfile(_ profile: UserProfile) async throws
@@ -17,10 +17,10 @@ protocol UserRepositoryProtocol {
 }
 
 /// Implementation of UserRepository
-final class UserRepository: UserRepositoryProtocol {
+final class UserRepository: UserRepositoryProtocol, Sendable {
     private let supabaseClient: SupabaseClient
     
-    init(supabaseClient: SupabaseClient = SupabaseManager.shared.client) {
+    nonisolated init(supabaseClient: SupabaseClient = SupabaseManager.shared.client) {
         self.supabaseClient = supabaseClient
     }
     

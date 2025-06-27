@@ -258,7 +258,8 @@ struct ShutterButton: View {
 // 現在は使用されていない - Rectangleで代替
 
 // MARK: - Camera Manager
-class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
+@MainActor
+class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate, @unchecked Sendable {
     private var captureSession: AVCaptureSession?
     private var photoOutput: AVCapturePhotoOutput?
     @Published var capturedImage: UIImage?
@@ -271,7 +272,7 @@ class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
                 if granted {
-                    DispatchQueue.main.async {
+                    Task { @MainActor in
                         self?.setupCamera { _ in }
                     }
                 }
@@ -282,7 +283,7 @@ class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
         }
     }
     
-    func setupCamera(completion: @escaping (AVCaptureVideoPreviewLayer) -> Void) {
+    func setupCamera(completion: @MainActor @escaping (AVCaptureVideoPreviewLayer) -> Void) {
         let session = AVCaptureSession()
         session.beginConfiguration()
         
@@ -314,7 +315,7 @@ class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
             session.startRunning()
         }
         
-        DispatchQueue.main.async {
+        Task { @MainActor in
             completion(previewLayer)
         }
     }
@@ -327,12 +328,12 @@ class CameraManager: NSObject, ObservableObject, AVCapturePhotoCaptureDelegate {
     }
     
     // MARK: - AVCapturePhotoCaptureDelegate
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+    nonisolated func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         guard let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else { return }
         
-        DispatchQueue.main.async {
-            self.capturedImage = image
+        Task { @MainActor [weak self] in
+            self?.capturedImage = image
             // TODO: Apply film filter and save to photo library
         }
     }

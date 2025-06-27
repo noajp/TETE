@@ -5,7 +5,7 @@
 import Foundation
 import Supabase
 
-class PostService {
+class PostService: @unchecked Sendable {
     private let client = SupabaseManager.shared.client
     private let likeService = LikeService()
     static let useMockData = false // 写真共有アプリ用モックデータ

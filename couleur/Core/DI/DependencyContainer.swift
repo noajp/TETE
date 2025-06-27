@@ -6,8 +6,8 @@
 import Foundation
 
 /// Simple dependency injection container for managing app dependencies
-final class DependencyContainer {
-    nonisolated(unsafe) static let shared = DependencyContainer()
+final class DependencyContainer: @unchecked Sendable {
+    static let shared = DependencyContainer()
     
     private var dependencies: [String: Any] = [:]
     private let queue = DispatchQueue(label: "com.couleur.di", attributes: .concurrent)
@@ -17,18 +17,18 @@ final class DependencyContainer {
     }
     
     /// Register a dependency
-    func register<T>(_ type: T.Type, factory: @escaping () -> T) {
-        queue.async(flags: .barrier) {
+    func register<T>(_ type: T.Type, factory: @escaping @Sendable () -> T) {
+        queue.async(flags: .barrier) { [weak self] in
             let key = String(describing: type)
-            self.dependencies[key] = factory
+            self?.dependencies[key] = factory
         }
     }
     
     /// Register a singleton dependency
-    func registerSingleton<T>(_ type: T.Type, instance: T) {
-        queue.async(flags: .barrier) {
+    func registerSingleton<T: Sendable>(_ type: T.Type, instance: T) {
+        queue.async(flags: .barrier) { [weak self] in
             let key = String(describing: type)
-            self.dependencies[key] = instance
+            self?.dependencies[key] = instance
         }
     }
     
@@ -41,7 +41,7 @@ final class DependencyContainer {
                 return instance
             }
             
-            if let factory = dependencies[key] as? () -> T {
+            if let factory = dependencies[key] as? @Sendable () -> T {
                 return factory()
             }
             
@@ -77,9 +77,9 @@ final class DependencyContainer {
     
     /// Register test dependencies for testing
     /// This method should be called from test code with actual mock instances
+    /// Note: AuthManager registration is handled separately due to @MainActor requirements
     func registerTestDependencies(
-        userRepository: UserRepositoryProtocol? = nil,
-        authManager: (any AuthManagerProtocol)? = nil
+        userRepository: UserRepositoryProtocol? = nil
     ) {
         // Register test repositories if provided
         if let userRepository = userRepository {
@@ -88,12 +88,8 @@ final class DependencyContainer {
             }
         }
         
-        // Register test auth manager if provided
-        if let authManager = authManager {
-            register((any AuthManagerProtocol).self) {
-                authManager
-            }
-        }
+        // Note: AuthManager test registration should be done directly in test setup
+        // due to @MainActor and Sendable constraints in Swift 6
     }
     
     /// Clear all dependencies (useful for testing)

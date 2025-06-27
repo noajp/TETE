@@ -7,7 +7,7 @@
 
 import SwiftUI
 import AVFoundation
-import CoreImage
+@preconcurrency import CoreImage
 
 struct CustomCameraPreview: UIViewRepresentable {
     let session: AVCaptureSession
@@ -146,15 +146,22 @@ extension CameraPreviewView: AVCaptureVideoDataOutputSampleBufferDelegate {
     nonisolated func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
+        // Process the image completely in the delegate's context
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
         
-        // Extract data in nonisolated context to avoid data race
-        Task { @MainActor in
-            // フィルター適用
-            let filteredImage = filterManager.applyFilterRealtime(currentFilter, to: ciImage, intensity: 1.0)
+        // Capture a reference to the metal view and filter manager
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             
-            // Metalビューに表示
-            metalView?.displayImage(filteredImage)
+            // Skip if no filter is applied
+            guard self.currentFilter != .none else {
+                self.metalView?.isHidden = true
+                return
+            }
+            
+            // Apply filter and display on main queue
+            let filteredImage = self.filterManager.applyFilterRealtime(self.currentFilter, to: ciImage, intensity: 1.0)
+            self.metalView?.displayImage(filteredImage)
         }
     }
 }

@@ -207,66 +207,24 @@ struct ArticlePublishSettingsView: View {
     // MARK: - Category Card
     
     private var categoryCard: some View {
+        CategoryCardView(
+            selectedCategory: $selectedCategory,
+            categories: categories
+        )
+    }
+}
+
+struct CategoryCardView: View {
+    @Binding var selectedCategory: String
+    let categories: [String]
+    
+    var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("CATEGORY")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white.opacity(0.6))
-                        .tracking(1.2)
-                    
-                    Text("Choose your article topic")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "tag.fill")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white.opacity(0.6))
-            }
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(categories, id: \.self) { category in
-                        Button(action: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                selectedCategory = selectedCategory == category ? "" : category
-                            }
-                        }) {
-                            HStack(spacing: 8) {
-                                if selectedCategory == category {
-                                    Image(systemName: "checkmark")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(.black)
-                                }
-                                
-                                Text(category)
-                                    .font(.system(size: 14, weight: selectedCategory == category ? .bold : .medium))
-                                    .foregroundColor(selectedCategory == category ? .black : .white.opacity(0.8))
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(selectedCategory == category ? 
-                                          Color.white : 
-                                          Color.white.opacity(0.1)
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 25)
-                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                            .opacity(selectedCategory == category ? 0 : 1)
-                                    )
-                            )
-                        }
-                        .scaleEffect(selectedCategory == category ? 1.05 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedCategory)
-                    }
-                }
-                .padding(.horizontal, 2)
-            }
+            CategoryHeader()
+            CategoryScrollView(
+                selectedCategory: $selectedCategory,
+                categories: categories
+            )
         }
         .padding(24)
         .background(
@@ -278,6 +236,92 @@ struct ArticlePublishSettingsView: View {
                 )
         )
     }
+}
+
+struct CategoryHeader: View {
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("CATEGORY")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white.opacity(0.6))
+                    .tracking(1.2)
+                
+                Text("Choose your article topic")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            
+            Spacer()
+            
+            Image(systemName: "tag.fill")
+                .font(.system(size: 20))
+                .foregroundColor(.white.opacity(0.6))
+        }
+    }
+}
+
+struct CategoryScrollView: View {
+    @Binding var selectedCategory: String
+    let categories: [String]
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(categories, id: \.self) { category in
+                    CategoryButton(
+                        category: category,
+                        isSelected: selectedCategory == category,
+                        action: {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                selectedCategory = selectedCategory == category ? "" : category
+                            }
+                        }
+                    )
+                }
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+}
+
+struct CategoryButton: View {
+    let category: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.black)
+                }
+                
+                Text(category)
+                    .font(.system(size: 14, weight: isSelected ? .bold : .medium))
+                    .foregroundColor(isSelected ? .black : .white.opacity(0.8))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(isSelected ? Color.white : Color.white.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            .opacity(isSelected ? 0 : 1)
+                    )
+            )
+        }
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+    }
+}
+
+// MARK: - ArticlePublishSettingsView Extension
+extension ArticlePublishSettingsView {
     
     // MARK: - Tags Card
     
@@ -320,7 +364,7 @@ struct ArticlePublishSettingsView: View {
                 if !tagText.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 10) {
-                            ForEach(tagText.split(separator: ",").map(String.init), id: \.self) { tag in
+                            ForEach(tagText.components(separatedBy: ","), id: \.self) { tag in
                                 HStack(spacing: 6) {
                                     Image(systemName: "number")
                                         .font(.system(size: 10))
@@ -410,15 +454,19 @@ struct ArticlePublishSettingsView: View {
         }
         .padding(24)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(isPremium ? 
-                      LinearGradient(colors: [Color.yellow.opacity(0.1), Color.orange.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                      Color.white.opacity(0.05)
-                )
-                .overlay(
+            Group {
+                if isPremium {
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(isPremium ? Color.yellow.opacity(0.3) : Color.white.opacity(0.1), lineWidth: 1)
-                )
+                        .fill(LinearGradient(colors: [Color.yellow.opacity(0.1), Color.orange.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                } else {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.05))
+                }
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(isPremium ? Color.yellow.opacity(0.3) : Color.white.opacity(0.1), lineWidth: 1)
+            )
         )
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isPremium)
     }

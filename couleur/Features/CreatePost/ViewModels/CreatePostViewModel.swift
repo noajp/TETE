@@ -172,7 +172,7 @@ class CreatePostViewModel: ObservableObject {
     
     // 動画のサムネイル生成
     // generateThumbnail関数を更新（iOS 18対応）
-    func generateThumbnail(from videoURL: URL) -> UIImage? {
+    func generateThumbnail(from videoURL: URL) async -> UIImage? {
         let asset = AVURLAsset(url: videoURL) // 修正: AVAsset → AVURLAsset
         let imageGenerator = AVAssetImageGenerator(asset: asset)
         imageGenerator.appliesPreferredTrackTransform = true
@@ -180,18 +180,15 @@ class CreatePostViewModel: ObservableObject {
         let time = CMTime(seconds: 1, preferredTimescale: 1)
         
         // iOS 18対応の非同期メソッドを使用
-        var thumbnail: UIImage?
-        let semaphore = DispatchSemaphore(value: 0)
-        
-        imageGenerator.generateCGImageAsynchronously(for: time) { cgImage, actualTime, error in
-            if let cgImage = cgImage {
-                thumbnail = UIImage(cgImage: cgImage)
+        return await withCheckedContinuation { continuation in
+            imageGenerator.generateCGImageAsynchronously(for: time) { cgImage, actualTime, error in
+                if let cgImage = cgImage {
+                    continuation.resume(returning: UIImage(cgImage: cgImage))
+                } else {
+                    continuation.resume(returning: nil)
+                }
             }
-            semaphore.signal()
         }
-        
-        semaphore.wait()
-        return thumbnail
     }
 }
 

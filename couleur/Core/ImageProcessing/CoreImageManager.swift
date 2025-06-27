@@ -6,7 +6,7 @@
 //
 
 import UIKit
-import CoreImage
+@preconcurrency import CoreImage
 import CoreImage.CIFilterBuiltins
 
 // MARK: - Core Image Manager
@@ -58,7 +58,7 @@ final class CoreImageManager: @unchecked Sendable {
         _ filterType: FilterType,
         to image: CIImage,
         intensity: Float = 1.0,
-        completion: @escaping (Result<UIImage, FilterError>) -> Void
+        completion: @escaping @Sendable (Result<UIImage, FilterError>) -> Void
     ) {
         filterQueue.async { [weak self] in
             guard let self = self else { return }

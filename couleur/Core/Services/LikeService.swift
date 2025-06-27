@@ -5,7 +5,7 @@
 import Foundation
 import Supabase
 
-class LikeService: ObservableObject {
+class LikeService: ObservableObject, @unchecked Sendable {
     private let client = SupabaseManager.shared.client
     
     // MARK: - Like Operations
