@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Couleur</string>
+	<string>TETE</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -18,10 +18,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.takanorinakano.couleur.oauth</string>
+			<string>com.takanorinakano.tete.oauth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.takanorinakano.couleur</string>
+				<string>com.takanorinakano.tete</string>
 			</array>
 		</dict>
 	</array>
