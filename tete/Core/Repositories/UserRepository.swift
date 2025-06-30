@@ -28,7 +28,7 @@ final class UserRepository: UserRepositoryProtocol, Sendable {
     func fetchUserProfile(userId: String) async throws -> UserProfile {
         do {
             let profile: UserProfile = try await supabaseClient
-                .from("user_profiles")
+                .from("profiles")
                 .select()
                 .eq("id", value: userId)
                 .single()
@@ -77,7 +77,7 @@ final class UserRepository: UserRepositoryProtocol, Sendable {
     func updateUserProfile(_ profile: UserProfile) async throws {
         do {
             _ = try await supabaseClient
-                .from("user_profiles")
+                .from("profiles")
                 .update(profile)
                 .eq("id", value: profile.id)
                 .execute()
@@ -104,7 +104,7 @@ final class UserRepository: UserRepositoryProtocol, Sendable {
             
             // Update profile with new URL
             _ = try await supabaseClient
-                .from("user_profiles")
+                .from("profiles")
                 .update(["avatar_url": publicURL.absoluteString])
                 .eq("id", value: userId)
                 .execute()

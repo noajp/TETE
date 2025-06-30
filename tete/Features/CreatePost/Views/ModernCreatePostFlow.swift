@@ -18,6 +18,9 @@ struct ModernCreatePostFlow: View {
     @State private var showingPostDetails = false
     @State private var selectedImage: UIImage?
     @State private var editedImage: UIImage?
+    @State private var showingUploadStatus = false
+    @State private var uploadProgress: Double = 0.0
+    @State private var uploadStatus = ""
     
     var body: some View {
         NavigationStack {
@@ -55,14 +58,8 @@ struct ModernCreatePostFlow: View {
                             // 直接投稿処理
                             editedImage = edited
                             viewModel.selectedImage = edited
-                            Task {
-                                await viewModel.createPost()
-                                if viewModel.isPostCreated {
-                                    showingEditor = false
-                                    dismiss()
-                                }
-                                // エラー時は編集画面に留まり、アラートで表示
-                            }
+                            viewModel.createPostInBackground()
+                            showingEditor = false
                         },
                         postViewModel: viewModel
                     )
@@ -73,12 +70,8 @@ struct ModernCreatePostFlow: View {
                     image: editedImage ?? selectedImage!,
                     viewModel: viewModel,
                     onPost: {
-                        Task {
-                            await viewModel.createPost()
-                            if viewModel.isPostCreated {
-                                dismiss()
-                            }
-                        }
+                        viewModel.createPostInBackground()
+                        showingPostDetails = false
                     },
                     onBack: {
                         showingPostDetails = false
@@ -86,7 +79,105 @@ struct ModernCreatePostFlow: View {
                     }
                 )
             }
+            .overlay {
+                if showingUploadStatus {
+                    UploadStatusOverlay(
+                        progress: uploadProgress,
+                        status: uploadStatus,
+                        isVisible: showingUploadStatus
+                    )
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .postUploadStarted)) { _ in
+                showingUploadStatus = true
+                uploadProgress = 0.0
+                uploadStatus = "投稿を準備中..."
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .postUploadProgress)) { notification in
+                if let progress = notification.userInfo?["progress"] as? Double {
+                    uploadProgress = progress
+                    if progress < 0.5 {
+                        uploadStatus = "画像をアップロード中..."
+                    } else {
+                        uploadStatus = "投稿を作成中..."
+                    }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .postUploadCompleted)) { _ in
+                uploadProgress = 1.0
+                uploadStatus = "投稿完了！"
+                
+                // 即座に編集画面を閉じる
+                showingUploadStatus = false
+                showingEditor = false
+                showingPostDetails = false
+                dismiss()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .postUploadFailed)) { notification in
+                uploadStatus = "投稿に失敗しました"
+                if let error = notification.userInfo?["error"] as? String {
+                    uploadStatus = "エラー: \(error)"
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    showingUploadStatus = false
+                }
+            }
         }
+    }
+}
+
+// MARK: - Upload Status Overlay
+struct UploadStatusOverlay: View {
+    let progress: Double
+    let status: String
+    let isVisible: Bool
+    
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.8)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                // アイコン
+                Image(systemName: progress >= 1.0 ? "checkmark.circle.fill" : "arrow.up.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(progress >= 1.0 ? .green : .blue)
+                    .scaleEffect(progress >= 1.0 ? 1.2 : 1.0)
+                    .animation(.spring(response: 0.3), value: progress >= 1.0)
+                
+                Text(status)
+                    .foregroundColor(.white)
+                    .font(.headline)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.center)
+                
+                // 進捗バー
+                VStack(spacing: 8) {
+                    ProgressView(value: progress, total: 1.0)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                        .frame(width: 240, height: 6)
+                        .scaleEffect(1.2)
+                    
+                    Text("\(Int(progress * 100))%")
+                        .foregroundColor(.gray)
+                        .font(.footnote)
+                        .fontWeight(.medium)
+                }
+            }
+            .padding(40)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
+            )
+            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+        }
+        .opacity(isVisible ? 1 : 0)
+        .scaleEffect(isVisible ? 1 : 0.8)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isVisible)
     }
 }
 

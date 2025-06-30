@@ -12,7 +12,6 @@ struct ArticlePublishSettingsView: View {
     @State private var article: Article
     @State private var selectedCategory = ""
     @State private var tagText = ""
-    @State private var isPremium = false
     @State private var isPublishing = false
     
     let categories = ["Technology", "Lifestyle", "Art", "Photography", "Design", "Other"]
@@ -48,8 +47,7 @@ struct ArticlePublishSettingsView: View {
                         VStack(spacing: 20) {
                             categoryCard
                             tagsCard
-                            premiumCard
-                        }
+                                }
                         
                         // Publish CTA
                         publishCTA
@@ -180,16 +178,6 @@ struct ArticlePublishSettingsView: View {
                 
                 Spacer()
                 
-                if isPremium {
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(.yellow)
-                        Text("PREMIUM")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.yellow)
-                    }
-                }
             }
         }
         .padding(24)
@@ -402,87 +390,6 @@ extension ArticlePublishSettingsView {
         )
     }
     
-    // MARK: - Premium Card
-    
-    private var premiumCard: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text("PREMIUM")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.yellow.opacity(0.8))
-                            .tracking(1.2)
-                        
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(.yellow)
-                    }
-                    
-                    Text("Monetize your content")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                
-                Spacer()
-                
-                Toggle("", isOn: $isPremium)
-                    .toggleStyle(SwitchToggleStyle(tint: .yellow))
-                    .scaleEffect(0.8)
-            }
-            
-            if isPremium {
-                VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 16))
-                            .foregroundColor(.yellow)
-                        
-                        Text("Premium Benefits")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.9))
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 10) {
-                        benefitRow(icon: "chart.line.uptrend.xyaxis", text: "Advanced analytics")
-                        benefitRow(icon: "dollarsign.circle", text: "Revenue generation")
-                        benefitRow(icon: "person.2", text: "Priority visibility")
-                    }
-                }
-                .padding(.top, 8)
-            }
-        }
-        .padding(24)
-        .background(
-            Group {
-                if isPremium {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(LinearGradient(colors: [Color.yellow.opacity(0.1), Color.orange.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                } else {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white.opacity(0.05))
-                }
-            }
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(isPremium ? Color.yellow.opacity(0.3) : Color.white.opacity(0.1), lineWidth: 1)
-            )
-        )
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isPremium)
-    }
-    
-    private func benefitRow(icon: String, text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(.white.opacity(0.7))
-                .frame(width: 16)
-            
-            Text(text)
-                .font(.system(size: 13))
-                .foregroundColor(.white.opacity(0.8))
-        }
-    }
     
     // MARK: - Publish CTA
     

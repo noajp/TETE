@@ -54,6 +54,9 @@ class PostService: @unchecked Sendable {
         print("🔵 PostService: フィード投稿を取得開始")
         
         do {
+            // Check if the task is cancelled before making network request
+            try Task.checkCancellation()
+            
             // まず投稿のみを取得
             var posts: [Post] = try await client
                 .from("posts")
@@ -64,6 +67,9 @@ class PostService: @unchecked Sendable {
                 .value
             
             print("✅ PostService: \(posts.count)件の投稿を取得")
+            
+            // Check cancellation after each major operation
+            try Task.checkCancellation()
             
             // いいね状態を取得
             if let userId = currentUserId {
@@ -84,22 +90,32 @@ class PostService: @unchecked Sendable {
             // 投稿のユーザーIDを集めて一度にユーザー情報を取得
             let userIds = Array(Set(posts.map { $0.userId })) // 重複を除去
             print("🔍 PostService: \(userIds.count)名のユーザー情報を取得中...")
+            print("🔍 PostService: ユーザーID一覧: \(userIds)")
             
             var userMap: [String: UserProfile] = [:]
             
             if !userIds.isEmpty {
                 do {
                     let userProfiles: [UserProfile] = try await client
-                        .from("user_profiles")
+                        .from("profiles")
                         .select("*")
                         .in("id", values: userIds)
                         .execute()
                         .value
                     
+                    print("🔍 PostService: 取得されたユーザー: \(userProfiles.map { "\($0.id): \($0.username)" })")
+                    
                     for user in userProfiles {
                         userMap[user.id] = user
                     }
                     print("✅ PostService: \(userProfiles.count)名のユーザー情報を取得")
+                    
+                    // どのユーザーIDが見つからなかったかをチェック
+                    let foundUserIds = Set(userProfiles.map { $0.id })
+                    let missingUserIds = Set(userIds).subtracting(foundUserIds)
+                    if !missingUserIds.isEmpty {
+                        print("⚠️ PostService: 見つからなかったユーザーID: \(Array(missingUserIds))")
+                    }
                 } catch {
                     print("❌ ユーザー情報一括取得エラー: \(error)")
                 }
@@ -126,6 +142,9 @@ class PostService: @unchecked Sendable {
             
             return posts
             
+        } catch is CancellationError {
+            print("🔄 PostService: リクエストがキャンセルされました")
+            throw CancellationError()
         } catch {
             print("❌ PostService エラー: \(error)")
             throw error
@@ -151,7 +170,7 @@ class PostService: @unchecked Sendable {
             for i in 0..<posts.count {
                 do {
                     let userProfile: UserProfile = try await client
-                        .from("user_profiles")
+                        .from("profiles")
                         .select("*")
                         .eq("id", value: posts[i].userId)
                         .single()

@@ -21,6 +21,7 @@ final class HomeFeedViewModel: BaseViewModelClass {
     // MARK: - Private Properties
     
     private var hasLoadedInitially = false
+    private var loadingTask: Task<Void, Never>?
     private var currentUserId: String? {
         authManager.currentUser?.id
     }
@@ -50,14 +51,35 @@ final class HomeFeedViewModel: BaseViewModelClass {
     
     /// Loads posts for the main feed
     func loadPosts() async {
+        // Cancel previous loading task
+        loadingTask?.cancel()
+        
+        loadingTask = Task {
+            await performLoadPosts()
+        }
+        
+        await loadingTask?.value
+    }
+    
+    private func performLoadPosts() async {
         showLoading()
         
         do {
+            // Check if task was cancelled before making network request
+            try Task.checkCancellation()
+            
             let fetchedPosts = try await postService.fetchFeedPosts(currentUserId: currentUserId)
+            
+            // Check if task was cancelled before updating UI
+            try Task.checkCancellation()
+            
             posts = fetchedPosts
             hasLoadedInitially = true
             hideLoading()
             Logger.shared.info("Loaded \(fetchedPosts.count) posts")
+        } catch is CancellationError {
+            print("🔄 Post loading was cancelled")
+            hideLoading()
         } catch {
             handleError(error)
         }

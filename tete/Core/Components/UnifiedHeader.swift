@@ -5,17 +5,20 @@ struct UnifiedHeader: View {
     let showBackButton: Bool
     let rightButton: HeaderButton?
     let onBack: (() -> Void)?
+    let isDarkMode: Bool
     
     init(
         title: String,
         showBackButton: Bool = false,
         rightButton: HeaderButton? = nil,
-        onBack: (() -> Void)? = nil
+        onBack: (() -> Void)? = nil,
+        isDarkMode: Bool = false
     ) {
         self.title = title
         self.showBackButton = showBackButton
         self.rightButton = rightButton
         self.onBack = onBack
+        self.isDarkMode = isDarkMode
     }
     
     var body: some View {
@@ -25,7 +28,7 @@ struct UnifiedHeader: View {
                 // Title - 左端に配置
                 Text(title)
                     .font(.system(size: 28, weight: .light))
-                    .foregroundColor(MinimalDesign.Colors.primary)
+                    .foregroundColor(isDarkMode ? .white : MinimalDesign.Colors.primary)
                     .padding(.leading, 16)
                 
                 Spacer()
@@ -37,7 +40,7 @@ struct UnifiedHeader: View {
                     }) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 20, weight: .regular))
-                            .actionTextButtonStyle()
+                            .foregroundColor(isDarkMode ? .white : MinimalDesign.Colors.primary)
                     }
                     .frame(width: 44, height: 44)
                     .padding(.trailing, 16)
@@ -51,17 +54,18 @@ struct UnifiedHeader: View {
                     }) {
                         Image(systemName: rightButton.icon)
                             .font(.system(size: 20, weight: .regular))
-                            .actionTextButtonStyle()
+                            .foregroundColor(isDarkMode ? .white : MinimalDesign.Colors.primary)
                     }
                     .frame(width: 44, height: 44)
-                    .padding(.trailing, 16)
+                    .padding(.trailing, 4)
                 }
             }
-            .frame(height: 56)
-            .background(MinimalDesign.Colors.background)
-            .padding(.top, -15)
+            .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.vertical, MinimalDesign.Spacing.sm)
+            .padding(.top, isDarkMode ? 8 : -15)
+            .background(isDarkMode ? Color.black.opacity(0.3) : MinimalDesign.Colors.background)
         }
-        .background(MinimalDesign.Colors.background.ignoresSafeArea(edges: .top))
+        .background(isDarkMode ? Color.black.ignoresSafeArea(edges: .top) : MinimalDesign.Colors.background.ignoresSafeArea(edges: .top))
     }
 }
 

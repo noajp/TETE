@@ -177,14 +177,15 @@ struct ConversationView: View {
             MessageInputView(
                 text: $messageText,
                 isSending: viewModel.isSending,
+                isTextFieldFocused: $isTextFieldFocused,
                 onSend: {
                     Task {
                         await viewModel.sendMessage(messageText)
                         messageText = ""
+                        isTextFieldFocused = false
                     }
                 }
             )
-            .focused($isTextFieldFocused)
         }
         .navigationTitle(viewModel.conversation?.displayName(currentUserId: authManager.currentUser?.id) ?? "Message")
         .navigationBarTitleDisplayMode(.inline)
@@ -203,6 +204,7 @@ struct ConversationView: View {
                 }
             }
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
             Task {
                 await viewModel.markAsRead()
@@ -258,7 +260,7 @@ struct MessageBubble: View {
                         .foregroundColor(.gray)
                 }
             }
-            .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: isCurrentUser ? .trailing : .leading)
+            .frame(maxWidth: .infinity, alignment: isCurrentUser ? .trailing : .leading)
             
             if !isCurrentUser { 
                 Spacer(minLength: 50) 
@@ -270,6 +272,7 @@ struct MessageBubble: View {
 struct MessageInputView: View {
     @Binding var text: String
     let isSending: Bool
+    @FocusState.Binding var isTextFieldFocused: Bool
     let onSend: () -> Void
     
     var body: some View {
@@ -277,6 +280,7 @@ struct MessageInputView: View {
             HStack(spacing: 12) {
                 TextField("Type a message...", text: $text)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .focused($isTextFieldFocused)
                     .disabled(isSending)
                     .onSubmit {
                         onSend()

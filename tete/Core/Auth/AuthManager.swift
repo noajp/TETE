@@ -247,6 +247,9 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             self.isAuthenticated = true
             NotificationCenter.default.post(name: .authStateChanged, object: nil)
             
+            // Ensure user profile exists after sign up
+            await ensureUserProfileExists(for: user)
+            
             secureLogger.authEvent("Sign up successful", userID: user.id.uuidString)
             return user.id.uuidString
         } catch {
@@ -342,7 +345,7 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
         ]
         
         try await client
-            .from("user_profiles")
+            .from("profiles")
             .insert(profileData)
             .execute()
         
@@ -352,7 +355,7 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     func checkUsernameAvailability(username: String) async throws -> Bool {
         do {
             let response = try await client
-                .from("user_profiles")
+                .from("profiles")
                 .select("username")
                 .eq("username", value: username)
                 .execute()
@@ -491,9 +494,12 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     
     private func ensureUserProfileExists(for user: Supabase.User) async {
         do {
+            // First, ensure the profiles table exists
+            await ensureProfilesTableExists()
+            
             // Check if profile already exists
             let profileCount = try await client
-                .from("user_profiles")
+                .from("profiles")
                 .select("id", head: true, count: .exact)
                 .eq("id", value: user.id.uuidString)
                 .execute()
@@ -534,6 +540,15 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             print("❌ Error ensuring user profile exists: \(error)")
             // Don't throw error here - authentication should still succeed even if profile creation fails
         }
+    }
+    
+    // MARK: - Database Schema Management
+    
+    private func ensureProfilesTableExists() async {
+        // For now, just log that we need to create the table manually
+        // The table should be created through Supabase Dashboard or CLI
+        print("⚠️ Profiles table needs to be created manually in Supabase Dashboard")
+        print("🔍 Please run the migration: /Users/nakanotakanori/Dev/TETE/supabase/migrations/20250614_create_profiles.sql")
     }
     
     // MARK: - Protocol Compliance

@@ -52,6 +52,14 @@ final class MyPageViewModel: BaseViewModelClass {
         Task {
             await loadUserDataIfNeeded()
         }
+        
+        // Listen for post creation notifications
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handlePostCreated),
+            name: NSNotification.Name("PostCreated"),
+            object: nil
+        )
     }
     
     // MARK: - Public Methods
@@ -175,5 +183,16 @@ final class MyPageViewModel: BaseViewModelClass {
     /// Refreshes all user data
     func refresh() async {
         await loadUserData()
+    }
+    
+    // MARK: - Private Methods
+    
+    @objc private func handlePostCreated() {
+        print("🔄 MyPageViewModel: Post created notification received - refreshing user data")
+        Task {
+            // Force reload by resetting the flag
+            hasLoadedInitially = false
+            await loadUserData()
+        }
     }
 }

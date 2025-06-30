@@ -25,6 +25,12 @@ struct SingleCardView: View {
             }
         }
         .background(MinimalDesign.Colors.background)
+        .onAppear {
+            print("🔍 SingleCardView - Post ID: \(post.id)")
+            print("🔍 SingleCardView - User ID: \(post.userId)")
+            print("🔍 SingleCardView - User object: \(post.user?.username ?? "nil")")
+            print("🔍 SingleCardView - Avatar URL: \(post.user?.avatarUrl ?? "nil")")
+        }
     }
     
     // MARK: - ユーザーヘッダー

@@ -242,7 +242,7 @@ class MessageService: ObservableObject {
         // Verify both users exist in user_profiles table using count instead of full object
         do {
             let currentUserCount = try await supabase
-                .from("user_profiles")
+                .from("profiles")
                 .select("id", head: true, count: .exact)
                 .eq("id", value: currentUserId)
                 .execute()
@@ -257,7 +257,7 @@ class MessageService: ObservableObject {
         
         do {
             let targetUserCount = try await supabase
-                .from("user_profiles")
+                .from("profiles")
                 .select("id", head: true, count: .exact)
                 .eq("id", value: userId)
                 .execute()

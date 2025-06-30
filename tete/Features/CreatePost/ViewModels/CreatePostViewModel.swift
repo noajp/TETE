@@ -90,10 +90,15 @@ class CreatePostViewModel: ObservableObject {
         }
         guard let userId = AuthManager.shared.currentUser?.id else {
             print("🔴 Cannot post: No user ID")
+            print("🔴 AuthManager.shared.currentUser: \(String(describing: AuthManager.shared.currentUser))")
+            print("🔴 AuthManager.shared.isAuthenticated: \(AuthManager.shared.isAuthenticated)")
             errorMessage = "Login required"
             showError = true
             return
         }
+        
+        print("🟢 User ID: \(userId)")
+        print("🟢 User authenticated: \(AuthManager.shared.isAuthenticated)")
         
         print("🟢 Starting background post creation for user: \(userId)")
         print("🟢 Has image: \(selectedImage != nil)")
@@ -118,9 +123,42 @@ class CreatePostViewModel: ObservableObject {
         )
         
         Task.detached { [weak self] in
-            do {
-                // 1. Upload media
+            // Capture supabase client at the start
+            guard let supabase = self?.supabase else {
+                print("🔴 Supabase client is nil at task start")
                 await MainActor.run {
+                    NotificationCenter.default.post(
+                        name: .postUploadFailed,
+                        object: nil,
+                        userInfo: ["error": "Supabase client not available"]
+                    )
+                }
+                return
+            }
+            
+            do {
+                // Check if user profile exists
+                print("🔵 Checking if user profile exists...")
+                let profileCheck = try await supabase
+                    .from("profiles")
+                    .select("id", head: true, count: .exact)
+                    .eq("id", value: userId)
+                    .execute()
+                
+                let profileCount = profileCheck.count ?? 0
+                print("🔵 Profile check result: \(profileCount) profiles found")
+                
+                if profileCount == 0 {
+                    print("🔴 User profile not found in database")
+                    await MainActor.run { [weak self] in
+                        self?.errorMessage = "Please complete your profile setup first"
+                        self?.showError = true
+                    }
+                    return
+                }
+                
+                // 1. Upload media
+                await MainActor.run { [weak self] in
                     NotificationCenter.default.post(
                         name: .postUploadProgress,
                         object: nil,
@@ -138,7 +176,7 @@ class CreatePostViewModel: ObservableObject {
                 }
                 
                 // 2. Create post record
-                await MainActor.run {
+                await MainActor.run { [weak self] in
                     NotificationCenter.default.post(
                         name: .postUploadProgress,
                         object: nil,
@@ -170,35 +208,70 @@ class CreatePostViewModel: ObservableObject {
                 )
                 
                 print("🟢 Inserting post to database...")
-                let response = try await self?.supabase
+                print("🟢 Post data: user_id=\(userId), media_url=\(mediaUrl)")
+                print("🟢 NewPost object: \(newPost)")
+                
+                // Verify auth session (supabase is already captured above)
+                do {
+                    let session = try await supabase.auth.session
+                    print("🔵 Auth session user ID: \(session.user.id)")
+                    print("🔵 Post user ID: \(userId)")
+                    if session.user.id.uuidString.lowercased() != userId.lowercased() {
+                        print("🔴 User ID mismatch! Session: \(session.user.id), Post: \(userId)")
+                    }
+                } catch {
+                    print("🔴 Failed to get auth session: \(error)")
+                }
+                
+                let response = try await supabase
                     .from("posts")
                     .insert(newPost)
                     .select()
                     .single()
                     .execute()
                 print("🟢 Database insert response received")
+                print("🟢 Response status: \(response.response.statusCode)")
+                print("🟢 Response data length: \(response.data.count) bytes")
                 
-                if let data = response?.data {
-                    let createdPost = try JSONDecoder().decode(Post.self, from: data)
+                if !response.data.isEmpty {
+                    let createdPost = try JSONDecoder().decode(Post.self, from: response.data)
                     print("🟢 Post created successfully: \(createdPost.id)")
                     
-                    await MainActor.run {
+                    await MainActor.run { [weak self] in
                         NotificationCenter.default.post(
                             name: .postUploadCompleted,
                             object: nil,
                             userInfo: ["post": createdPost]
                         )
                         print("🟢 Post upload completed notification sent")
+                        
+                        // Send notification to refresh feed
+                        NotificationCenter.default.post(name: NSNotification.Name("PostCreated"), object: nil)
+                        print("🟢 Post created notification sent for feed refresh")
                     }
                 } else {
                     print("🔴 No response data from post creation")
+                    print("🔴 Response status code: \(response.response.statusCode)")
+                    if let responseStr = String(data: response.data, encoding: .utf8) {
+                        print("🔴 Response body: \(responseStr)")
+                    }
                     throw PostError.uploadFailed
                 }
                 
             } catch {
                 print("🔴 Post creation failed: \(error)")
-                print("🔴 Error details: \(error)")
-                await MainActor.run {
+                print("🔴 Error type: \(type(of: error))")
+                print("🔴 Error localized: \(error.localizedDescription)")
+                
+                // Check for specific Supabase errors
+                if let supabaseError = error as? PostgrestError {
+                    print("🔴 Supabase error code: \(supabaseError.code ?? "unknown")")
+                    print("🔴 Supabase error message: \(supabaseError.message)")
+                    // PostgrestError doesn't have 'details' property
+                    print("🔴 Supabase error hint: \(supabaseError.hint ?? "unknown")")
+                }
+                
+                await MainActor.run { [weak self] in
                     NotificationCenter.default.post(
                         name: .postUploadFailed,
                         object: nil,

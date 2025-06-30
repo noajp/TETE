@@ -242,19 +242,6 @@ struct ModernPostsTabSection: View {
             }
             .animation(.easeInOut(duration: 0.2), value: selectedTab)
             
-            // View Mode Toggle (only for posts tab)
-            if selectedTab == 0 && !posts.isEmpty {
-                HStack {
-                    Spacer()
-                    Button(action: { showGridMode.toggle() }) {
-                        Image(systemName: showGridMode ? "square.grid.3x3.fill" : "square.fill")
-                            .font(.system(size: 18))
-                            .foregroundColor(MinimalDesign.Colors.secondary)
-                    }
-                }
-                .padding(.horizontal, MinimalDesign.Spacing.md)
-                .padding(.top, MinimalDesign.Spacing.sm)
-            }
         }
     }
 }
@@ -309,19 +296,18 @@ struct EmptyStateView: View {
 struct SingleCardGridView: View {
     let posts: [Post]
     let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
+        GridItem(.flexible(), spacing: 1.5),
+        GridItem(.flexible(), spacing: 1.5),
+        GridItem(.flexible(), spacing: 1.5)
     ]
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 2) {
+            LazyVGrid(columns: columns, spacing: 1.5) {
                 ForEach(posts) { post in
                     ProfileSingleCardView(post: post)
                 }
             }
-            .padding(.horizontal, 2)
         }
     }
 }
@@ -373,14 +359,14 @@ struct ProfileSingleCardView: View {
 struct GridView: View {
     let posts: [Post]
     let columns = [
-        GridItem(.flexible(), spacing: 1),
-        GridItem(.flexible(), spacing: 1),
-        GridItem(.flexible(), spacing: 1)
+        GridItem(.flexible(), spacing: 1.5),
+        GridItem(.flexible(), spacing: 1.5),
+        GridItem(.flexible(), spacing: 1.5)
     ]
     
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 1) {
+            LazyVGrid(columns: columns, spacing: 1.5) {
                 ForEach(posts) { post in
                     GridItemView(post: post)
                 }

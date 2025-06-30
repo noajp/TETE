@@ -1,7 +1,3 @@
-//======================================================================
-// MARK: - HomeFeedView（写真共有アプリ版）
-// Path: tete/Features/HomeFeed/Views/HomeFeedView.swift
-//======================================================================
 import SwiftUI
 import Combine
 
@@ -10,331 +6,135 @@ struct HomeFeedView: View {
     @StateObject private var viewModel = HomeFeedViewModel()
     @Binding var showGridMode: Bool
     @Binding var showingCreatePost: Bool
-    @State private var uploadProgress: Double = 0
-    @State private var isUploading = false
-    @State private var uploadCaption = ""
-    @State private var newPost: Post?
+    @State private var headerOffset: CGFloat = 0
+    @State private var selectedPost: Post?
+    
+    private let headerHeight: CGFloat = 56
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Unified Header
-            UnifiedHeader(
-                title: "Feed",
-                rightButton: HeaderButton(
-                    icon: "plus",
-                    action: {
-                        print("🟢 Plus button tapped! Current state: \(showingCreatePost)")
-                        showingCreatePost = true
-                        print("🟢 After setting: \(showingCreatePost)")
-                    }
-                )
-            )
-                
-            // Upload progress bar
-            if isUploading {
-                VStack(spacing: 8) {
-                    HStack {
-                        Text("Uploading")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        if !uploadCaption.isEmpty {
-                            Text("・")
+        ZStack(alignment: .top) {
+            // Content
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        // Scroll tracking - より信頼性の高い方法
+                        GeometryReader { geometry in
+                            Color.clear
+                                .onChange(of: geometry.frame(in: .named("scroll")).minY) { _, newValue in
+                                    updateHeaderOffset(scrollOffset: newValue)
+                                }
+                        }
+                        .frame(height: 1)
+                        .id("scrollTracker")
+                    // Header space
+                    Color.clear
+                        .frame(height: headerHeight)
+                    
+                    if viewModel.isLoading {
+                        ProgressView("Loading...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if viewModel.posts.isEmpty {
+                        VStack(spacing: 16) {
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .font(.system(size: 60))
+                                .foregroundColor(.gray)
+                            Text("No posts yet")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Text("Tap the + button\nto create your first post")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            
-                            Text(uploadCaption)
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                                .lineLimit(1)
+                                .multilineTextAlignment(.center)
                         }
-                        
-                        Spacer()
-                        
-                        Text("\(Int(uploadProgress * 100))%")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal, 16)
-                    
-                    ProgressView(value: uploadProgress)
-                        .progressViewStyle(LinearProgressViewStyle(tint: Color.red))
-                        .padding(.horizontal, 16)
-                }
-                .padding(.vertical, 12)
-                .background(Color(.secondarySystemBackground))
-                .transition(.move(edge: .top).combined(with: .opacity))
-            }
-                
-            // Content
-            ScrollView {
-                if viewModel.isLoading {
-                    ProgressView("Loading...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.posts.isEmpty && newPost == nil {
-                    VStack(spacing: 16) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 60))
-                            .foregroundColor(.gray)
-                        Text("No posts yet")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        Text("Tap the + button\nto create your first post")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(.top, 100)
-                } else {
-                    if showGridMode {
-                        // Complex Grid View
-                        LazyVStack(spacing: 1) {
-                            // Show new post first if available
-                            if let newPost = newPost {
-                                ComplexGridRowView(
-                                    posts: [newPost],
-                                    isOddRow: true,
-                                    highlightFirst: true,
-                                    onTap: { post in
-                                        // Handle grid post tap if needed
-                                    }
-                                )
-                            }
-                            
-                            // Group posts into rows and display them
-                            ForEach(Array(groupPostsForComplexGrid(posts: viewModel.posts).enumerated()), id: \.offset) { index, rowPosts in
-                                let isOddRow = (index + (newPost != nil ? 2 : 1)) % 2 == 1
-                                ComplexGridRowView(
-                                    posts: rowPosts,
-                                    isOddRow: isOddRow,
-                                    highlightFirst: false,
-                                    onTap: { post in
-                                        // Handle grid post tap if needed
-                                    }
-                                )
-                            }
-                        }
-                        .padding(1)
+                        .padding(.top, 100)
                     } else {
-                        // Single View (Feed)
-                        LazyVStack(spacing: 0) {
-                            // Show new post temporarily at top
-                            if let newPost = newPost {
-                                PostCardView(post: newPost, onLikeTapped: { post in
+                        // Posts Display - Grid or List mode
+                        if showGridMode {
+                            // Custom Grid View with alternating layout
+                            CustomGridView(posts: viewModel.posts, showGridMode: $showGridMode, selectedPost: $selectedPost)
+                        } else {
+                            // List View (default)
+                            if let selectedPost = selectedPost {
+                                // Show selected post first, then other posts
+                                PostCardView(post: selectedPost, onLikeTapped: { post in
                                     Task {
                                         await viewModel.toggleLike(for: post)
                                     }
                                 })
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.red, lineWidth: 2)
-                                )
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                            }
-                            
-                            // Regular posts
-                            ForEach(viewModel.posts) { post in
-                                PostCardView(post: post, onLikeTapped: { post in
-                                    Task {
-                                        await viewModel.toggleLike(for: post)
-                                    }
-                                })
+                                .id(selectedPost.id)
+                                
+                                // Show other posts below
+                                ForEach(viewModel.posts.filter { $0.id != selectedPost.id }) { post in
+                                    PostCardView(post: post, onLikeTapped: { post in
+                                        Task {
+                                            await viewModel.toggleLike(for: post)
+                                        }
+                                    })
+                                }
+                            } else {
+                                // Show all posts
+                                ForEach(viewModel.posts) { post in
+                                    PostCardView(post: post, onLikeTapped: { post in
+                                        Task {
+                                            await viewModel.toggleLike(for: post)
+                                        }
+                                    })
+                                }
                             }
                         }
                     }
                 }
             }
+            .coordinateSpace(name: "scroll")
             .refreshable {
                 await viewModel.forceRefreshPosts()
             }
         }
+            
+            // Floating Header
+            VStack(spacing: 0) {
+                UnifiedHeader(
+                    title: "TETE",
+                    rightButton: HeaderButton(
+                        icon: "plus",
+                        action: {
+                            showingCreatePost = true
+                        }
+                    )
+                )
+                
+                // Status Bar removed - handled by MainTabView
+            }
+            .offset(y: headerOffset)
+            .zIndex(1000)
+        }
         .ignoresSafeArea(.container, edges: [])
         .onAppear {
-            setupNotificationObservers()
+            print("🟢 HomeFeedView appeared")
+            Task {
+                await viewModel.loadPostsIfNeeded()
+            }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .postUploadCompleted)) { notification in
-            print("🟢 HomeFeedView: Received post upload completed notification")
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PostCreated"))) { _ in
+            print("🔄 Post created notification received - refreshing feed")
             Task {
                 await viewModel.forceRefreshPosts()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .postUploadStarted)) { notification in
-            print("🟢 HomeFeedView: Post upload started")
-            // Could show upload indicator here
-        }
+        // HomeFeedViewでの通知受信は無効化（MainTabViewで処理）
     }
     
-    // MARK: - Helper Functions
-    
-    private func setupNotificationObservers() {
-        // This function is called in onAppear but the actual observers are handled by onReceive modifiers
-        print("🟢 HomeFeedView: Notification observers set up")
-    }
-    
-    private func groupPostsForComplexGrid(posts: [Post]) -> [[Post]] {
-        var result: [[Post]] = []
-        var currentIndex = 0
-        var isOddRow = true
-        
-        while currentIndex < posts.count {
-            if isOddRow {
-                // 奇数段: 2つの投稿 (横長1枚 + 正方形1枚)
-                let rowPosts = Array(posts[currentIndex..<min(currentIndex + 2, posts.count)])
-                result.append(rowPosts)
-                currentIndex += 2
-            } else {
-                // 偶数段: 6つの投稿 (正方形6枚、3×2配置)
-                let rowPosts = Array(posts[currentIndex..<min(currentIndex + 6, posts.count)])
-                result.append(rowPosts)
-                currentIndex += 6
-            }
-            isOddRow.toggle()
-        }
-        
-        return result
-    }
-}
-
-// MARK: - Complex Grid Row View
-struct ComplexGridRowView: View {
-    let posts: [Post]
-    let isOddRow: Bool
-    let highlightFirst: Bool
-    let onTap: (Post) -> Void
-    
-    private let screenWidth = UIScreen.main.bounds.width
-    
-    var body: some View {
-        if isOddRow {
-            // 奇数段: 横長1枚 + 正方形1枚
-            HStack(spacing: 1) {
-                if posts.count > 0 {
-                    // 横長写真 (幅の2/3)
-                    GridImageView(
-                        post: posts[0],
-                        width: (screenWidth * 2/3) - 1,
-                        height: (screenWidth * 1/3) - 1,
-                        highlight: highlightFirst,
-                        onTap: onTap
-                    )
-                }
-                
-                if posts.count > 1 {
-                    // 正方形写真 (幅の1/3)
-                    GridImageView(
-                        post: posts[1],
-                        width: (screenWidth * 1/3) - 1,
-                        height: (screenWidth * 1/3) - 1,
-                        highlight: false,
-                        onTap: onTap
-                    )
-                }
-            }
+    private func updateHeaderOffset(scrollOffset: CGFloat) {
+        // シンプルな方法: 負の値（上にスクロール）に応じてヘッダーを隠す
+        if scrollOffset < 0 {
+            // 下にスクロールした場合（scrollOffsetが負の値）
+            let scrollDistance = abs(scrollOffset)
+            headerOffset = -min(scrollDistance, headerHeight)
         } else {
-            // 偶数段: 正方形6枚 (3列×2行、同じサイズを維持)
-            VStack(spacing: 1) {
-                // 上段3枚
-                HStack(spacing: 1) {
-                    ForEach(0..<3, id: \.self) { index in
-                        if index < posts.count {
-                            GridImageView(
-                                post: posts[index],
-                                width: (screenWidth / 3) - 1,
-                                height: (screenWidth / 3) - 1,
-                                highlight: false,
-                                onTap: onTap
-                            )
-                        } else {
-                            // 空のスペース
-                            Rectangle()
-                                .fill(Color(.systemBackground))
-                                .frame(width: (screenWidth / 3) - 1, height: (screenWidth / 3) - 1)
-                        }
-                    }
-                }
-                
-                // 下段3枚
-                HStack(spacing: 1) {
-                    ForEach(3..<6, id: \.self) { index in
-                        if index < posts.count {
-                            GridImageView(
-                                post: posts[index],
-                                width: (screenWidth / 3) - 1,
-                                height: (screenWidth / 3) - 1,
-                                highlight: false,
-                                onTap: onTap
-                            )
-                        } else {
-                            // 空のスペース
-                            Rectangle()
-                                .fill(Color(.systemBackground))
-                                .frame(width: (screenWidth / 3) - 1, height: (screenWidth / 3) - 1)
-                        }
-                    }
-                }
-            }
+            // 上端付近
+            headerOffset = 0
         }
-    }
-}
-
-// MARK: - Grid Image View
-struct GridImageView: View {
-    let post: Post
-    let width: CGFloat
-    let height: CGFloat
-    let highlight: Bool
-    let onTap: (Post) -> Void
-    
-    var body: some View {
-        Button(action: { onTap(post) }) {
-            AsyncImage(url: URL(string: post.mediaUrl)) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(Color(.tertiarySystemBackground))
-                    .overlay(
-                        ProgressView()
-                            .scaleEffect(0.5)
-                    )
-            }
-            .frame(width: width, height: height)
-            .clipped()
-            .overlay(
-                highlight ? RoundedRectangle(cornerRadius: 4)
-                    .stroke(Color.red, lineWidth: 2) : nil
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// MARK: - Grid Post View
-struct GridPostView: View {
-    let post: Post
-    let onTap: (Post) -> Void
-    
-    var body: some View {
-        Button(action: { onTap(post) }) {
-            AsyncImage(url: URL(string: post.mediaUrl)) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle()
-                    .fill(Color(.tertiarySystemBackground))
-                    .overlay(
-                        ProgressView()
-                            .scaleEffect(0.5)
-                    )
-            }
-            .frame(width: UIScreen.main.bounds.width / 3 - 1, height: UIScreen.main.bounds.width / 3 - 1)
-            .clipped()
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
@@ -363,12 +163,6 @@ struct PostCardView: View {
                 }
                 .frame(width: 32, height: 32)
                 .clipShape(Circle())
-                .onAppear {
-                    print("🔍 PostCardView - Post ID: \(post.id)")
-                    print("🔍 PostCardView - User ID: \(post.userId)")
-                    print("🔍 PostCardView - User object: \(post.user?.username ?? "nil")")
-                    print("🔍 PostCardView - Avatar URL: \(post.user?.avatarUrl ?? "nil")")
-                }
                 
                 // User Info
                 VStack(alignment: .leading, spacing: 2) {
@@ -458,7 +252,224 @@ struct PostCardView: View {
     }
 }
 
-// MARK: - Preview
+// MARK: - Custom Grid View
+
+struct CustomGridView: View {
+    let posts: [Post]
+    @Binding var showGridMode: Bool
+    @Binding var selectedPost: Post?
+    
+    var body: some View {
+        LazyVStack(spacing: 1.5) {
+            ForEach(0..<groupedPosts.count, id: \.self) { groupIndex in
+                let group = groupedPosts[groupIndex]
+                let isOddRow = groupIndex % 2 == 0
+                
+                if isOddRow {
+                    // 奇数段: 横長写真1枚 + 正方形写真1枚
+                    OddRowView(posts: group) { post in
+                        selectedPost = post
+                        showGridMode = false
+                    }
+                } else {
+                    // 偶数段: 正方形写真6枚
+                    EvenRowView(posts: group) { post in
+                        selectedPost = post
+                        showGridMode = false
+                    }
+                }
+            }
+        }
+    }
+    
+    private var groupedPosts: [[Post]] {
+        var groups: [[Post]] = []
+        var currentIndex = 0
+        
+        while currentIndex < posts.count {
+            let isOddGroup = groups.count % 2 == 0
+            
+            if isOddGroup {
+                // 奇数段: 2枚
+                let count = min(2, posts.count - currentIndex)
+                let group = Array(posts[currentIndex..<currentIndex + count])
+                groups.append(group)
+                currentIndex += count
+            } else {
+                // 偶数段: 6枚
+                let count = min(6, posts.count - currentIndex)
+                let group = Array(posts[currentIndex..<currentIndex + count])
+                groups.append(group)
+                currentIndex += count
+            }
+        }
+        
+        return groups
+    }
+}
+
+// MARK: - Odd Row View (横長 + 正方形)
+
+struct OddRowView: View {
+    let posts: [Post]
+    let onPostTapped: (Post) -> Void
+    
+    var body: some View {
+        HStack(spacing: 1.5) {
+            // 横長写真 (幅は2/3)
+            if posts.count > 0 {
+                GridImageView(post: posts[0]) {
+                    onPostTapped(posts[0])
+                }
+                .frame(width: rectangleWidth, height: squareSize)
+                .clipped()
+            }
+            
+            // 正方形写真 (幅は1/3)
+            if posts.count > 1 {
+                GridImageView(post: posts[1]) {
+                    onPostTapped(posts[1])
+                }
+                .frame(width: squareSize, height: squareSize)
+                .clipped()
+            }
+        }
+        .frame(height: squareSize)
+    }
+    
+    private var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
+    }
+    
+    private var spacing: CGFloat {
+        1.5
+    }
+    
+    private var availableWidth: CGFloat {
+        screenWidth - spacing // 中間のスペースのみ
+    }
+    
+    private var squareSize: CGFloat {
+        availableWidth / 3 // 3等分した1つ分
+    }
+    
+    private var rectangleWidth: CGFloat {
+        squareSize * 2 // 正方形の2倍の幅
+    }
+}
+
+// MARK: - Even Row View (正方形6枚)
+
+struct EvenRowView: View {
+    let posts: [Post]
+    let onPostTapped: (Post) -> Void
+    
+    var body: some View {
+        VStack(spacing: 1.5) {
+            // 上段3枚
+            HStack(spacing: 1.5) {
+                ForEach(0..<3, id: \.self) { index in
+                    if index < posts.count {
+                        GridImageView(post: posts[index]) {
+                            onPostTapped(posts[index])
+                        }
+                        .frame(width: squareSize, height: squareSize)
+                        .clipped()
+                    } else {
+                        Rectangle()
+                            .fill(Color(.tertiarySystemBackground))
+                            .frame(width: squareSize, height: squareSize)
+                    }
+                }
+            }
+            
+            // 下段3枚
+            HStack(spacing: 1.5) {
+                ForEach(3..<6, id: \.self) { index in
+                    if index < posts.count {
+                        GridImageView(post: posts[index]) {
+                            onPostTapped(posts[index])
+                        }
+                        .frame(width: squareSize, height: squareSize)
+                        .clipped()
+                    } else {
+                        Rectangle()
+                            .fill(Color(.tertiarySystemBackground))
+                            .frame(width: squareSize, height: squareSize)
+                    }
+                }
+            }
+        }
+        .frame(height: totalHeight)
+    }
+    
+    private var screenWidth: CGFloat {
+        UIScreen.main.bounds.width
+    }
+    
+    private var spacing: CGFloat {
+        1.5
+    }
+    
+    private var availableWidth: CGFloat {
+        screenWidth - (spacing * 2) // 中間のスペース2箇所のみ
+    }
+    
+    private var squareSize: CGFloat {
+        availableWidth / 3 // 3等分した1つ分（奇数段の正方形と同じサイズ）
+    }
+    
+    private var totalHeight: CGFloat {
+        squareSize * 2 + spacing // 2段 + 中間のスペーシング
+    }
+}
+
+// MARK: - Grid Image View
+
+struct GridImageView: View {
+    let post: Post
+    let onTap: (() -> Void)?
+    
+    init(post: Post, onTap: (() -> Void)? = nil) {
+        self.post = post
+        self.onTap = onTap
+    }
+    
+    var body: some View {
+        Button(action: {
+            onTap?()
+        }) {
+            AsyncImage(url: URL(string: post.mediaUrl)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure(_):
+                    Rectangle()
+                        .fill(Color(.tertiarySystemBackground))
+                        .overlay(
+                            Image(systemName: "photo")
+                                .font(.title3)
+                                .foregroundColor(.secondary)
+                        )
+                case .empty:
+                    Rectangle()
+                        .fill(Color(.tertiarySystemBackground))
+                        .overlay(
+                            ProgressView()
+                                .tint(.secondary)
+                        )
+                @unknown default:
+                    Rectangle()
+                        .fill(Color(.tertiarySystemBackground))
+                }
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
 struct HomeFeedView_Previews: PreviewProvider {
     static var previews: some View {
         HomeFeedView(showGridMode: .constant(false), showingCreatePost: .constant(false))

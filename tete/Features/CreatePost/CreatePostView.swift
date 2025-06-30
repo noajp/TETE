@@ -178,25 +178,31 @@ struct CreatePostView: View {
         .onChange(of: showingPhotoPicker) { _, newValue in
             print("🟡 showingPhotoPicker changed: \(newValue)")
         }
-        .onChange(of: selectedItem) { _, newItem in
+        .onChange(of: selectedItem) { oldValue, newValue in
+            guard let item = newValue else { return }
+            
             Task {
-                guard let newItem = newItem else { return }
-                
-                // メディアタイプを判定
-                let contentType = try? await newItem.loadTransferable(type: Data.self)
-                
-                // 一旦データとして読み込んで判定
-                if let data = contentType {
-                    // 動画かどうかを判定（簡易的な方法）
-                    if let image = UIImage(data: data) {
-                        // 画像の処理 - 直接編集画面へ
-                        viewModel.mediaType = .photo
-                        imageToEdit = image
-                        showingPhotoEditor = true
-                    } else {
-                        // 動画として処理を試みる
-                        viewModel.mediaType = .video
-                        // TODO: 動画の処理
+                do {
+                    // iOS 16以降の推奨される方法
+                    if let data = try await item.loadTransferable(type: Data.self) {
+                        if let uiImage = UIImage(data: data) {
+                            print("✅ 画像の読み込みに成功しました")
+                            await MainActor.run {
+                                viewModel.mediaType = .photo
+                                imageToEdit = uiImage
+                                showingPhotoEditor = true
+                                selectedItem = nil  // リセット
+                            }
+                        } else {
+                            print("❌ データからUIImageへの変換に失敗しました")
+                        }
+                    }
+                } catch {
+                    print("❌ 画像の読み込みエラー: \(error)")
+                    
+                    // コエラーコード (CocoaError) を確認
+                    if let cocoaError = error as? CocoaError {
+                        print("❌ CocoaError code: \(cocoaError.code.rawValue)")
                     }
                 }
             }
@@ -252,6 +258,51 @@ struct CreatePostView: View {
             case .failure(let error):
                 print("Filter application failed: \(error)")
             }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    @MainActor
+    private func loadImageFromPhotosPickerItem(_ item: PhotosPickerItem) async {
+        do {
+            // 画像の識別子を取得
+            guard let itemIdentifier = item.itemIdentifier else {
+                print("❌ PhotosPickerItemの識別子が取得できません")
+                return
+            }
+            
+            print("📷 画像識別子: \(itemIdentifier)")
+            
+            // 別の方法で画像を読み込む
+            if let image = try? await item.loadTransferable(type: Image.self) {
+                // SwiftUI ImageをUIImageに変換する方法が必要
+                print("⚠️ SwiftUI Imageとして読み込まれましたが、UIImageへの変換が必要です")
+            }
+            
+            // データとして読み込んでみる
+            let supportedContentTypes: [UTType] = [.jpeg, .png, .heif, .heic, .rawImage]
+            
+            for contentType in supportedContentTypes {
+                if item.supportedContentTypes.contains(contentType) {
+                    print("📷 サポートされているタイプ: \(contentType)")
+                    
+                    // その型でデータを読み込んでみる
+                    if let data = try? await item.loadTransferable(type: Data.self) {
+                        if let uiImage = UIImage(data: data) {
+                            print("✅ \(contentType)として画像を読み込みました")
+                            viewModel.mediaType = .photo
+                            imageToEdit = uiImage
+                            showingPhotoEditor = true
+                            return
+                        }
+                    }
+                }
+            }
+            
+            print("❌ すべての方法で画像の読み込みに失敗しました")
+        } catch {
+            print("❌ エラー: \(error.localizedDescription)")
         }
     }
     

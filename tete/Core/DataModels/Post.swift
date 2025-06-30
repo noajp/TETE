@@ -47,6 +47,84 @@ struct Post: Identifiable, Codable, Hashable {
         case createdAt = "created_at"
     }
     
+    // MARK: - Initializers
+    
+    init(
+        id: String,
+        userId: String,
+        mediaUrl: String,
+        mediaType: MediaType,
+        thumbnailUrl: String? = nil,
+        caption: String? = nil,
+        locationName: String? = nil,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        isPublic: Bool = true,
+        createdAt: Date = Date(),
+        likeCount: Int = 0,
+        commentCount: Int = 0,
+        user: UserProfile? = nil,
+        isLikedByMe: Bool = false,
+        isSavedByMe: Bool = false
+    ) {
+        self.id = id
+        self.userId = userId
+        self.mediaUrl = mediaUrl
+        self.mediaType = mediaType
+        self.thumbnailUrl = thumbnailUrl
+        self.caption = caption
+        self.locationName = locationName
+        self.latitude = latitude
+        self.longitude = longitude
+        self.isPublic = isPublic
+        self.createdAt = createdAt
+        self.likeCount = likeCount
+        self.commentCount = commentCount
+        self.user = user
+        self.isLikedByMe = isLikedByMe
+        self.isSavedByMe = isSavedByMe
+    }
+    
+    // MARK: - Custom Decodable Implementation
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        userId = try container.decode(String.self, forKey: .userId)
+        mediaUrl = try container.decode(String.self, forKey: .mediaUrl)
+        mediaType = try container.decode(MediaType.self, forKey: .mediaType)
+        thumbnailUrl = try container.decodeIfPresent(String.self, forKey: .thumbnailUrl)
+        caption = try container.decodeIfPresent(String.self, forKey: .caption)
+        locationName = try container.decodeIfPresent(String.self, forKey: .locationName)
+        latitude = try container.decodeIfPresent(Double.self, forKey: .latitude)
+        longitude = try container.decodeIfPresent(Double.self, forKey: .longitude)
+        isPublic = try container.decode(Bool.self, forKey: .isPublic)
+        likeCount = try container.decodeIfPresent(Int.self, forKey: .likeCount) ?? 0
+        commentCount = try container.decodeIfPresent(Int.self, forKey: .commentCount) ?? 0
+        
+        // Handle date parsing - Supabase returns ISO 8601 string
+        let createdAtString = try container.decode(String.self, forKey: .createdAt)
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        if let date = formatter.date(from: createdAtString) {
+            createdAt = date
+        } else {
+            // Fallback without fractional seconds
+            formatter.formatOptions = [.withInternetDateTime]
+            if let date = formatter.date(from: createdAtString) {
+                createdAt = date
+            } else {
+                throw DecodingError.dataCorruptedError(
+                    forKey: .createdAt,
+                    in: container,
+                    debugDescription: "Cannot parse date string: \(createdAtString)"
+                )
+            }
+        }
+    }
+    
     // MARK: - Hashable Implementation
     
     func hash(into hasher: inout Hasher) {
