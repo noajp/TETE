@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - CustomCameraViewModel.swift
+// Purpose: View model for data and business logic (CustomCameraViewModelのデータとビジネスロジック)
+// Path: tete/Features/Camera/ViewModels/CustomCameraViewModel.swift
+//======================================================================
 //
 //  CustomCameraViewModel.swift
 //  tete

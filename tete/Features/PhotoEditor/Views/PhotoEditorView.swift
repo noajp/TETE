@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - PhotoEditorView.swift
+// Purpose: SwiftUI view component (PhotoEditorViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/PhotoEditorView.swift
+//======================================================================
 //
 //  PhotoEditorView.swift
 //  tete

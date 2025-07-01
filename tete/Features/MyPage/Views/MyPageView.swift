@@ -1,5 +1,6 @@
 //======================================================================
-// MARK: - MyPageView.swift (Minimal Design Profile)
+// MARK: - MyPageView.swift
+// Purpose: User profile page with photo grid, edit capabilities, and drag-and-drop reordering (ユーザープロフィールページ：写真グリッド、編集機能、ドラッグ＆ドロップ並び替え)
 // Path: tete/Features/MyPage/Views/MyPageView.swift
 //======================================================================
 import SwiftUI
@@ -352,6 +353,9 @@ struct SingleCardGridView: View {
         GridItem(.flexible(), spacing: 1.5)
     ]
     
+    @State private var draggedItem: Post?
+    @State private var isDragging: Bool = false
+    
     init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil, onReorderPosts: (([Post]) -> Void)? = nil) {
         self._posts = State(initialValue: posts)
         self.onPostTapped = onPostTapped
@@ -362,42 +366,93 @@ struct SingleCardGridView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 1.5) {
-                ForEach(posts) { post in
+                ForEach(posts, id: \.id) { post in
                     ProfileSingleCardView(post: post, onTap: {
-                        onPostTapped?(post)
+                        if !isDragging {
+                            onPostTapped?(post)
+                        }
                     })
                     .contextMenu {
                         Button("Delete", role: .destructive) {
                             onDeletePost?(post)
                         }
                     }
+                    .onLongPressGesture(minimumDuration: 0.5) {
+                        // 長押しでドラッグ開始の準備
+                        withAnimation(.spring(response: 0.3)) {
+                            isDragging = true
+                        }
+                    }
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in
+                                if isDragging {
+                                    draggedItem = post
+                                }
+                            }
+                            .onEnded { _ in
+                                withAnimation(.spring(response: 0.3)) {
+                                    isDragging = false
+                                    draggedItem = nil
+                                }
+                            }
+                    )
+                    .onDrag {
+                        draggedItem = post
+                        isDragging = true
+                        let provider = NSItemProvider()
+                        provider.suggestedName = post.id
+                        return provider
+                    }
                     .draggable(post) {
-                        // ドラッグ中に表示するプレビュー
-                        ProfileSingleCardView(post: post)
-                            .frame(width: 80, height: 80)
-                            .opacity(0.8)
+                        // 空のビューを返してドラッグプレビューを無効化
+                        Color.clear
+                            .frame(width: 1, height: 1)
                     }
-                    .dropDestination(for: Post.self) { droppedPosts, location in
-                        guard let droppedPost = droppedPosts.first,
-                              let fromIndex = posts.firstIndex(where: { $0.id == droppedPost.id }),
-                              let toIndex = posts.firstIndex(where: { $0.id == post.id }) else {
-                            return false
-                        }
-                        
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            posts.move(fromOffsets: IndexSet([fromIndex]), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
-                        }
-                        
-                        onReorderPosts?(posts)
-                        return true
-                    }
+                    .onDrop(of: [.text], delegate: LongPressDropDelegate(
+                        item: post,
+                        posts: $posts,
+                        draggedItem: $draggedItem,
+                        isDragging: $isDragging,
+                        onReorderPosts: onReorderPosts
+                    ))
                 }
             }
         }
-        .onChange(of: posts) { _, newPosts in
-            // 外部からの変更を反映
-            if newPosts.count != posts.count {
-                posts = newPosts
+    }
+}
+
+struct LongPressDropDelegate: DropDelegate {
+    let item: Post
+    @Binding var posts: [Post]
+    @Binding var draggedItem: Post?
+    @Binding var isDragging: Bool
+    let onReorderPosts: (([Post]) -> Void)?
+    
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: .move)
+    }
+    
+    func performDrop(info: DropInfo) -> Bool {
+        withAnimation(.spring(response: 0.3)) {
+            draggedItem = nil
+            isDragging = false
+        }
+        return true
+    }
+    
+    func dropEntered(info: DropInfo) {
+        guard let draggedItem = draggedItem, isDragging else { return }
+        
+        if draggedItem.id != item.id {
+            let fromIndex = posts.firstIndex(of: draggedItem) ?? 0
+            let toIndex = posts.firstIndex(of: item) ?? 0
+            
+            if fromIndex != toIndex {
+                withAnimation(.spring()) {
+                    posts.move(fromOffsets: IndexSet([fromIndex]), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
+                    onReorderPosts?(posts)
+                }
             }
         }
     }
@@ -469,6 +524,9 @@ struct GridView: View {
         GridItem(.flexible(), spacing: 1.5)
     ]
     
+    @State private var draggedItem: Post?
+    @State private var isDragging: Bool = false
+    
     init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil, onReorderPosts: (([Post]) -> Void)? = nil) {
         self._posts = State(initialValue: posts)
         self.onPostTapped = onPostTapped
@@ -479,42 +537,57 @@ struct GridView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 1.5) {
-                ForEach(posts) { post in
+                ForEach(posts, id: \.id) { post in
                     GridItemView(post: post, onTap: {
-                        onPostTapped?(post)
+                        if !isDragging {
+                            onPostTapped?(post)
+                        }
                     })
                     .contextMenu {
                         Button("Delete", role: .destructive) {
                             onDeletePost?(post)
                         }
                     }
+                    .onLongPressGesture(minimumDuration: 0.5) {
+                        // 長押しでドラッグ開始の準備
+                        withAnimation(.spring(response: 0.3)) {
+                            isDragging = true
+                        }
+                    }
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in
+                                if isDragging {
+                                    draggedItem = post
+                                }
+                            }
+                            .onEnded { _ in
+                                withAnimation(.spring(response: 0.3)) {
+                                    isDragging = false
+                                    draggedItem = nil
+                                }
+                            }
+                    )
+                    .onDrag {
+                        draggedItem = post
+                        isDragging = true
+                        let provider = NSItemProvider()
+                        provider.suggestedName = post.id
+                        return provider
+                    }
                     .draggable(post) {
-                        // ドラッグ中に表示するプレビュー
-                        GridItemView(post: post)
-                            .frame(width: 80, height: 80)
-                            .opacity(0.8)
+                        // 空のビューを返してドラッグプレビューを無効化
+                        Color.clear
+                            .frame(width: 1, height: 1)
                     }
-                    .dropDestination(for: Post.self) { droppedPosts, location in
-                        guard let droppedPost = droppedPosts.first,
-                              let fromIndex = posts.firstIndex(where: { $0.id == droppedPost.id }),
-                              let toIndex = posts.firstIndex(where: { $0.id == post.id }) else {
-                            return false
-                        }
-                        
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            posts.move(fromOffsets: IndexSet([fromIndex]), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
-                        }
-                        
-                        onReorderPosts?(posts)
-                        return true
-                    }
+                    .onDrop(of: [.text], delegate: LongPressDropDelegate(
+                        item: post,
+                        posts: $posts,
+                        draggedItem: $draggedItem,
+                        isDragging: $isDragging,
+                        onReorderPosts: onReorderPosts
+                    ))
                 }
-            }
-        }
-        .onChange(of: posts) { _, newPosts in
-            // 外部からの変更を反映
-            if newPosts.count != posts.count {
-                posts = newPosts
             }
         }
     }

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - EditorFooterView.swift
+// Purpose: SwiftUI view component (EditorFooterViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/Components/EditorFooterView.swift
+//======================================================================
 //
 //  EditorFooterView.swift
 //  tete

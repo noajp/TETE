@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - UnifiedHeader.swift
+// Purpose: Unified header component used across the app (アプリ全体で使用される統一ヘッダーコンポーネント)
+// Path: tete/Core/Components/UnifiedHeader.swift
+//======================================================================
 import SwiftUI
 
 struct UnifiedHeader: View {

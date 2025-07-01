@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - PostStatusManager.swift
+// Purpose: Manager class for system operations (PostStatusManagerのシステム操作管理クラス)
+// Path: tete/Core/Services/PostStatusManager.swift
+//======================================================================
 //
 //  PostStatusManager.swift
 //  tete

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ArticleListView.swift
+// Purpose: SwiftUI view component (ArticleListViewビューコンポーネント)
+// Path: tete/Features/Articles/Views/ArticleListView.swift
+//======================================================================
 //
 //  ArticleListView.swift
 //  tete

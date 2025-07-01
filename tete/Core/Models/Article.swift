@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - Article.swift
+// Purpose: Article implementation (Articleの実装)
+// Path: tete/Core/Models/Article.swift
+//======================================================================
 //
 //  Article.swift
 //  tete

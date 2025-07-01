@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - RAWImageProcessor.swift
+// Purpose: RAWImageProcessor implementation (RAWImageProcessorの実装)
+// Path: tete/Features/PhotoEditor/Models/RAWImageProcessor.swift
+//======================================================================
 //
 //  RAWImageProcessor.swift
 //  tete

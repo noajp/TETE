@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ProfileSinglePostView.swift
+// Purpose: Profile-specific single post view with scroll navigation (スクロールナビゲーション付きプロフィール専用シングル投稿ビュー)
+// Path: tete/Features/MyPage/Views/ProfileSinglePostView.swift
+//======================================================================
 import SwiftUI
 
 @MainActor

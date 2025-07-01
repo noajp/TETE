@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ForceReloadView.swift
+// Purpose: SwiftUI view component (ForceReloadViewビューコンポーネント)
+// Path: tete/Features/AppEntry/ForceReloadView.swift
+//======================================================================
 //
 //  ForceReloadView.swift
 //  tete

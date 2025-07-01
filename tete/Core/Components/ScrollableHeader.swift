@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ScrollableHeader.swift
+// Purpose: ScrollableHeader implementation (ScrollableHeaderの実装)
+// Path: tete/Core/Components/ScrollableHeader.swift
+//======================================================================
 import SwiftUI
 
 // MARK: - Scrollable Header with Auto Hide/Show

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - EnhancedFilterSelectionView.swift
+// Purpose: SwiftUI view component (EnhancedFilterSelectionViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/EnhancedFilterSelectionView.swift
+//======================================================================
 //
 //  EnhancedFilterSelectionView.swift
 //  tete

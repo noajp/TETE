@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ArticleTypeSelectionView.swift
+// Purpose: SwiftUI view component (ArticleTypeSelectionViewビューコンポーネント)
+// Path: tete/Features/Articles/Views/ArticleTypeSelectionView.swift
+//======================================================================
 //
 //  ArticleTypeSelectionView.swift
 //  tete

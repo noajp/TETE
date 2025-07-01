@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - MinimalDesignSystem.swift
+// Purpose: Design system with colors, typography, and spacing (色、タイポグラフィ、スペーシングのデザインシステム)
+// Path: tete/Core/Design/MinimalDesignSystem.swift
+//======================================================================
 //
 //  MinimalDesignSystem.swift
 //  tete

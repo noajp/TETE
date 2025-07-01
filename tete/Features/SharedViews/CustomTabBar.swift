@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - CustomTabBar.swift
+// Purpose: Custom tab bar with dynamic icons and navigation (動的アイコンとナビゲーション機能付きカスタムタブバー)
+// Path: tete/Features/SharedViews/CustomTabBar.swift
+//======================================================================
 import SwiftUI
 
 struct CustomTabBar: View {

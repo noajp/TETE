@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ImageCacheManager.swift
+// Purpose: Manager class for system operations (ImageCacheManagerのシステム操作管理クラス)
+// Path: tete/Core/Performance/ImageCacheManager.swift
+//======================================================================
 //
 //  ImageCacheManager.swift
 //  tete

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ModernPhotoEditorView.swift
+// Purpose: SwiftUI view component (ModernPhotoEditorViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/ModernPhotoEditorView.swift
+//======================================================================
 //
 //  ModernPhotoEditorView.swift
 //  tete

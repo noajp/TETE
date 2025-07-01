@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ContentModerationManager.swift
+// Purpose: Manager class for system operations (ContentModerationManagerのシステム操作管理クラス)
+// Path: tete/Core/Legal/ContentModerationManager.swift
+//======================================================================
 //
 //  ContentModerationManager.swift
 //  tete

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - CustomCameraView.swift
+// Purpose: SwiftUI view component (CustomCameraViewビューコンポーネント)
+// Path: tete/Features/Camera/Views/CustomCameraView.swift
+//======================================================================
 //
 //  CustomCameraView.swift
 //  tete

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - PresetModels.swift
+// Purpose: Data models and structures (PresetModelsのデータモデルと構造)
+// Path: tete/Features/PhotoEditor/Models/PresetModels.swift
+//======================================================================
 //
 //  PresetModels.swift
 //  tete

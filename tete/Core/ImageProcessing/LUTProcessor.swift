@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - LUTProcessor.swift
+// Purpose: LUTProcessor implementation (LUTProcessorの実装)
+// Path: tete/Core/ImageProcessing/LUTProcessor.swift
+//======================================================================
 //
 //  LUTProcessor.swift
 //  tete

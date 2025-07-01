@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - MagazineView.swift
+// Purpose: SwiftUI view component (MagazineViewビューコンポーネント)
+// Path: tete/Features/Magazine/Views/MagazineView.swift
+//======================================================================
 import SwiftUI
 import Foundation
 

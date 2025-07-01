@@ -1,7 +1,7 @@
 //======================================================================
-// MARK: - MyPageViewModel
-// Purpose: Manages the user's profile page state and operations
-// Dependencies: UserRepository, AuthManager
+// MARK: - MyPageViewModel.swift
+// Purpose: Manages the user's profile page state and operations (ユーザープロフィールページの状態と操作を管理)
+// Path: tete/Features/MyPage/ViewModels/MyPageViewModel.swift
 //======================================================================
 import SwiftUI
 import Combine

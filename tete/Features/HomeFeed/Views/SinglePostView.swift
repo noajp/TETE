@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - SinglePostView.swift
+// Purpose: SwiftUI view component (SinglePostViewビューコンポーネント)
+// Path: tete/Features/HomeFeed/Views/SinglePostView.swift
+//======================================================================
 import SwiftUI
 
 @MainActor

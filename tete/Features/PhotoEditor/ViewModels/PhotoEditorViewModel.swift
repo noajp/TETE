@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - PhotoEditorViewModel.swift
+// Purpose: View model for data and business logic (PhotoEditorViewModelのデータとビジネスロジック)
+// Path: tete/Features/PhotoEditor/ViewModels/PhotoEditorViewModel.swift
+//======================================================================
 //
 //  PhotoEditorViewModel.swift
 //  tete

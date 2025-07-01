@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ArticlePublishSettingsView.swift
+// Purpose: SwiftUI view component (ArticlePublishSettingsViewビューコンポーネント)
+// Path: tete/Features/Article/Views/ArticlePublishSettingsView.swift
+//======================================================================
 //
 //  ArticlePublishSettingsView.swift
 //  tete

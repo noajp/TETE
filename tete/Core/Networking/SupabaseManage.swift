@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - SupabaseManage.swift
+// Purpose: SupabaseManage implementation (SupabaseManageの実装)
+// Path: tete/Core/Networking/SupabaseManage.swift
+//======================================================================
 
 //======================================================================
 // MARK: - Secure SupabaseManager.swift

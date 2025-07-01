@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ButtonStyles.swift
+// Purpose: ButtonStyles implementation (ButtonStylesの実装)
+// Path: tete/Core/Styles/ButtonStyles.swift
+//======================================================================
 import SwiftUI
 
 // MARK: - Unified Text Button Styles

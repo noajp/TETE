@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - RealtimeMessageService.swift
+// Purpose: Service layer for business operations (RealtimeMessageServiceのビジネス操作サービス層)
+// Path: tete/Core/Services/RealtimeMessageService.swift
+//======================================================================
 //
 //  RealtimeMessageService.swift
 //  tete

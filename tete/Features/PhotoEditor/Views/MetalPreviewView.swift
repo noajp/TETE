@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - MetalPreviewView.swift
+// Purpose: SwiftUI view component (MetalPreviewViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/MetalPreviewView.swift
+//======================================================================
 //
 //  MetalPreviewView.swift
 //  tete

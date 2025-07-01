@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ArticleEditorNavigationView.swift
+// Purpose: SwiftUI view component (ArticleEditorNavigationViewビューコンポーネント)
+// Path: tete/Features/Article/Views/ArticleEditorNavigationView.swift
+//======================================================================
 //
 //  ArticleEditorNavigationView.swift
 //  tete

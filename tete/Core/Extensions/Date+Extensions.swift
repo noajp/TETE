@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - Date+Extensions.swift
+// Purpose: Swift extensions for enhanced functionality (Date+Extensionsの機能拡張)
+// Path: tete/Core/Extensions/Date+Extensions.swift
+//======================================================================
 import Foundation
 
 extension Date {

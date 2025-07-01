@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - FilterDefinitions.swift
+// Purpose: FilterDefinitions implementation (FilterDefinitionsの実装)
+// Path: tete/Core/ImageProcessing/FilterDefinitions.swift
+//======================================================================
 //
 //  FilterDefinitions.swift
 //  tete

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - AdvancedFilterManager.swift
+// Purpose: Manager class for system operations (AdvancedFilterManagerのシステム操作管理クラス)
+// Path: tete/Core/ImageProcessing/AdvancedFilterManager.swift
+//======================================================================
 //
 //  AdvancedFilterManager.swift
 //  tete

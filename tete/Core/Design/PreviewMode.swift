@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - PreviewMode.swift
+// Purpose: PreviewMode implementation (PreviewModeの実装)
+// Path: tete/Core/Design/PreviewMode.swift
+//======================================================================
 //
 //  PreviewMode.swift
 //  tete

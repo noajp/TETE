@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - CreatePostNavigationView.swift
+// Purpose: SwiftUI view component (CreatePostNavigationViewビューコンポーネント)
+// Path: tete/Features/CreatePost/Views/CreatePostNavigationView.swift
+//======================================================================
 //
 //  CreatePostNavigationView.swift
 //  tete

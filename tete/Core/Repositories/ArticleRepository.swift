@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ArticleRepository.swift
+// Purpose: Data repository with CRUD operations (ArticleRepositoryのCRUD操作データリポジトリ)
+// Path: tete/Core/Repositories/ArticleRepository.swift
+//======================================================================
 //
 //  ArticleRepository.swift
 //  tete

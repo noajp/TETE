@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ImageProcessor.swift
+// Purpose: ImageProcessor implementation (ImageProcessorの実装)
+// Path: tete/Core/ImageProcessing/ImageProcessor.swift
+//======================================================================
 //
 //  ImageProcessor.swift
 //  tete

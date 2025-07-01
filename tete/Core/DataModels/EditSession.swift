@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - EditSession.swift
+// Purpose: EditSession implementation (EditSessionの実装)
+// Path: tete/Core/DataModels/EditSession.swift
+//======================================================================
 //
 //  EditSession.swift
 //  tete

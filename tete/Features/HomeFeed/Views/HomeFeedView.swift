@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - HomeFeedView.swift
+// Purpose: Main feed displaying posts in grid or single view (グリッドまたはシングルビューで投稿を表示するメインフィード)
+// Path: tete/Features/HomeFeed/Views/HomeFeedView.swift
+//======================================================================
 import SwiftUI
 import Combine
 

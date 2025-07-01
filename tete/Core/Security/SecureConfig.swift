@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - SecureConfig.swift
+// Purpose: SecureConfig implementation (SecureConfigの実装)
+// Path: tete/Core/Security/SecureConfig.swift
+//======================================================================
 import Foundation
 import Security
 

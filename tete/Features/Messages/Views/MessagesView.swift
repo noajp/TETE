@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - MessagesView.swift
+// Purpose: Messages interface with conversation list and real-time messaging (会話リストとリアルタイムメッセージングのメッセージインターフェース)
+// Path: tete/Features/Messages/Views/MessagesView.swift
+//======================================================================
 import SwiftUI
 
 struct MessagesView: View {

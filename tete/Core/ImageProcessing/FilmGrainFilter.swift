@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - FilmGrainFilter.swift
+// Purpose: FilmGrainFilter implementation (FilmGrainFilterの実装)
+// Path: tete/Core/ImageProcessing/FilmGrainFilter.swift
+//======================================================================
 //
 //  FilmGrainFilter.swift
 //  tete

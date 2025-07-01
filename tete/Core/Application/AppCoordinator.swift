@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - AppCoordinator.swift
+// Purpose: AppCoordinator implementation (AppCoordinatorの実装)
+// Path: tete/Core/Application/AppCoordinator.swift
+//======================================================================
 //
 //  AppCoordinator.swift
 //  tete

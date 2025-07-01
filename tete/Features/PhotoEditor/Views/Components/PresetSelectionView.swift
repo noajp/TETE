@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - PresetSelectionView.swift
+// Purpose: SwiftUI view component (PresetSelectionViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/Components/PresetSelectionView.swift
+//======================================================================
 //
 //  PresetSelectionView.swift
 //  tete

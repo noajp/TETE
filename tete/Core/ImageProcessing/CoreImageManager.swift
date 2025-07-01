@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - CoreImageManager.swift
+// Purpose: Manager class for system operations (CoreImageManagerのシステム操作管理クラス)
+// Path: tete/Core/ImageProcessing/CoreImageManager.swift
+//======================================================================
 //
 //  CoreImageManager.swift
 //  tete

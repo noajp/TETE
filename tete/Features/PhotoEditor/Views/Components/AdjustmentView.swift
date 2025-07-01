@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - AdjustmentView.swift
+// Purpose: SwiftUI view component (AdjustmentViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/Components/AdjustmentView.swift
+//======================================================================
 //
 //  AdjustmentView.swift
 //  tete

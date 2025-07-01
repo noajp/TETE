@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ArticleEditorViewModel.swift
+// Purpose: View model for data and business logic (ArticleEditorViewModelのデータとビジネスロジック)
+// Path: tete/Features/Article/ViewModels/ArticleEditorViewModel.swift
+//======================================================================
 //
 //  ArticleEditorViewModel.swift
 //  tete

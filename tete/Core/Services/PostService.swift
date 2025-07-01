@@ -1,6 +1,7 @@
 //======================================================================
-// MARK: - PostService.swift（写真共有アプリ版）
-// Path: foodai/Core/Services/PostService.swift
+// MARK: - PostService.swift
+// Purpose: Handles post-related operations including CRUD operations and like management (投稿関連の操作：CRUD操作といいね管理)
+// Path: tete/Core/Services/PostService.swift
 //======================================================================
 import Foundation
 import Supabase

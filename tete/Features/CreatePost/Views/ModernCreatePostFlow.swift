@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ModernCreatePostFlow.swift
+// Purpose: ModernCreatePostFlow implementation (ModernCreatePostFlowの実装)
+// Path: tete/Features/CreatePost/Views/ModernCreatePostFlow.swift
+//======================================================================
 //
 //  ModernCreatePostFlow.swift
 //  tete

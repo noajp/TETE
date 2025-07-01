@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ExportOptionsView.swift
+// Purpose: SwiftUI view component (ExportOptionsViewビューコンポーネント)
+// Path: tete/Features/PhotoEditor/Views/ExportOptionsView.swift
+//======================================================================
 //
 //  ExportOptionsView.swift
 //  tete

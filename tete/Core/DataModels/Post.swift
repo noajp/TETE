@@ -1,6 +1,7 @@
 //======================================================================
-// MARK: - Post.swift（写真共有アプリ版）
-// Path: foodai/Core/DataModels/Post.swift
+// MARK: - Post.swift
+// Purpose: Data model for posts with media content, location, and social features (メディアコンテンツ、位置情報、ソーシャル機能を持つ投稿のデータモデル)
+// Path: tete/Core/DataModels/Post.swift
 //======================================================================
 import Foundation
 import CoreTransferable

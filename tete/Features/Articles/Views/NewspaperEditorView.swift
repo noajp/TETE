@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - NewspaperEditorView.swift
+// Purpose: SwiftUI view component (NewspaperEditorViewビューコンポーネント)
+// Path: tete/Features/Articles/Views/NewspaperEditorView.swift
+//======================================================================
 //
 //  NewspaperEditorView.swift
 //  tete

@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - PhotoPickerView.swift
+// Purpose: SwiftUI view component (PhotoPickerViewビューコンポーネント)
+// Path: tete/Features/CreatePost/Views/PhotoPickerView.swift
+//======================================================================
 //
 //  PhotoPickerView.swift
 //  tete

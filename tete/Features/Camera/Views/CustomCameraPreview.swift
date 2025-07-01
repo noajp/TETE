@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - CustomCameraPreview.swift
+// Purpose: CustomCameraPreview implementation (CustomCameraPreviewの実装)
+// Path: tete/Features/Camera/Views/CustomCameraPreview.swift
+//======================================================================
 //
 //  CustomCameraPreview.swift
 //  tete

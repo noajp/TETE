@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - ArticleDetailViewModel.swift
+// Purpose: View model for data and business logic (ArticleDetailViewModelのデータとビジネスロジック)
+// Path: tete/Features/Articles/ViewModels/ArticleDetailViewModel.swift
+//======================================================================
 //
 //  ArticleDetailViewModel.swift
 //  tete

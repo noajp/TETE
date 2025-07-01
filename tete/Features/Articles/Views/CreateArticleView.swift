@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - CreateArticleView.swift
+// Purpose: SwiftUI view component (CreateArticleViewビューコンポーネント)
+// Path: tete/Features/Articles/Views/CreateArticleView.swift
+//======================================================================
 //
 //  CreateArticleView.swift
 //  tete

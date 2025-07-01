@@ -1,3 +1,8 @@
+//======================================================================
+// MARK: - DataProtectionManager.swift
+// Purpose: Manager class for system operations (DataProtectionManagerのシステム操作管理クラス)
+// Path: tete/Core/Legal/DataProtectionManager.swift
+//======================================================================
 //
 //  DataProtectionManager.swift
 //  tete
