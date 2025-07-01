@@ -17,26 +17,27 @@ struct SinglePostView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    // すべての投稿を元の順序で表示
-                    ForEach(viewModel.posts) { post in
+                    // 選択された投稿を最初に表示
+                    SingleCardView(post: initialPost) { post in
+                        Task {
+                            await viewModel.toggleLike(for: post)
+                        }
+                    }
+                    .id(initialPost.id)
+                    
+                    // それ以外の投稿を下に表示
+                    ForEach(viewModel.posts.filter { $0.id != initialPost.id }) { post in
                         SingleCardView(post: post) { post in
                             Task {
                                 await viewModel.toggleLike(for: post)
                             }
                         }
-                        .id(post.id)
                     }
                 }
             }
             .onAppear {
                 // シングルビューモードに切り替え
                 showGridMode = false
-                // 選択された投稿までスクロール
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation {
-                        proxy.scrollTo(initialPost.id, anchor: .top)
-                    }
-                }
             }
             .onChange(of: scrollToTop) { _, newValue in
                 if newValue {
