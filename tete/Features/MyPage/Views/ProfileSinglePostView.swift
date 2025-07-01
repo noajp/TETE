@@ -10,17 +10,20 @@ struct ProfileSinglePostView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    // 選択された投稿を最初に表示
-                    SingleCardView(post: initialPost) { post in
-                        // プロフィールページなのでlike機能は無効
-                    }
-                    .id(initialPost.id)
-                    
-                    // それ以外の投稿を下に表示
-                    ForEach(allPosts.filter { $0.id != initialPost.id }) { post in
+                    // すべての投稿を元の順序で表示
+                    ForEach(allPosts) { post in
                         SingleCardView(post: post) { post in
                             // プロフィールページなのでlike機能は無効
                         }
+                        .id(post.id)
+                    }
+                }
+            }
+            .onAppear {
+                // 選択された投稿までスクロール
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation {
+                        proxy.scrollTo(initialPost.id, anchor: .top)
                     }
                 }
             }
