@@ -12,6 +12,8 @@ struct MyPageView: View {
     @State private var showEditProfile = false
     @State private var showSettings = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedPost: Post?
+    @State private var navigateToSingleView: Bool = false
     
     var body: some View {
         ScrollableHeaderView(
@@ -34,7 +36,11 @@ struct MyPageView: View {
                 
                 
                 // Posts Tab Section
-                ModernPostsTabSection(posts: viewModel.userPosts)
+                ModernPostsTabSection(
+                    posts: viewModel.userPosts,
+                    selectedPost: $selectedPost,
+                    navigateToSingleView: $navigateToSingleView
+                )
             }
             .padding(.vertical, MinimalDesign.Spacing.md)
             .padding(.bottom, 100) // タブバー分のスペース
@@ -53,6 +59,14 @@ struct MyPageView: View {
             .onChange(of: selectedPhotoItem) { _, newItem in
                 Task {
                     await viewModel.updateProfilePhoto(item: newItem)
+                }
+            }
+            .navigationDestination(isPresented: $navigateToSingleView) {
+                if let selectedPost = selectedPost {
+                    ProfileSinglePostView(
+                        initialPost: selectedPost,
+                        allPosts: viewModel.userPosts
+                    )
                 }
             }
     }
@@ -185,6 +199,8 @@ struct StatItem: View {
 
 struct ModernPostsTabSection: View {
     let posts: [Post]
+    @Binding var selectedPost: Post?
+    @Binding var navigateToSingleView: Bool
     @State private var selectedTab = 0
     @State private var showGridMode = false
     
@@ -222,10 +238,16 @@ struct ModernPostsTabSection: View {
                         .frame(height: 300)
                     } else {
                         if showGridMode {
-                            GridView(posts: posts)
+                            GridView(posts: posts, onPostTapped: { post in
+                                selectedPost = post
+                                navigateToSingleView = true
+                            })
                                 .transition(.opacity)
                         } else {
-                            SingleCardGridView(posts: posts)
+                            SingleCardGridView(posts: posts, onPostTapped: { post in
+                                selectedPost = post
+                                navigateToSingleView = true
+                            })
                                 .transition(.opacity)
                         }
                     }
@@ -295,17 +317,25 @@ struct EmptyStateView: View {
 
 struct SingleCardGridView: View {
     let posts: [Post]
+    let onPostTapped: ((Post) -> Void)?
     let columns = [
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5)
     ]
     
+    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil) {
+        self.posts = posts
+        self.onPostTapped = onPostTapped
+    }
+    
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 1.5) {
                 ForEach(posts) { post in
-                    ProfileSingleCardView(post: post)
+                    ProfileSingleCardView(post: post, onTap: {
+                        onPostTapped?(post)
+                    })
                 }
             }
         }
@@ -314,32 +344,43 @@ struct SingleCardGridView: View {
 
 struct ProfileSingleCardView: View {
     let post: Post
+    let onTap: (() -> Void)?
     @State private var image: UIImage?
     
+    init(post: Post, onTap: (() -> Void)? = nil) {
+        self.post = post
+        self.onTap = onTap
+    }
+    
     var body: some View {
-        GeometryReader { geometry in
-            Group {
-                if let image = image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: geometry.size.width, height: geometry.size.width)
-                        .clipped()
-                } else {
-                    Rectangle()
-                        .fill(MinimalDesign.Colors.tertiaryBackground)
-                        .frame(width: geometry.size.width, height: geometry.size.width)
-                        .overlay(
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: MinimalDesign.Colors.secondary))
-                        )
+        Button(action: {
+            onTap?()
+        }) {
+            GeometryReader { geometry in
+                Group {
+                    if let image = image {
+                        Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .clipped()
+                    } else {
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiaryBackground)
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .overlay(
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: MinimalDesign.Colors.secondary))
+                            )
+                    }
+                }
+                .onAppear {
+                    loadImage()
                 }
             }
-            .onAppear {
-                loadImage()
-            }
+            .aspectRatio(1, contentMode: .fit)
         }
-        .aspectRatio(1, contentMode: .fit)
+        .buttonStyle(PlainButtonStyle())
     }
     
     private func loadImage() {
@@ -358,17 +399,25 @@ struct ProfileSingleCardView: View {
 // Classic Grid View
 struct GridView: View {
     let posts: [Post]
+    let onPostTapped: ((Post) -> Void)?
     let columns = [
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5)
     ]
     
+    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil) {
+        self.posts = posts
+        self.onPostTapped = onPostTapped
+    }
+    
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 1.5) {
                 ForEach(posts) { post in
-                    GridItemView(post: post)
+                    GridItemView(post: post, onTap: {
+                        onPostTapped?(post)
+                    })
                 }
             }
         }
@@ -377,22 +426,33 @@ struct GridView: View {
 
 struct GridItemView: View {
     let post: Post
+    let onTap: (() -> Void)?
+    
+    init(post: Post, onTap: (() -> Void)? = nil) {
+        self.post = post
+        self.onTap = onTap
+    }
     
     var body: some View {
-        GeometryReader { geometry in
-            AsyncImage(url: URL(string: post.mediaUrl)) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: geometry.size.width)
-                    .clipped()
-            } placeholder: {
-                Rectangle()
-                    .fill(MinimalDesign.Colors.tertiaryBackground)
-                    .frame(width: geometry.size.width, height: geometry.size.width)
+        Button(action: {
+            onTap?()
+        }) {
+            GeometryReader { geometry in
+                AsyncImage(url: URL(string: post.mediaUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.width)
+                        .clipped()
+                } placeholder: {
+                    Rectangle()
+                        .fill(MinimalDesign.Colors.tertiaryBackground)
+                        .frame(width: geometry.size.width, height: geometry.size.width)
+                }
             }
+            .aspectRatio(1, contentMode: .fit)
         }
-        .aspectRatio(1, contentMode: .fit)
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
