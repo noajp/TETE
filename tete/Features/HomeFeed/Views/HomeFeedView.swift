@@ -6,8 +6,10 @@ struct HomeFeedView: View {
     @StateObject private var viewModel = HomeFeedViewModel()
     @Binding var showGridMode: Bool
     @Binding var showingCreatePost: Bool
+    @Binding var isInSingleView: Bool
     @State private var headerOffset: CGFloat = 0
     @State private var selectedPost: Post?
+    @State private var navigateToSingleView: Bool = false
     
     private let headerHeight: CGFloat = 56
     
@@ -52,7 +54,7 @@ struct HomeFeedView: View {
                         // Posts Display - Grid or List mode
                         if showGridMode {
                             // Custom Grid View with alternating layout
-                            CustomGridView(posts: viewModel.posts, showGridMode: $showGridMode, selectedPost: $selectedPost)
+                            CustomGridView(posts: viewModel.posts, showGridMode: $showGridMode, selectedPost: $selectedPost, navigateToSingleView: $navigateToSingleView)
                         } else {
                             // List View (default)
                             if let selectedPost = selectedPost {
@@ -89,6 +91,21 @@ struct HomeFeedView: View {
             .coordinateSpace(name: "scroll")
             .refreshable {
                 await viewModel.forceRefreshPosts()
+            }
+        }
+        .navigationDestination(isPresented: $navigateToSingleView) {
+            if let selectedPost = selectedPost {
+                SinglePostView(
+                    initialPost: selectedPost,
+                    viewModel: viewModel,
+                    showGridMode: $showGridMode
+                )
+                .onAppear {
+                    isInSingleView = true
+                }
+                .onDisappear {
+                    isInSingleView = false
+                }
             }
         }
             
@@ -258,6 +275,7 @@ struct CustomGridView: View {
     let posts: [Post]
     @Binding var showGridMode: Bool
     @Binding var selectedPost: Post?
+    @Binding var navigateToSingleView: Bool
     
     var body: some View {
         LazyVStack(spacing: 1.5) {
@@ -269,13 +287,13 @@ struct CustomGridView: View {
                     // 奇数段: 横長写真1枚 + 正方形写真1枚
                     OddRowView(posts: group) { post in
                         selectedPost = post
-                        showGridMode = false
+                        navigateToSingleView = true
                     }
                 } else {
                     // 偶数段: 正方形写真6枚
                     EvenRowView(posts: group) { post in
                         selectedPost = post
-                        showGridMode = false
+                        navigateToSingleView = true
                     }
                 }
             }
@@ -472,6 +490,10 @@ struct GridImageView: View {
 
 struct HomeFeedView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeFeedView(showGridMode: .constant(false), showingCreatePost: .constant(false))
+        HomeFeedView(
+            showGridMode: .constant(false), 
+            showingCreatePost: .constant(false),
+            isInSingleView: .constant(false)
+        )
     }
 }

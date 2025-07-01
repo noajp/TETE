@@ -140,7 +140,7 @@ struct ModernProfileSection: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.horizontal, MinimalDesign.Spacing.sm)
             
             // Bio Section
             if let bio = profile?.bio, !bio.isEmpty {
@@ -150,7 +150,7 @@ struct ModernProfileSection: View {
                     .multilineTextAlignment(.leading)
                     .lineLimit(3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, MinimalDesign.Spacing.md)
+                    .padding(.horizontal, MinimalDesign.Spacing.sm)
             }
             
             // Stats Row
@@ -159,7 +159,7 @@ struct ModernProfileSection: View {
                 StatItem(value: followersCount, label: "followers")
                 StatItem(value: 0, label: "following") // TODO: Add following count
             }
-            .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.horizontal, MinimalDesign.Spacing.sm)
         }
         .padding(.vertical, MinimalDesign.Spacing.lg)
         .background(MinimalDesign.Colors.background)
@@ -204,7 +204,7 @@ struct ModernPostsTabSection: View {
                     action: { selectedTab = 1 }
                 )
             }
-            .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.horizontal, MinimalDesign.Spacing.sm)
             
             Divider()
                 .padding(.top, MinimalDesign.Spacing.xs)
@@ -407,7 +407,7 @@ struct MagazineView: View {
                     MagazinePostCard(post: post)
                 }
             }
-            .padding(.horizontal, MinimalDesign.Spacing.md)
+            .padding(.horizontal, MinimalDesign.Spacing.sm)
         }
     }
 }

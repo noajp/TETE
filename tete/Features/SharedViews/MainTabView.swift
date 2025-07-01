@@ -9,6 +9,7 @@ struct MainTabView: View {
     @State private var showingCreatePost = false
     @State private var showGridMode = false
     @State private var pageSelection = 1  // 0: Camera, 1: Feed
+    @State private var isInSingleView = false
     @StateObject private var postStatusManager = PostStatusManager.shared
     
     var body: some View {
@@ -25,7 +26,11 @@ struct MainTabView: View {
                     switch selectedTab {
                     case 0:
                         UnifiedNavigationView {
-                            HomeFeedView(showGridMode: $showGridMode, showingCreatePost: $showingCreatePost)
+                            HomeFeedView(
+                                showGridMode: $showGridMode, 
+                                showingCreatePost: $showingCreatePost,
+                                isInSingleView: $isInSingleView
+                            )
                         }
                     case 1:
                         UnifiedNavigationView {
@@ -99,7 +104,8 @@ struct MainTabView: View {
                         unreadMessageCount: 0,
                         onCreatePost: {
                             showingCreatePost = true
-                        }
+                        },
+                        isInSingleView: isInSingleView
                     )
                 }
             }

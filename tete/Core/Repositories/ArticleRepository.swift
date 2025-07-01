@@ -22,7 +22,7 @@ class ArticleRepository: ObservableObject {
         let response: BlogArticle = try await supabase
             .from("articles")
             .insert(request)
-            .select("*, user:profiles(*)")
+            .select("*")
             .single()
             .execute()
             .value
@@ -37,7 +37,7 @@ class ArticleRepository: ObservableObject {
             .from("articles")
             .update(request)
             .eq("id", value: id)
-            .select("*, user:profiles(*)")
+            .select("*")
             .single()
             .execute()
             .value
@@ -77,33 +77,38 @@ class ArticleRepository: ObservableObject {
     
     /// 公開済み記事一覧を取得
     func getPublishedArticles(limit: Int = 20, offset: Int = 0) async throws -> [BlogArticle] {
-        let query = """
-            *,
-            user:profiles(id, username, display_name, avatar_url),
-            is_liked_by_me:article_likes!left(user_id)
-        """
-        
         let response: [BlogArticle] = try await supabase
             .from("articles")
-            .select(query)
+            .select("*")
             .eq("status", value: ArticleStatus.published.rawValue)
             .order("published_at", ascending: false)
             .range(from: offset, to: offset + limit - 1)
             .execute()
             .value
         
-        return response.map { article in
-            var updatedArticle = article
-            updatedArticle.isLikedByMe = checkIfLiked(article: article)
-            return updatedArticle
+        // Fetch user profiles separately for each article
+        let articlesWithUsers = await withTaskGroup(of: BlogArticle.self, returning: [BlogArticle].self) { group in
+            for article in response {
+                group.addTask {
+                    await self.fetchUserForArticle(article)
+                }
+            }
+            
+            var result: [BlogArticle] = []
+            for await articleWithUser in group {
+                result.append(articleWithUser)
+            }
+            return result
         }
+        
+        return articlesWithUsers
     }
     
     /// 特定ユーザーの記事一覧を取得
     func getUserArticles(userId: String, status: ArticleStatus? = nil) async throws -> [BlogArticle] {
         var baseQuery = supabase
             .from("articles")
-            .select("*, user:profiles(id, username, display_name, avatar_url)")
+            .select("*")
             .eq("user_id", value: userId)
         
         if let status = status {
@@ -115,7 +120,22 @@ class ArticleRepository: ObservableObject {
             .execute()
             .value
         
-        return response
+        // Fetch user profiles separately
+        let articlesWithUsers = await withTaskGroup(of: BlogArticle.self, returning: [BlogArticle].self) { group in
+            for article in response {
+                group.addTask {
+                    await self.fetchUserForArticle(article)
+                }
+            }
+            
+            var result: [BlogArticle] = []
+            for await articleWithUser in group {
+                result.append(articleWithUser)
+            }
+            return result
+        }
+        
+        return articlesWithUsers
     }
     
     /// 記事詳細を取得
@@ -123,22 +143,18 @@ class ArticleRepository: ObservableObject {
         // ビュー数を増加
         try await recordArticleView(articleId: id)
         
-        let query = """
-            *,
-            user:profiles(id, username, display_name, avatar_url),
-            is_liked_by_me:article_likes!left(user_id)
-        """
-        
         let response: BlogArticle = try await supabase
             .from("articles")
-            .select(query)
+            .select("*")
             .eq("id", value: id)
             .single()
             .execute()
             .value
         
-        var updatedArticle = response
-        updatedArticle.isLikedByMe = checkIfLiked(article: response)
+        // Fetch user profile separately
+        let articleWithUser = await fetchUserForArticle(response)
+        var updatedArticle = articleWithUser
+        updatedArticle.isLikedByMe = checkIfLiked(article: articleWithUser)
         return updatedArticle
     }
     
@@ -146,7 +162,7 @@ class ArticleRepository: ObservableObject {
     func getArticlesByCategory(_ category: String, limit: Int = 20) async throws -> [BlogArticle] {
         let response: [BlogArticle] = try await supabase
             .from("articles")
-            .select("*, user:profiles(id, username, display_name, avatar_url)")
+            .select("*")
             .eq("status", value: ArticleStatus.published.rawValue)
             .eq("category", value: category)
             .order("published_at", ascending: false)
@@ -161,7 +177,7 @@ class ArticleRepository: ObservableObject {
     func searchArticlesByTag(_ tag: String, limit: Int = 20) async throws -> [BlogArticle] {
         let response: [BlogArticle] = try await supabase
             .from("articles")
-            .select("*, user:profiles(id, username, display_name, avatar_url)")
+            .select("*")
             .eq("status", value: ArticleStatus.published.rawValue)
             .contains("tags", value: [tag])
             .order("published_at", ascending: false)
@@ -176,7 +192,7 @@ class ArticleRepository: ObservableObject {
     func searchArticles(query: String, limit: Int = 20) async throws -> [BlogArticle] {
         let response: [BlogArticle] = try await supabase
             .from("articles")
-            .select("*, user:profiles(id, username, display_name, avatar_url)")
+            .select("*")
             .eq("status", value: ArticleStatus.published.rawValue)
             .or("title.ilike.%\(query)%,content.ilike.%\(query)%")
             .order("published_at", ascending: false)
@@ -253,6 +269,25 @@ class ArticleRepository: ObservableObject {
     }
     
     // MARK: - Helper Methods
+    
+    private func fetchUserForArticle(_ article: BlogArticle) async -> BlogArticle {
+        do {
+            let userProfile: UserProfile = try await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", value: article.userId)
+                .single()
+                .execute()
+                .value
+            
+            var updatedArticle = article
+            updatedArticle.user = userProfile
+            return updatedArticle
+        } catch {
+            print("⚠️ Failed to fetch user for article \(article.id): \(error)")
+            return article
+        }
+    }
     
     private func checkIfLiked(article: BlogArticle) -> Bool {
         guard AuthManager.shared.currentUser?.id != nil else {

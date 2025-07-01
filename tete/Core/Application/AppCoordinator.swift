@@ -16,6 +16,7 @@ final class AppCoordinator: ObservableObject {
     @Published var currentTab: MainTab = .home
     @Published var showGridMode = false
     @Published var showingCreatePost = false
+    @Published var isInSingleView = false
     
     // MARK: - Services
     private let imageCache = ImageCacheManager.shared
@@ -179,7 +180,7 @@ struct EnhancedMainTabView: View {
     var body: some View {
         TabView(selection: $coordinator.currentTab) {
             // Home Feed
-            HomeFeedView(showGridMode: $coordinator.showGridMode, showingCreatePost: $coordinator.showingCreatePost)
+            HomeFeedView(showGridMode: $coordinator.showGridMode, showingCreatePost: $coordinator.showingCreatePost, isInSingleView: $coordinator.isInSingleView)
                 .tabItem {
                     Image(systemName: MainTab.home.iconName)
                     Text(MainTab.home.title)

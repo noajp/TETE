@@ -29,7 +29,7 @@ struct UnifiedHeader: View {
                 Text(title)
                     .font(.system(size: 28, weight: .light))
                     .foregroundColor(isDarkMode ? .white : MinimalDesign.Colors.primary)
-                    .padding(.leading, 16)
+                    .padding(.leading, 8)
                 
                 Spacer()
                 
@@ -43,7 +43,7 @@ struct UnifiedHeader: View {
                             .foregroundColor(isDarkMode ? .white : MinimalDesign.Colors.primary)
                     }
                     .frame(width: 44, height: 44)
-                    .padding(.trailing, 16)
+                    .padding(.trailing, 8)
                 }
                 
                 // Right button area
@@ -57,11 +57,11 @@ struct UnifiedHeader: View {
                             .foregroundColor(isDarkMode ? .white : MinimalDesign.Colors.primary)
                     }
                     .frame(width: 44, height: 44)
-                    .padding(.trailing, 4)
+                    .padding(.trailing, 2)
                 }
             }
-            .padding(.horizontal, MinimalDesign.Spacing.md)
-            .padding(.vertical, MinimalDesign.Spacing.sm)
+            .padding(.horizontal, MinimalDesign.Spacing.sm)
+            .padding(.vertical, MinimalDesign.Spacing.xs)
             .padding(.top, isDarkMode ? 8 : -15)
             .background(isDarkMode ? Color.black.opacity(0.3) : MinimalDesign.Colors.background)
         }

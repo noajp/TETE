@@ -18,6 +18,7 @@ struct BlogArticle: Identifiable, Codable, Hashable {
     let isPremium: Bool
     let coverImageUrl: String?
     let status: ArticleStatus
+    let articleType: ArticleType // 新聞記事 vs 雑誌記事
     let publishedAt: Date?
     let createdAt: Date
     let updatedAt: Date
@@ -41,13 +42,14 @@ struct BlogArticle: Identifiable, Codable, Hashable {
         case isPremium = "is_premium"
         case coverImageUrl = "cover_image_url"
         case status
+        case articleType = "article_type"
         case publishedAt = "published_at"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case viewCount = "view_count"
         case likeCount = "like_count"
         case user
-        case isLikedByMe = "is_liked_by_me"
+        // isLikedByMe is not included in CodingKeys since it's set manually
     }
     
     // MARK: - Hashable Conformance
@@ -77,8 +79,33 @@ enum ArticleStatus: String, Codable, CaseIterable {
     }
 }
 
+// 記事タイプ（新聞記事 vs 雑誌記事）
+enum ArticleType: String, Codable, CaseIterable {
+    case newspaper = "newspaper"
+    case magazine = "magazine"
+    
+    var displayName: String {
+        switch self {
+        case .newspaper:
+            return "新聞記事"
+        case .magazine:
+            return "雑誌記事"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .newspaper:
+            return "newspaper"
+        case .magazine:
+            return "magazine"
+        }
+    }
+}
+
 // 記事作成用のリクエストモデル
 struct CreateArticleRequest: Codable {
+    let userId: String
     let title: String
     let content: String
     let summary: String?
@@ -87,8 +114,10 @@ struct CreateArticleRequest: Codable {
     let isPremium: Bool
     let coverImageUrl: String?
     let status: ArticleStatus
+    let articleType: ArticleType
     
     enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
         case title
         case content
         case summary
@@ -97,6 +126,7 @@ struct CreateArticleRequest: Codable {
         case isPremium = "is_premium"
         case coverImageUrl = "cover_image_url"
         case status
+        case articleType = "article_type"
     }
 }
 

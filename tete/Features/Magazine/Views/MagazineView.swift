@@ -1,8 +1,8 @@
 import SwiftUI
+import Foundation
 
 struct MagazineFeedView: View {
     @StateObject private var viewModel = MagazineViewModel()
-    @State private var selectedCategory: MagazineCategory = .all
     @State private var showingCreatePost = false
     
     var body: some View {
@@ -13,66 +13,73 @@ struct MagazineFeedView: View {
             })
         ) {
             VStack(spacing: 0) {
-                // Category tabs
-                ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 24) {
-                            ForEach(MagazineCategory.allCases, id: \.self) { category in
-                                Button(action: {
-                                    selectedCategory = category
-                                }) {
-                                    VStack(spacing: 4) {
-                                        Text(category.displayName)
-                                            .font(.system(size: 14, weight: selectedCategory == category ? .semibold : .regular))
-                                            .foregroundColor(selectedCategory == category ? MinimalDesign.Colors.primary : MinimalDesign.Colors.secondary)
-                                        
-                                        if selectedCategory == category {
-                                            Rectangle()
-                                                .fill(MinimalDesign.Colors.accentRed)
-                                                .frame(height: 2)
-                                        } else {
-                                            Rectangle()
-                                                .fill(Color.clear)
-                                                .frame(height: 2)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                    }
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
-                    .background(MinimalDesign.Colors.background)
-                    
-                    // Magazine content
+                    // Magazine content - 奇数段は新聞記事、偶数段は雑誌記事
                     LazyVStack(spacing: 0) {
-                        let filteredArticles = viewModel.articles.filter { selectedCategory == .all || $0.category == selectedCategory }
-                        let articleGroups = filteredArticles.chunked(into: 4) // Group by 4 (1 big + 3 small)
+                        let allArticles = viewModel.articles
                         
-                        ForEach(Array(articleGroups.enumerated()), id: \.offset) { groupIndex, group in
+                        // 記事タイプ別に分割
+                        let newspaperArticles = allArticles.filter { $0.article.articleType == .newspaper }
+                        let magazineArticles = allArticles.filter { $0.article.articleType == .magazine }
+                        
+                        // 交互に表示するためのロジック
+                        let maxSections = max(newspaperArticles.count, magazineArticles.count)
+                        
+                        ForEach(0..<maxSections, id: \.self) { sectionIndex in
                             VStack(spacing: 40) {
-                                // First article - big horizontal photo
-                                if let firstArticle = group.first {
-                                    ArticleFormatCard(article: firstArticle)
-                                        .padding(.horizontal, 20)
+                                // 奇数段（新聞記事スタイル）
+                                if sectionIndex < newspaperArticles.count {
+                                    let article = newspaperArticles[sectionIndex]
+                                    VStack(spacing: 16) {
+                                        // セクションヘッダー
+                                        HStack {
+                                            Text("NEWS")
+                                                .font(.system(size: 12, weight: .bold))
+                                                .foregroundColor(.blue)
+                                                .tracking(2)
+                                            
+                                            Rectangle()
+                                                .fill(Color.blue)
+                                                .frame(height: 1)
+                                            
+                                            Spacer()
+                                        }
+                                        .padding(.horizontal, 12)
+                                        
+                                        // 新聞記事風表示
+                                        NavigationLink(destination: ArticleDetailView(article: article.article)) {
+                                            NewspaperStyleCard(article: article)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                        .padding(.horizontal, 12)
+                                    }
                                 }
                                 
-                                // Next 3 articles - small magazine covers
-                                if group.count > 1 {
-                                    HStack(spacing: 12) {
-                                        ForEach(Array(group.dropFirst().prefix(3)), id: \.id) { article in
-                                            MagazineFormatCard(article: article)
+                                // 偶数段（雑誌記事スタイル）
+                                if sectionIndex < magazineArticles.count {
+                                    let article = magazineArticles[sectionIndex]
+                                    VStack(spacing: 16) {
+                                        // セクションヘッダー
+                                        HStack {
+                                            Text("MAGAZINE")
+                                                .font(.system(size: 12, weight: .bold))
+                                                .foregroundColor(.purple)
+                                                .tracking(2)
+                                            
+                                            Rectangle()
+                                                .fill(LinearGradient(colors: [.purple, .pink], startPoint: .leading, endPoint: .trailing))
+                                                .frame(height: 1)
+                                            
+                                            Spacer()
                                         }
+                                        .padding(.horizontal, 12)
                                         
-                                        // Add spacers if less than 3 articles
-                                        if group.count == 2 {
-                                            Spacer().frame(maxWidth: .infinity)
-                                            Spacer().frame(maxWidth: .infinity)
-                                        } else if group.count == 3 {
-                                            Spacer().frame(maxWidth: .infinity)
+                                        // 雑誌記事風表示
+                                        NavigationLink(destination: ArticleDetailView(article: article.article)) {
+                                            MagazineStyleCard(article: article)
                                         }
+                                        .buttonStyle(PlainButtonStyle())
+                                        .padding(.horizontal, 12)
                                     }
-                                    .padding(.horizontal, 20)
                                 }
                             }
                             .padding(.bottom, 40)
@@ -88,31 +95,16 @@ struct MagazineFeedView: View {
             }
         }
         .fullScreenCover(isPresented: $showingCreatePost) {
-            ArticleEditorNavigationView()
+            ArticleTypeSelectionView()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ArticleCreated"))) { _ in
+            Task {
+                await viewModel.loadArticles()
+            }
         }
     }
 }
 
-// Magazine categories
-enum MagazineCategory: String, CaseIterable {
-    case all = "all"
-    case trending = "trending"
-    case fashion = "fashion"
-    case lifestyle = "lifestyle"
-    case culture = "culture"
-    case technology = "technology"
-    
-    var displayName: String {
-        switch self {
-        case .all: return "All"
-        case .trending: return "Trending"
-        case .fashion: return "Fashion"
-        case .lifestyle: return "Lifestyle"
-        case .culture: return "Culture"
-        case .technology: return "Technology"
-        }
-    }
-}
 
 // Article format card (large horizontal photo with text below)
 struct ArticleFormatCard: View {
@@ -121,9 +113,8 @@ struct ArticleFormatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Large horizontal image
-            if article.post.mediaUrl != "" {
-                let imageUrl = article.post.mediaUrl
-                AsyncImage(url: URL(string: imageUrl)) { phase in
+            if let coverImageUrl = article.article.coverImageUrl {
+                AsyncImage(url: URL(string: coverImageUrl)) { phase in
                     switch phase {
                     case .success(let image):
                         image
@@ -151,44 +142,66 @@ struct ArticleFormatCard: View {
                         EmptyView()
                     }
                 }
+            } else {
+                Rectangle()
+                    .fill(MinimalDesign.Colors.tertiary)
+                    .frame(height: 220)
+                    .overlay(
+                        Image(systemName: "doc.text")
+                            .foregroundColor(MinimalDesign.Colors.secondary)
+                            .font(.system(size: 40))
+                    )
             }
             
             // Article content below image
             VStack(alignment: .leading, spacing: 8) {
                 // Category and date
                 HStack {
-                    Text(article.category.displayName.uppercased())
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(MinimalDesign.Colors.accentRed)
+                    if let category = article.article.category,
+                       let categoryEnum = ArticleCategory(rawValue: category) {
+                        Text(categoryEnum.displayName.uppercased())
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(MinimalDesign.Colors.accentRed)
+                    }
                     
                     Text("•")
                         .font(.system(size: 12))
                         .foregroundColor(MinimalDesign.Colors.secondary)
                     
-                    Text(article.post.createdAt.formatted(.dateTime.month(.abbreviated).day()))
-                        .font(.system(size: 12))
-                        .foregroundColor(MinimalDesign.Colors.secondary)
+                    if let publishedAt = article.article.publishedAt {
+                        Text(publishedAt.formatted(.dateTime.month(.abbreviated).day()))
+                            .font(.system(size: 12))
+                            .foregroundColor(MinimalDesign.Colors.secondary)
+                    }
                     
                     Spacer()
                 }
                 
                 // Title
-                Text(article.title)
+                Text(article.article.title)
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(MinimalDesign.Colors.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
-                // Description
-                Text(article.description)
-                    .font(.system(size: 16))
-                    .foregroundColor(MinimalDesign.Colors.secondary)
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
+                // Summary or content preview
+                if let summary = article.article.summary {
+                    Text(summary)
+                        .font(.system(size: 16))
+                        .foregroundColor(MinimalDesign.Colors.secondary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                } else {
+                    Text(String(article.article.content.prefix(150)) + "...")
+                        .font(.system(size: 16))
+                        .foregroundColor(MinimalDesign.Colors.secondary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                }
                 
                 // Author info
                 HStack {
-                    AsyncImage(url: URL(string: article.post.user?.avatarUrl ?? "")) { phase in
+                    AsyncImage(url: URL(string: article.article.user?.avatarUrl ?? "")) { phase in
                         switch phase {
                         case .success(let image):
                             image
@@ -203,7 +216,7 @@ struct ArticleFormatCard: View {
                         }
                     }
                     
-                    Text("by \(article.post.user?.username ?? "Unknown")")
+                    Text("by \(article.article.user?.username ?? "Unknown")")
                         .font(.system(size: 14))
                         .foregroundColor(MinimalDesign.Colors.secondary)
                     
@@ -227,9 +240,8 @@ struct MagazineFormatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Small vertical magazine-style image
-            if article.post.mediaUrl != "" {
-                let imageUrl = article.post.mediaUrl
-                AsyncImage(url: URL(string: imageUrl)) { phase in
+            if let coverImageUrl = article.article.coverImageUrl {
+                AsyncImage(url: URL(string: coverImageUrl)) { phase in
                     switch phase {
                     case .success(let image):
                         image
@@ -243,7 +255,7 @@ struct MagazineFormatCard: View {
                             .fill(MinimalDesign.Colors.tertiary)
                             .frame(height: 150)
                             .overlay(
-                                Image(systemName: "photo")
+                                Image(systemName: "doc.text")
                                     .foregroundColor(MinimalDesign.Colors.secondary)
                                     .font(.system(size: 20))
                             )
@@ -258,15 +270,27 @@ struct MagazineFormatCard: View {
                         EmptyView()
                     }
                 }
+            } else {
+                Rectangle()
+                    .fill(MinimalDesign.Colors.tertiary)
+                    .frame(height: 150)
+                    .overlay(
+                        Image(systemName: "doc.text")
+                            .foregroundColor(MinimalDesign.Colors.secondary)
+                            .font(.system(size: 20))
+                    )
             }
             
             // Simple text below
             VStack(alignment: .leading, spacing: 4) {
-                Text(article.category.displayName.uppercased())
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(MinimalDesign.Colors.accentRed)
+                if let category = article.article.category,
+                   let categoryEnum = ArticleCategory(rawValue: category) {
+                    Text(categoryEnum.displayName.uppercased())
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(MinimalDesign.Colors.accentRed)
+                }
                 
-                Text(article.title)
+                Text(article.article.title)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(MinimalDesign.Colors.primary)
                     .lineLimit(2)
@@ -279,66 +303,300 @@ struct MagazineFormatCard: View {
 
 // Magazine article model
 struct MagazineArticle: Identifiable {
-    let id = UUID()
-    let post: Post
-    let title: String
-    let description: String
-    let category: MagazineCategory
+    let id: String
+    let article: BlogArticle
     let readTime: Int
+    
+    init(from blogArticle: BlogArticle) {
+        self.id = blogArticle.id
+        self.article = blogArticle
+        
+        // Calculate read time based on content length
+        let words = blogArticle.content.split(separator: " ").count
+        self.readTime = max(1, words / 200) // Assuming 200 words per minute
+    }
 }
 
 // View model
+@MainActor
 class MagazineViewModel: ObservableObject {
     @Published var articles: [MagazineArticle] = []
     
-    @MainActor
+    private let articleRepository = ArticleRepository.shared
+    
     func loadArticles() async {
-        // Fetch posts and convert them to magazine articles
         do {
-            let posts = try await PostService().fetchFeedPosts(currentUserId: "")
+            // Fetch published articles from ArticleRepository
+            let blogArticles = try await articleRepository.getPublishedArticles(limit: 50)
             
-            articles = posts.compactMap { post in
-                // Generate magazine-style content from posts
-                let category = determineCategory(from: post)
-                let readTime = calculateReadTime(from: post)
+            // Convert BlogArticles to MagazineArticles
+            articles = blogArticles.map { blogArticle in
+                MagazineArticle(from: blogArticle)
+            }
+            
+            print("✅ Loaded \(articles.count) magazine articles")
+        } catch {
+            print("❌ Error loading magazine articles: \(error)")
+        }
+    }
+}
+
+// MARK: - Newspaper Style Card
+
+struct NewspaperStyleCard: View {
+    let article: MagazineArticle
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // 新聞風ヘッダー
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    if let category = article.article.category,
+                       let categoryEnum = ArticleCategory(rawValue: category) {
+                        Text(categoryEnum.displayName.uppercased())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.blue)
+                            .tracking(1)
+                    }
+                    
+                    if let publishedAt = article.article.publishedAt {
+                        Text(publishedAt.formatted(.dateTime.year().month().day()))
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                }
                 
-                return MagazineArticle(
-                    post: post,
-                    title: generateTitle(from: post),
-                    description: generateDescription(from: post),
-                    category: category,
-                    readTime: readTime
+                Spacer()
+                
+                Text("\(article.readTime)分で読める")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+            }
+            
+            // タイトル（新聞風）
+            Text(article.article.title)
+                .font(.system(size: 24, weight: .bold, design: .serif))
+                .foregroundColor(.primary)
+                .lineLimit(3)
+                .multilineTextAlignment(.leading)
+            
+            // 画像と本文のレイアウト
+            HStack(alignment: .top, spacing: 16) {
+                // 本文プレビュー
+                VStack(alignment: .leading, spacing: 8) {
+                    if let summary = article.article.summary {
+                        Text(summary)
+                            .font(.system(size: 16, design: .serif))
+                            .foregroundColor(.primary)
+                            .lineLimit(4)
+                    } else {
+                        Text(String(article.article.content.prefix(200)) + "...")
+                            .font(.system(size: 16, design: .serif))
+                            .foregroundColor(.primary)
+                            .lineLimit(4)
+                    }
+                    
+                    // 著者情報
+                    HStack {
+                        if let user = article.article.user {
+                            Text("by \(user.username)")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.blue)
+                        }
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 12) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "heart")
+                                    .font(.caption)
+                                Text("\(article.article.likeCount)")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(.secondary)
+                            
+                            HStack(spacing: 4) {
+                                Image(systemName: "eye")
+                                    .font(.caption)
+                                Text("\(article.article.viewCount)")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                
+                // 記事画像
+                if let coverImageUrl = article.article.coverImageUrl {
+                    AsyncImage(url: URL(string: coverImageUrl)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(4/3, contentMode: .fill)
+                    } placeholder: {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.2))
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(.gray)
+                            )
+                    }
+                    .frame(width: 120, height: 90)
+                    .clipped()
+                    .cornerRadius(8)
+                }
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Magazine Style Card
+
+struct MagazineStyleCard: View {
+    let article: MagazineArticle
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // 雑誌風画像
+            if let coverImageUrl = article.article.coverImageUrl {
+                AsyncImage(url: URL(string: coverImageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(16/10, contentMode: .fill)
+                } placeholder: {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.purple.opacity(0.3), Color.pink.opacity(0.3)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            ProgressView()
+                                .tint(.white)
+                        )
+                }
+                .frame(height: 200)
+                .clipped()
+                .overlay(
+                    // スタイリッシュなオーバーレイ
+                    LinearGradient(
+                        colors: [Color.clear, Color.black.opacity(0.7)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .overlay(
+                    VStack {
+                        Spacer()
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                if let category = article.article.category,
+                                   let categoryEnum = ArticleCategory(rawValue: category) {
+                                    Text(categoryEnum.displayName.uppercased())
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(.white)
+                                        .tracking(1.5)
+                                }
+                                
+                                Text(article.article.title)
+                                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                                    .foregroundColor(.white)
+                                    .lineLimit(2)
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(20)
+                    }
                 )
             }
-        } catch {
-            print("Error loading articles: \(error)")
+            
+            // 雑誌風コンテンツ
+            VStack(alignment: .leading, spacing: 12) {
+                // サマリー
+                if let summary = article.article.summary {
+                    Text(summary)
+                        .font(.system(size: 16, design: .rounded))
+                        .foregroundColor(.primary)
+                        .lineLimit(3)
+                } else {
+                    Text(String(article.article.content.prefix(150)) + "...")
+                        .font(.system(size: 16, design: .rounded))
+                        .foregroundColor(.primary)
+                        .lineLimit(3)
+                }
+                
+                // タグ
+                if !article.article.tags.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(article.article.tags.prefix(3), id: \.self) { tag in
+                                Text("#\(tag)")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        LinearGradient(colors: [.purple.opacity(0.2), .pink.opacity(0.2)], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .foregroundColor(.purple)
+                                    .cornerRadius(12)
+                            }
+                        }
+                        .padding(.horizontal, 2)
+                    }
+                }
+                
+                // 著者とメタ情報
+                HStack {
+                    if let user = article.article.user {
+                        HStack(spacing: 8) {
+                            AsyncImage(url: URL(string: user.avatarUrl ?? "")) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } placeholder: {
+                                Circle()
+                                    .fill(Color.purple.opacity(0.2))
+                            }
+                            .frame(width: 24, height: 24)
+                            .clipShape(Circle())
+                            
+                            Text(user.username)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.primary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Text("\(article.readTime) min read")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(20)
         }
-    }
-    
-    private func determineCategory(from post: Post) -> MagazineCategory {
-        // Analyze post content/tags to determine category
-        // For now, return random category
-        return MagazineCategory.allCases.randomElement() ?? .all
-    }
-    
-    private func calculateReadTime(from post: Post) -> Int {
-        // Calculate based on content length
-        let words = (post.caption ?? "").split(separator: " ").count
-        return max(1, words / 200) // Assuming 200 words per minute
-    }
-    
-    private func generateTitle(from post: Post) -> String {
-        // Generate magazine-style title from post
-        let caption = post.caption ?? "Untitled"
-        if caption.count > 50 {
-            return String(caption.prefix(50)) + "..."
-        }
-        return caption
-    }
-    
-    private func generateDescription(from post: Post) -> String {
-        // Generate engaging description
-        return "Discover the story behind this captivating moment captured by \(post.user?.username ?? "a talented photographer")."
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: .purple.opacity(0.1), radius: 15, x: 0, y: 8)
+        )
     }
 }
 

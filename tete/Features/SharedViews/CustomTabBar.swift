@@ -5,6 +5,7 @@ struct CustomTabBar: View {
     @Binding var showGridMode: Bool
     let unreadMessageCount: Int
     let onCreatePost: () -> Void
+    let isInSingleView: Bool
     
     var body: some View {
         HStack(spacing: 0) {
@@ -17,7 +18,12 @@ struct CustomTabBar: View {
                 }
             }) {
                 Group {
-                    if showGridMode && selectedTab == 0 {
+                    if isInSingleView {
+                        // シングルビュー表示中は1つの大きな正方形（常に塗りつぶし）
+                        Rectangle()
+                            .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                            .frame(width: 20, height: 20)
+                    } else if showGridMode && selectedTab == 0 {
                         // グリッドモード時は4つの小さな正方形（選択時は塗りつぶし、非選択時は枠線のみ）
                         VStack(spacing: 2) {
                             HStack(spacing: 2) {

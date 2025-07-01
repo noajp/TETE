@@ -298,6 +298,7 @@ struct ArticleDetailView: View {
             isPremium: false,
             coverImageUrl: nil,
             status: .published,
+            articleType: .magazine,
             publishedAt: Date(),
             createdAt: Date(),
             updatedAt: Date(),

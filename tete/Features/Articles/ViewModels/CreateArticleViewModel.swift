@@ -26,13 +26,21 @@ class CreateArticleViewModel: ObservableObject {
         tags: [String],
         isPremium: Bool,
         coverImageUrl: String?,
-        status: ArticleStatus
+        status: ArticleStatus,
+        articleType: ArticleType = .magazine
     ) async {
         isLoading = true
         errorMessage = nil
         
         do {
+            guard let currentUserId = AuthManager.shared.currentUser?.id else {
+                errorMessage = "ユーザー認証が必要です"
+                isLoading = false
+                return
+            }
+            
             let request = CreateArticleRequest(
+                userId: currentUserId,
                 title: title,
                 content: content,
                 summary: summary,
@@ -40,7 +48,8 @@ class CreateArticleViewModel: ObservableObject {
                 tags: tags,
                 isPremium: isPremium,
                 coverImageUrl: coverImageUrl,
-                status: status
+                status: status,
+                articleType: articleType
             )
             
             let article = try await articleRepository.createArticle(request)
@@ -64,24 +73,36 @@ class CreateArticleViewModel: ObservableObject {
     func uploadCoverImage(item: PhotosPickerItem?) async -> String? {
         guard let item = item else { return nil }
         
-        // TODO: Implement actual image upload to Supabase Storage
-        // For now, return a placeholder URL
         do {
-            guard try await item.loadTransferable(type: Data.self) != nil else {
+            // 選択された画像データを取得
+            guard let imageData = try await item.loadTransferable(type: Data.self) else {
                 print("❌ Failed to load image data")
                 return nil
             }
             
-            // 仮のURLを返す（実際の実装ではストレージサービスを使用）
+            // ファイル名を生成
             let fileName = "article_cover_\(UUID().uuidString).jpg"
-            print("✅ Cover image prepared: \(fileName)")
             
-            // 仮のURLを返す
-            return "https://via.placeholder.com/800x400/2196F3/FFFFFF?text=Article+Cover"
+            // Supabase Storageにアップロード
+            let supabase = SupabaseManager.shared.client
+            
+            // 記事用のパスを作成（articles/フォルダに分けて管理）
+            let filePath = "articles/\(fileName)"
+            
+            _ = try await supabase.storage
+                .from("user-uploads")
+                .upload(filePath, data: imageData)
+            
+            // 公開URLを構築（既存の投稿画像と同じパターン）
+            let projectUrl = SecureConfig.shared.supabaseURL
+            let publicUrl = "\(projectUrl)/storage/v1/object/public/user-uploads/\(filePath)"
+            
+            print("✅ Cover image uploaded: \(publicUrl)")
+            return publicUrl
             
         } catch {
-            print("❌ Failed to process cover image: \(error)")
-            errorMessage = "画像の処理に失敗しました"
+            print("❌ Failed to upload cover image: \(error)")
+            errorMessage = "画像のアップロードに失敗しました: \(error.localizedDescription)"
             return nil
         }
     }
@@ -94,7 +115,8 @@ class CreateArticleViewModel: ObservableObject {
         category: String,
         tags: [String],
         isPremium: Bool,
-        coverImageUrl: String?
+        coverImageUrl: String?,
+        articleType: ArticleType = .magazine
     ) async {
         // 最低限のコンテンツがある場合のみ自動保存
         guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
@@ -103,7 +125,12 @@ class CreateArticleViewModel: ObservableObject {
         }
         
         do {
+            guard let currentUserId = AuthManager.shared.currentUser?.id else {
+                return // ユーザーが認証されていない場合は自動保存しない
+            }
+            
             let request = CreateArticleRequest(
+                userId: currentUserId,
                 title: title.isEmpty ? "無題の記事" : title,
                 content: content,
                 summary: summary,
@@ -111,7 +138,8 @@ class CreateArticleViewModel: ObservableObject {
                 tags: tags,
                 isPremium: isPremium,
                 coverImageUrl: coverImageUrl,
-                status: .draft
+                status: .draft,
+                articleType: articleType
             )
             
             _ = try await articleRepository.createArticle(request)

@@ -15,7 +15,6 @@ struct CreateArticleView: View {
     @State private var title = ""
     @State private var content = ""
     @State private var summary = ""
-    @State private var selectedCategory: ArticleCategory = .other
     @State private var tags: [String] = []
     @State private var newTag = ""
     @State private var coverImageItem: PhotosPickerItem?
@@ -33,9 +32,6 @@ struct CreateArticleView: View {
                     VStack(spacing: 16) {
                         // Title
                         titleSection
-                        
-                        // Category
-                        categorySection
                         
                         // Tags
                         tagsSection
@@ -72,7 +68,7 @@ struct CreateArticleView: View {
                 title: title,
                 content: content,
                 summary: summary.isEmpty ? nil : summary,
-                category: selectedCategory.rawValue,
+                category: "other",
                 tags: tags,
                 coverImageUrl: coverImageUrl,
                 onPublish: { status in
@@ -81,11 +77,12 @@ struct CreateArticleView: View {
                             title: title,
                             content: content,
                             summary: summary.isEmpty ? nil : summary,
-                            category: selectedCategory.rawValue,
+                            category: "other",
                             tags: tags,
                             isPremium: false,
                             coverImageUrl: coverImageUrl,
-                            status: status
+                            status: status,
+                            articleType: .magazine  // デフォルトは雑誌記事
                         )
                         dismiss()
                     }
@@ -155,29 +152,6 @@ struct CreateArticleView: View {
         }
     }
     
-    // MARK: - Category Section
-    
-    private var categorySection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("カテゴリ")
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(ArticleCategory.allCases, id: \.self) { category in
-                        CategoryChip(
-                            category: category,
-                            isSelected: selectedCategory == category
-                        ) {
-                            selectedCategory = category
-                        }
-                    }
-                }
-                .padding(.horizontal, 4)
-            }
-        }
-    }
     
     // MARK: - Tags Section
     
@@ -262,29 +236,6 @@ struct CreateArticleView: View {
     }
 }
 
-// MARK: - Category Chip
-
-struct CategoryChip: View {
-    let category: ArticleCategory
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: category.icon)
-                    .font(.caption)
-                Text(category.displayName)
-                    .font(.caption)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(isSelected ? Color.blue : Color.gray.opacity(0.2))
-            .foregroundColor(isSelected ? .white : .primary)
-            .cornerRadius(16)
-        }
-    }
-}
 
 // MARK: - Tag View
 
