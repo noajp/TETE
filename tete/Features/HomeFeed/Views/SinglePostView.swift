@@ -32,10 +32,6 @@ struct SinglePostView: View {
                                 await viewModel.toggleLike(for: post)
                             }
                         }
-                        
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(height: 1)
                     }
                 }
             }

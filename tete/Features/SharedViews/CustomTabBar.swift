@@ -6,12 +6,16 @@ struct CustomTabBar: View {
     let unreadMessageCount: Int
     let onCreatePost: () -> Void
     let isInSingleView: Bool
+    let onBackToGrid: (() -> Void)?
     
     var body: some View {
         HStack(spacing: 0) {
             // フィードボタン（正方形）
             Button(action: {
-                if selectedTab == 0 {
+                if isInSingleView {
+                    // シングルビューからグリッドビューに戻る
+                    onBackToGrid?()
+                } else if selectedTab == 0 {
                     showGridMode.toggle()
                 } else {
                     selectedTab = 0

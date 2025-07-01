@@ -10,6 +10,7 @@ struct HomeFeedView: View {
     @State private var headerOffset: CGFloat = 0
     @State private var selectedPost: Post?
     @State private var navigateToSingleView: Bool = false
+    @Environment(\.dismiss) private var dismiss
     
     private let headerHeight: CGFloat = 56
     
@@ -137,6 +138,13 @@ struct HomeFeedView: View {
             print("🔄 Post created notification received - refreshing feed")
             Task {
                 await viewModel.forceRefreshPosts()
+            }
+        }
+        .onChange(of: isInSingleView) { _, newValue in
+            if !newValue && navigateToSingleView {
+                // シングルビューから戻る時
+                navigateToSingleView = false
+                selectedPost = nil
             }
         }
         // HomeFeedViewでの通知受信は無効化（MainTabViewで処理）
