@@ -7,6 +7,7 @@ struct HomeFeedView: View {
     @Binding var showGridMode: Bool
     @Binding var showingCreatePost: Bool
     @Binding var isInSingleView: Bool
+    let onBackToGrid: (() -> Void)?
     @State private var headerOffset: CGFloat = 0
     @State private var selectedPost: Post?
     @State private var navigateToSingleView: Bool = false
@@ -143,6 +144,13 @@ struct HomeFeedView: View {
         .onChange(of: isInSingleView) { _, newValue in
             if !newValue && navigateToSingleView {
                 // シングルビューから戻る時
+                navigateToSingleView = false
+                selectedPost = nil
+            }
+        }
+        .onChange(of: showGridMode) { _, newValue in
+            if newValue && isInSingleView {
+                // グリッドモードに戻る時にシングルビューからも戻る
                 navigateToSingleView = false
                 selectedPost = nil
             }
@@ -501,7 +509,8 @@ struct HomeFeedView_Previews: PreviewProvider {
         HomeFeedView(
             showGridMode: .constant(false), 
             showingCreatePost: .constant(false),
-            isInSingleView: .constant(false)
+            isInSingleView: .constant(false),
+            onBackToGrid: nil
         )
     }
 }

@@ -10,7 +10,6 @@ struct MainTabView: View {
     @State private var showGridMode = false
     @State private var pageSelection = 1  // 0: Camera, 1: Feed
     @State private var isInSingleView = false
-    @State private var navigationPath = NavigationPath()
     @StateObject private var postStatusManager = PostStatusManager.shared
     
     var body: some View {
@@ -26,11 +25,18 @@ struct MainTabView: View {
                 Group {
                     switch selectedTab {
                     case 0:
-                        NavigationStack(path: $navigationPath) {
+                        UnifiedNavigationView {
                             HomeFeedView(
                                 showGridMode: $showGridMode, 
                                 showingCreatePost: $showingCreatePost,
-                                isInSingleView: $isInSingleView
+                                isInSingleView: $isInSingleView,
+                                onBackToGrid: {
+                                    // シングルビューからグリッドビューに戻る
+                                    if isInSingleView {
+                                        isInSingleView = false
+                                        showGridMode = true
+                                    }
+                                }
                             )
                         }
                     case 1:
@@ -109,8 +115,8 @@ struct MainTabView: View {
                         isInSingleView: isInSingleView,
                         onBackToGrid: {
                             // シングルビューからグリッドビューに戻る
-                            if isInSingleView && !navigationPath.isEmpty {
-                                navigationPath.removeLast()
+                            if isInSingleView {
+                                isInSingleView = false
                                 showGridMode = true
                             }
                         }

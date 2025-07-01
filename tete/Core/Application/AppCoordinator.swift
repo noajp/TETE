@@ -180,7 +180,7 @@ struct EnhancedMainTabView: View {
     var body: some View {
         TabView(selection: $coordinator.currentTab) {
             // Home Feed
-            HomeFeedView(showGridMode: $coordinator.showGridMode, showingCreatePost: $coordinator.showingCreatePost, isInSingleView: $coordinator.isInSingleView)
+            HomeFeedView(showGridMode: $coordinator.showGridMode, showingCreatePost: $coordinator.showingCreatePost, isInSingleView: $coordinator.isInSingleView, onBackToGrid: nil)
                 .tabItem {
                     Image(systemName: MainTab.home.iconName)
                     Text(MainTab.home.title)
