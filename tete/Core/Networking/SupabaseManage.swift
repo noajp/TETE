@@ -3,11 +3,6 @@
 // Purpose: SupabaseManage implementation (SupabaseManageの実装)
 // Path: tete/Core/Networking/SupabaseManage.swift
 //======================================================================
-
-//======================================================================
-// MARK: - Secure SupabaseManager.swift
-// Path: tete/Core/Networking/SupabaseManager.swift
-//======================================================================
 import Foundation
 import Supabase
 
