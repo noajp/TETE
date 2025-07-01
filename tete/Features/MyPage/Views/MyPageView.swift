@@ -192,13 +192,6 @@ struct ModernProfileSection: View {
                     .padding(.horizontal, MinimalDesign.Spacing.sm)
             }
             
-            // Stats Row
-            HStack(spacing: 40) {
-                StatItem(value: postsCount, label: "posts")
-                StatItem(value: followersCount, label: "followers")
-                StatItem(value: 0, label: "following") // TODO: Add following count
-            }
-            .padding(.horizontal, MinimalDesign.Spacing.sm)
         }
         .padding(.vertical, MinimalDesign.Spacing.lg)
         .background(MinimalDesign.Colors.background)
@@ -461,7 +454,6 @@ struct LongPressDropDelegate: DropDelegate {
 struct ProfileSingleCardView: View {
     let post: Post
     let onTap: (() -> Void)?
-    @State private var image: UIImage?
     
     init(post: Post, onTap: (() -> Void)? = nil) {
         self.post = post
@@ -473,14 +465,10 @@ struct ProfileSingleCardView: View {
             onTap?()
         }) {
             GeometryReader { geometry in
-                Group {
-                    if let image = image {
-                        Image(uiImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: geometry.size.width)
-                            .clipped()
-                    } else {
+                // 高性能なOptimizedAsyncImageを使用
+                OptimizedAsyncImage(urlString: post.mediaUrl) { phase in
+                    switch phase {
+                    case .empty:
                         Rectangle()
                             .fill(MinimalDesign.Colors.tertiaryBackground)
                             .frame(width: geometry.size.width, height: geometry.size.width)
@@ -488,27 +476,28 @@ struct ProfileSingleCardView: View {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: MinimalDesign.Colors.secondary))
                             )
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .clipped()
+                    case .failure(_):
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiaryBackground)
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(MinimalDesign.Colors.secondary)
+                            )
+                    @unknown default:
+                        EmptyView()
                     }
-                }
-                .onAppear {
-                    loadImage()
                 }
             }
             .aspectRatio(1, contentMode: .fit)
         }
         .buttonStyle(PlainButtonStyle())
-    }
-    
-    private func loadImage() {
-        Task {
-            if let url = URL(string: post.mediaUrl),
-               let (data, _) = try? await URLSession.shared.data(from: url),
-               let uiImage = UIImage(data: data) {
-                await MainActor.run {
-                    self.image = uiImage
-                }
-            }
-        }
     }
 }
 
@@ -607,16 +596,34 @@ struct GridItemView: View {
             onTap?()
         }) {
             GeometryReader { geometry in
-                AsyncImage(url: URL(string: post.mediaUrl)) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: geometry.size.width, height: geometry.size.width)
-                        .clipped()
-                } placeholder: {
-                    Rectangle()
-                        .fill(MinimalDesign.Colors.tertiaryBackground)
-                        .frame(width: geometry.size.width, height: geometry.size.width)
+                // 高性能なOptimizedAsyncImageを使用
+                OptimizedAsyncImage(urlString: post.mediaUrl) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiaryBackground)
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .overlay(
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: MinimalDesign.Colors.secondary))
+                            )
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .clipped()
+                    case .failure(_):
+                        Rectangle()
+                            .fill(MinimalDesign.Colors.tertiaryBackground)
+                            .frame(width: geometry.size.width, height: geometry.size.width)
+                            .overlay(
+                                Image(systemName: "photo")
+                                    .foregroundColor(MinimalDesign.Colors.secondary)
+                            )
+                    @unknown default:
+                        EmptyView()
+                    }
                 }
             }
             .aspectRatio(1, contentMode: .fit)

@@ -22,10 +22,11 @@ final class MyPageViewModel: BaseViewModelClass {
     /// Posts created by the user
     @Published var userPosts: [Post] = []
     
-    /// Statistics
+    /// Statistics (for algorithm use)
     @Published var postsCount: Int = 0
     @Published var followersCount: Int = 0
     @Published var followingCount: Int = 0
+    
     
     // MARK: - Dependencies
     
@@ -85,12 +86,7 @@ final class MyPageViewModel: BaseViewModelClass {
             
             // Load posts
             userPosts = try await userRepository.fetchUserPosts(userId: userId)
-            postsCount = userPosts.count
-            print("🟢 MyPageViewModel: Loaded \(postsCount) posts for user \(userId)")
-            
-            // Load statistics
-            followersCount = try await userRepository.fetchFollowersCount(userId: userId)
-            followingCount = try await userRepository.fetchFollowingCount(userId: userId)
+            print("🟢 MyPageViewModel: Loaded \(userPosts.count) posts for user \(userId)")
             
             hasLoadedInitially = true
             hideLoading()
@@ -195,7 +191,6 @@ final class MyPageViewModel: BaseViewModelClass {
                 // Remove from local arrays
                 userPosts.removeAll { $0.id == post.id }
                 savedPosts.removeAll { $0.id == post.id }
-                postsCount = max(0, postsCount - 1)
                 
                 print("✅ MyPageViewModel: Post deleted successfully")
             }

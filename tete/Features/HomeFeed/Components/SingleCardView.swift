@@ -68,7 +68,8 @@ struct SingleCardView: View {
     
     // MARK: - 画像セクション
     private var imageSection: some View {
-        SophisticatedImageView(imageUrl: post.mediaUrl, height: 400)
+        // シングルビューでは元画像のアスペクト比を保持
+        SophisticatedAspectImageView(imageUrl: post.mediaUrl, post: post, maxHeight: 600)
     }
     
     // MARK: - アクションセクション

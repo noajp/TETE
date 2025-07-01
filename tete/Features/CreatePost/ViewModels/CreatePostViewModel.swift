@@ -4,7 +4,7 @@
 //======================================================================
 import SwiftUI
 import PhotosUI
-import AVKit
+@preconcurrency import AVFoundation
 import Supabase
 
 extension Notification.Name {
@@ -184,11 +184,13 @@ class CreatePostViewModel: ObservableObject {
                     )
                 }
                 
-                // Create new post with captured values
+                // Create new post with captured values including dimensions
                 struct NewPost: Encodable {
                     let user_id: UUID
                     let media_url: String
                     let media_type: String
+                    let media_width: Double?
+                    let media_height: Double?
                     let caption: String?
                     let location_name: String?
                     let latitude: Double?
@@ -196,10 +198,23 @@ class CreatePostViewModel: ObservableObject {
                     let is_public: Bool
                 }
                 
+                // Get media dimensions
+                var mediaDimensions: (width: Double, height: Double)? = nil
+                if let image = image {
+                    let width = Double(image.size.width)
+                    let height = Double(image.size.height)
+                    let aspectRatio = width / height
+                    mediaDimensions = (width: width, height: height)
+                    print("🟢 Image dimensions: \(width) x \(height) (aspect ratio: \(String(format: "%.2f", aspectRatio)))")
+                    print("🟢 Would be displayed as: \(aspectRatio >= 1.3 ? "landscape" : "square")")
+                }
+                
                 let newPost = NewPost(
                     user_id: UUID(uuidString: userId)!,
                     media_url: mediaUrl,
                     media_type: currentMediaType.rawValue,
+                    media_width: mediaDimensions?.width,
+                    media_height: mediaDimensions?.height,
                     caption: captionText.isEmpty ? nil : captionText,
                     location_name: location.isEmpty ? nil : location,
                     latitude: lat,
@@ -340,6 +355,8 @@ class CreatePostViewModel: ObservableObject {
             let user_id: UUID
             let media_url: String
             let media_type: String
+            let media_width: Double?
+            let media_height: Double?
             let caption: String?
             let location_name: String?
             let latitude: Double?
@@ -347,10 +364,23 @@ class CreatePostViewModel: ObservableObject {
             let is_public: Bool
         }
         
+        // Get media dimensions
+        var mediaDimensions: (width: Double, height: Double)? = nil
+        if let image = selectedImage {
+            let width = Double(image.size.width)
+            let height = Double(image.size.height)
+            let aspectRatio = width / height
+            mediaDimensions = (width: width, height: height)
+            print("🟢 Image dimensions: \(width) x \(height) (aspect ratio: \(String(format: "%.2f", aspectRatio)))")
+            print("🟢 Would be displayed as: \(aspectRatio >= 1.3 ? "landscape" : "square")")
+        }
+        
         let newPost = NewPost(
             user_id: UUID(uuidString: userId)!,
             media_url: mediaUrl,
             media_type: mediaType.rawValue,
+            media_width: mediaDimensions?.width,
+            media_height: mediaDimensions?.height,
             caption: caption.isEmpty ? nil : caption,
             location_name: locationName.isEmpty ? nil : locationName,
             latitude: latitude,
@@ -394,6 +424,39 @@ class CreatePostViewModel: ObservableObject {
                     continuation.resume(returning: nil)
                 }
             }
+        }
+    }
+    
+    // ビデオの寸法を取得するヘルパーメソッド
+    private func getVideoDimensions(from videoURL: URL) async -> (width: Double, height: Double)? {
+        let asset = AVURLAsset(url: videoURL)
+        
+        do {
+            // ビデオトラックを取得
+            let tracks = try await asset.loadTracks(withMediaType: .video)
+            guard let videoTrack = tracks.first else {
+                print("❌ No video track found")
+                return nil
+            }
+            
+            // ナチュラルサイズを取得
+            let naturalSize = try await videoTrack.load(.naturalSize)
+            
+            // トランスフォームを考慮（回転など）
+            let transform = try await videoTrack.load(.preferredTransform)
+            let size = naturalSize.applying(transform)
+            
+            let width = abs(size.width)
+            let height = abs(size.height)
+            
+            print("🟢 Video natural size: \(naturalSize)")
+            print("🟢 Video transform: \(transform)")
+            print("🟢 Video final size: \(width) x \(height)")
+            
+            return (width: Double(width), height: Double(height))
+        } catch {
+            print("❌ Failed to get video dimensions: \(error)")
+            return nil
         }
     }
 }

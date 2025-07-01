@@ -310,11 +310,17 @@ struct CustomGridView: View {
                         selectedPost = post
                         navigateToSingleView = true
                     }
+                    .onAppear {
+                        print("🎨 Using OddRowView for group \(groupIndex) with \(group.count) posts")
+                    }
                 } else {
                     // 偶数段: 正方形写真6枚
                     EvenRowView(posts: group) { post in
                         selectedPost = post
                         navigateToSingleView = true
+                    }
+                    .onAppear {
+                        print("🎨 Using EvenRowView for group \(groupIndex) with \(group.count) posts")
                     }
                 }
             }
@@ -322,28 +328,114 @@ struct CustomGridView: View {
     }
     
     private var groupedPosts: [[Post]] {
+        return createOptimalGrid(from: posts)
+    }
+    
+    /// アスペクト比に基づいて最適なグリッドレイアウトを生成
+    private func createOptimalGrid(from posts: [Post]) -> [[Post]] {
+        print("🔍 CustomGridView: Creating grid for \(posts.count) posts")
+        
+        // デバッグ: 各投稿のアスペクト比を表示
+        for (index, post) in posts.enumerated() {
+            let aspectRatio = post.aspectRatio
+            let shouldDisplayAsLandscape = post.shouldDisplayAsLandscape
+            print("🔍 Post \(index): ID=\(post.id.prefix(8)), aspectRatio=\(aspectRatio?.description ?? "nil"), landscape=\(shouldDisplayAsLandscape)")
+        }
+        
         var groups: [[Post]] = []
         var currentIndex = 0
         
         while currentIndex < posts.count {
-            let isOddGroup = groups.count % 2 == 0
+            let remainingPosts = posts.count - currentIndex
             
-            if isOddGroup {
-                // 奇数段: 2枚
-                let count = min(2, posts.count - currentIndex)
+            // 現在位置から最適なグループを決定
+            print("🔍 Processing from index \(currentIndex), remaining: \(remainingPosts)")
+            
+            // まず6枚以上ある場合の処理を優先（より効率的なレイアウト）
+            if remainingPosts >= 6 {
+                // 6枚以上の場合、最も厳しい条件で横長写真をチェック
+                // 1枚目が横長の場合のみ横長グループを作成、それ以外は全て6枚グループ
+                let firstPostIsLandscape = posts[currentIndex].shouldDisplayAsLandscape
+                
+                if firstPostIsLandscape {
+                    // 1枚目が横長の場合のみ横長グループを作成
+                    let group = createLandscapeGroup(startIndex: currentIndex, landscapeIndex: currentIndex, in: posts)
+                    print("🔍 Created landscape group with \(group.count) posts (first post is landscape)")
+                    print("🔍 Group posts: \(group.map { $0.id.prefix(8) })")
+                    groups.append(group)
+                    currentIndex += group.count
+                } else {
+                    // 1枚目が正方形の場合は必ず6枚グループを作成
+                    let group = Array(posts[currentIndex..<currentIndex + 6])
+                    print("🔍 Created 6-post square group (first post is not landscape)")
+                    print("🔍 Group posts: \(group.map { $0.id.prefix(8) })")
+                    groups.append(group)
+                    currentIndex += 6
+                }
+            } else if let landscapeIndex = findNextLandscapePost(from: currentIndex, in: posts, maxLookAhead: remainingPosts) {
+                // 6枚未満で横長写真がある場合
+                let group = createLandscapeGroup(startIndex: currentIndex, landscapeIndex: landscapeIndex, in: posts)
+                print("🔍 Created landscape group with \(group.count) posts (landscape at index \(landscapeIndex))")
+                print("🔍 Group posts: \(group.map { $0.id.prefix(8) })")
+                groups.append(group)
+                currentIndex += group.count
+            } else if remainingPosts >= 2 {
+                // 残り2-5枚の場合は2枚グループ（横長スタイル）
+                let count = min(2, remainingPosts)
                 let group = Array(posts[currentIndex..<currentIndex + count])
+                print("🔍 Created \(count)-post row group from index \(currentIndex)")
+                print("🔍 Group posts: \(group.map { $0.id.prefix(8) })")
                 groups.append(group)
                 currentIndex += count
             } else {
-                // 偶数段: 6枚
-                let count = min(6, posts.count - currentIndex)
-                let group = Array(posts[currentIndex..<currentIndex + count])
+                // 残り1枚の場合
+                let group = Array(posts[currentIndex..<currentIndex + 1])
+                print("🔍 Created single post group from index \(currentIndex)")
+                print("🔍 Group posts: \(group.map { $0.id.prefix(8) })")
                 groups.append(group)
-                currentIndex += count
+                currentIndex += 1
             }
         }
         
+        print("🔍 Final grid layout: \(groups.count) groups")
         return groups
+    }
+    
+    /// 指定された範囲内で次の横長写真のインデックスを検索
+    private func findNextLandscapePost(from startIndex: Int, in posts: [Post], maxLookAhead: Int) -> Int? {
+        let endIndex = min(startIndex + maxLookAhead, posts.count)
+        for i in startIndex..<endIndex {
+            if posts[i].shouldDisplayAsLandscape {
+                print("🔍 Found landscape post at index \(i): \(posts[i].id.prefix(8))")
+                return i
+            }
+        }
+        print("🔍 No landscape posts found in range \(startIndex)..<\(endIndex)")
+        return nil
+    }
+    
+    /// 横長写真を含むグループを作成（横長写真を最初に配置）
+    private func createLandscapeGroup(startIndex: Int, landscapeIndex: Int, in posts: [Post]) -> [Post] {
+        var group: [Post] = []
+        
+        // 横長写真を最初に追加
+        group.append(posts[landscapeIndex])
+        
+        // 開始インデックスから横長写真より前の写真を追加
+        for i in startIndex..<landscapeIndex {
+            if group.count < 2 {
+                group.insert(posts[i], at: 0)
+            }
+        }
+        
+        // 横長写真より後の写真を追加（必要に応じて）
+        var nextIndex = landscapeIndex + 1
+        while group.count < 2 && nextIndex < posts.count {
+            group.append(posts[nextIndex])
+            nextIndex += 1
+        }
+        
+        return group
     }
 }
 
@@ -355,22 +447,51 @@ struct OddRowView: View {
     
     var body: some View {
         HStack(spacing: 1.5) {
-            // 横長写真 (幅は2/3)
+            // 最初の写真（アスペクト比に基づいて表示）
             if posts.count > 0 {
-                GridImageView(post: posts[0]) {
-                    onPostTapped(posts[0])
+                let firstPost = posts[0]
+                let isLandscape = firstPost.shouldDisplayAsLandscape
+                
+                if isLandscape {
+                    // 横長写真は横長で表示 (幅は2/3)
+                    GridImageView(post: firstPost) {
+                        onPostTapped(firstPost)
+                    }
+                    .frame(width: rectangleWidth, height: squareSize)
+                    .clipped()
+                    .background(Color.blue.opacity(0.1)) // デバッグ用背景色
+                    .onAppear {
+                        print("🎨 OddRowView: First post \(firstPost.id.prefix(8)) isLandscape=\(isLandscape)")
+                    }
+                } else {
+                    // 横長でない写真は正方形で表示
+                    GridImageView(post: firstPost) {
+                        onPostTapped(firstPost)
+                    }
+                    .frame(width: squareSize, height: squareSize)
+                    .clipped()
+                    .aspectRatio(1, contentMode: .fill)
+                    .background(Color.red.opacity(0.1)) // デバッグ用背景色
+                    .onAppear {
+                        print("🎨 OddRowView: First post \(firstPost.id.prefix(8)) isLandscape=\(isLandscape)")
+                    }
                 }
-                .frame(width: rectangleWidth, height: squareSize)
-                .clipped()
             }
             
-            // 正方形写真 (幅は1/3)
+            // 2枚目の写真（常に正方形）
             if posts.count > 1 {
+                let secondaryWidth = posts[0].shouldDisplayAsLandscape ? squareSize : rectangleWidth
+                
                 GridImageView(post: posts[1]) {
                     onPostTapped(posts[1])
                 }
-                .frame(width: squareSize, height: squareSize)
+                .frame(width: secondaryWidth, height: squareSize)
                 .clipped()
+                .aspectRatio(1, contentMode: .fill)
+                .background(Color.green.opacity(0.1)) // デバッグ用背景色
+                .onAppear {
+                    print("🎨 OddRowView: Second post width=\(secondaryWidth)")
+                }
             }
         }
         .frame(height: squareSize)
@@ -414,10 +535,18 @@ struct EvenRowView: View {
                         }
                         .frame(width: squareSize, height: squareSize)
                         .clipped()
+                        .aspectRatio(1, contentMode: .fill)
+                        .background(Color.yellow.opacity(0.1)) // デバッグ用背景色
+                        .onAppear {
+                            print("🎨 EvenRowView: Top row index \(index) - Post \(posts[index].id.prefix(8))")
+                        }
                     } else {
                         Rectangle()
                             .fill(Color(.tertiarySystemBackground))
                             .frame(width: squareSize, height: squareSize)
+                            .onAppear {
+                                print("🎨 EvenRowView: Top row index \(index) - Empty placeholder")
+                            }
                     }
                 }
             }
@@ -431,15 +560,26 @@ struct EvenRowView: View {
                         }
                         .frame(width: squareSize, height: squareSize)
                         .clipped()
+                        .aspectRatio(1, contentMode: .fill)
+                        .background(Color.orange.opacity(0.1)) // デバッグ用背景色
+                        .onAppear {
+                            print("🎨 EvenRowView: Bottom row index \(index) - Post \(posts[index].id.prefix(8))")
+                        }
                     } else {
                         Rectangle()
                             .fill(Color(.tertiarySystemBackground))
                             .frame(width: squareSize, height: squareSize)
+                            .onAppear {
+                                print("🎨 EvenRowView: Bottom row index \(index) - Empty placeholder")
+                            }
                     }
                 }
             }
         }
         .frame(height: totalHeight)
+        .onAppear {
+            print("🎨 EvenRowView: Displaying \(posts.count) posts total")
+        }
     }
     
     private var screenWidth: CGFloat {
@@ -478,7 +618,8 @@ struct GridImageView: View {
         Button(action: {
             onTap?()
         }) {
-            AsyncImage(url: URL(string: post.mediaUrl)) { phase in
+            // 高性能なOptimizedAsyncImageを使用
+            OptimizedAsyncImage(urlString: post.mediaUrl) { phase in
                 switch phase {
                 case .success(let image):
                     image

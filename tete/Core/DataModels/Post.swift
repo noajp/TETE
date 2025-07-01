@@ -12,6 +12,8 @@ struct Post: Identifiable, Codable, Hashable, Transferable {
     let mediaUrl: String
     let mediaType: MediaType
     let thumbnailUrl: String?
+    let mediaWidth: Double?
+    let mediaHeight: Double?
     let caption: String?
     let locationName: String?
     let latitude: Double?
@@ -39,6 +41,8 @@ struct Post: Identifiable, Codable, Hashable, Transferable {
         case mediaUrl = "media_url"
         case mediaType = "media_type"
         case thumbnailUrl = "thumbnail_url"
+        case mediaWidth = "media_width"
+        case mediaHeight = "media_height"
         case caption
         case locationName = "location_name"
         case latitude
@@ -57,6 +61,8 @@ struct Post: Identifiable, Codable, Hashable, Transferable {
         mediaUrl: String,
         mediaType: MediaType,
         thumbnailUrl: String? = nil,
+        mediaWidth: Double? = nil,
+        mediaHeight: Double? = nil,
         caption: String? = nil,
         locationName: String? = nil,
         latitude: Double? = nil,
@@ -74,6 +80,8 @@ struct Post: Identifiable, Codable, Hashable, Transferable {
         self.mediaUrl = mediaUrl
         self.mediaType = mediaType
         self.thumbnailUrl = thumbnailUrl
+        self.mediaWidth = mediaWidth
+        self.mediaHeight = mediaHeight
         self.caption = caption
         self.locationName = locationName
         self.latitude = latitude
@@ -97,6 +105,8 @@ struct Post: Identifiable, Codable, Hashable, Transferable {
         mediaUrl = try container.decode(String.self, forKey: .mediaUrl)
         mediaType = try container.decode(MediaType.self, forKey: .mediaType)
         thumbnailUrl = try container.decodeIfPresent(String.self, forKey: .thumbnailUrl)
+        mediaWidth = try container.decodeIfPresent(Double.self, forKey: .mediaWidth)
+        mediaHeight = try container.decodeIfPresent(Double.self, forKey: .mediaHeight)
         caption = try container.decodeIfPresent(String.self, forKey: .caption)
         locationName = try container.decodeIfPresent(String.self, forKey: .locationName)
         latitude = try container.decodeIfPresent(Double.self, forKey: .latitude)
@@ -135,6 +145,42 @@ struct Post: Identifiable, Codable, Hashable, Transferable {
     
     static func == (lhs: Post, rhs: Post) -> Bool {
         return lhs.id == rhs.id
+    }
+    
+    // MARK: - Aspect Ratio Utilities
+    
+    /// アスペクト比を計算（幅/高さ）
+    var aspectRatio: Double? {
+        guard let width = mediaWidth, let height = mediaHeight, height > 0 else {
+            return nil
+        }
+        return width / height
+    }
+    
+    /// 横長写真として表示すべきかを判定
+    var shouldDisplayAsLandscape: Bool {
+        guard let ratio = aspectRatio else {
+            // アスペクト比が不明な場合は正方形表示
+            print("⚠️ Post \(id): No aspect ratio data, defaulting to square display")
+            return false
+        }
+        
+        // アスペクト比が1.3以上（横:縦 = 1.3:1以上）を横長とする
+        // 例: 1600x1200 = 1.33, 1920x1080 = 1.78
+        let isLandscape = ratio >= 1.3
+        print("🔍 Post \(id): Aspect ratio \(String(format: "%.2f", ratio)) -> \(isLandscape ? "landscape" : "square") display")
+        return isLandscape
+    }
+    
+    /// グリッド表示タイプを判定
+    enum GridDisplayType {
+        case landscape  // 横長表示
+        case square     // 正方形表示
+    }
+    
+    /// グリッド表示タイプを取得
+    var gridDisplayType: GridDisplayType {
+        return shouldDisplayAsLandscape ? .landscape : .square
     }
     
     // MARK: - Transferable Implementation
