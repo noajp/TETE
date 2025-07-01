@@ -374,6 +374,27 @@ class PostService: @unchecked Sendable {
         return try await likeService.getLikeCount(for: postId)
     }
     
+    // MARK: - Delete Operations
+    
+    func deletePost(postId: String, userId: String) async throws -> Bool {
+        if PostService.useMockData {
+            // モックデータでは削除をシミュレート（実際には削除しない）
+            print("✅ PostService (Mock): Post \(postId) delete simulated")
+            return true
+        } else {
+            // 実際のデータベースから削除
+            try await client
+                .from("posts")
+                .delete()
+                .eq("id", value: postId)
+                .eq("user_id", value: userId) // 自分の投稿のみ削除可能
+                .execute()
+            
+            print("✅ PostService: Post \(postId) deleted successfully")
+            return true
+        }
+    }
+    
     // MARK: - Mock Data Helper
     
     private func checkMockLikeStatus(postId: String, userId: String) async -> Bool {

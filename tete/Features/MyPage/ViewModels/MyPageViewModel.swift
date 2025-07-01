@@ -178,6 +178,35 @@ final class MyPageViewModel: BaseViewModelClass {
         // TODO: ヘルプ画面への遷移
     }
     
+    // MARK: - Delete Operations
+    
+    /// Deletes a post
+    func deletePost(_ post: Post) async {
+        guard let userId = currentUserId else {
+            print("❌ MyPageViewModel: No current user ID")
+            return
+        }
+        
+        isLoading = true
+        
+        do {
+            let success = try await PostService().deletePost(postId: post.id, userId: userId)
+            if success {
+                // Remove from local arrays
+                userPosts.removeAll { $0.id == post.id }
+                savedPosts.removeAll { $0.id == post.id }
+                postsCount = max(0, postsCount - 1)
+                
+                print("✅ MyPageViewModel: Post deleted successfully")
+            }
+        } catch {
+            print("❌ MyPageViewModel: Failed to delete post: \(error)")
+            errorMessage = "Failed to delete post"
+        }
+        
+        isLoading = false
+    }
+    
     // MARK: - Refresh
     
     /// Refreshes all user data

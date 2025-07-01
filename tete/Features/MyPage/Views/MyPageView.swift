@@ -40,7 +40,12 @@ struct MyPageView: View {
                 ModernPostsTabSection(
                     posts: viewModel.userPosts,
                     selectedPost: $selectedPost,
-                    navigateToSingleView: $navigateToSingleView
+                    navigateToSingleView: $navigateToSingleView,
+                    onDeletePost: { post in
+                        Task {
+                            await viewModel.deletePost(post)
+                        }
+                    }
                 )
             }
             .padding(.vertical, MinimalDesign.Spacing.md)
@@ -215,6 +220,7 @@ struct ModernPostsTabSection: View {
     let posts: [Post]
     @Binding var selectedPost: Post?
     @Binding var navigateToSingleView: Bool
+    let onDeletePost: ((Post) -> Void)?
     @State private var selectedTab = 0
     @State private var showGridMode = false
     
@@ -255,13 +261,13 @@ struct ModernPostsTabSection: View {
                             GridView(posts: posts, onPostTapped: { post in
                                 selectedPost = post
                                 navigateToSingleView = true
-                            })
+                            }, onDeletePost: onDeletePost)
                                 .transition(.opacity)
                         } else {
                             SingleCardGridView(posts: posts, onPostTapped: { post in
                                 selectedPost = post
                                 navigateToSingleView = true
-                            })
+                            }, onDeletePost: onDeletePost)
                                 .transition(.opacity)
                         }
                     }
@@ -332,15 +338,17 @@ struct EmptyStateView: View {
 struct SingleCardGridView: View {
     let posts: [Post]
     let onPostTapped: ((Post) -> Void)?
+    let onDeletePost: ((Post) -> Void)?
     let columns = [
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5)
     ]
     
-    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil) {
+    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil) {
         self.posts = posts
         self.onPostTapped = onPostTapped
+        self.onDeletePost = onDeletePost
     }
     
     var body: some View {
@@ -350,6 +358,11 @@ struct SingleCardGridView: View {
                     ProfileSingleCardView(post: post, onTap: {
                         onPostTapped?(post)
                     })
+                    .contextMenu {
+                        Button("Delete", role: .destructive) {
+                            onDeletePost?(post)
+                        }
+                    }
                 }
             }
         }
@@ -414,15 +427,17 @@ struct ProfileSingleCardView: View {
 struct GridView: View {
     let posts: [Post]
     let onPostTapped: ((Post) -> Void)?
+    let onDeletePost: ((Post) -> Void)?
     let columns = [
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5)
     ]
     
-    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil) {
+    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil) {
         self.posts = posts
         self.onPostTapped = onPostTapped
+        self.onDeletePost = onDeletePost
     }
     
     var body: some View {
@@ -432,6 +447,11 @@ struct GridView: View {
                     GridItemView(post: post, onTap: {
                         onPostTapped?(post)
                     })
+                    .contextMenu {
+                        Button("Delete", role: .destructive) {
+                            onDeletePost?(post)
+                        }
+                    }
                 }
             }
         }
