@@ -45,6 +45,11 @@ struct MyPageView: View {
                         Task {
                             await viewModel.deletePost(post)
                         }
+                    },
+                    onReorderPosts: { reorderedPosts in
+                        Task {
+                            await viewModel.reorderPosts(reorderedPosts)
+                        }
                     }
                 )
             }
@@ -221,6 +226,7 @@ struct ModernPostsTabSection: View {
     @Binding var selectedPost: Post?
     @Binding var navigateToSingleView: Bool
     let onDeletePost: ((Post) -> Void)?
+    let onReorderPosts: (([Post]) -> Void)?
     @State private var selectedTab = 0
     @State private var showGridMode = false
     
@@ -261,13 +267,13 @@ struct ModernPostsTabSection: View {
                             GridView(posts: posts, onPostTapped: { post in
                                 selectedPost = post
                                 navigateToSingleView = true
-                            }, onDeletePost: onDeletePost)
+                            }, onDeletePost: onDeletePost, onReorderPosts: onReorderPosts)
                                 .transition(.opacity)
                         } else {
                             SingleCardGridView(posts: posts, onPostTapped: { post in
                                 selectedPost = post
                                 navigateToSingleView = true
-                            }, onDeletePost: onDeletePost)
+                            }, onDeletePost: onDeletePost, onReorderPosts: onReorderPosts)
                                 .transition(.opacity)
                         }
                     }
@@ -336,19 +342,21 @@ struct EmptyStateView: View {
 }
 
 struct SingleCardGridView: View {
-    let posts: [Post]
+    @State var posts: [Post]
     let onPostTapped: ((Post) -> Void)?
     let onDeletePost: ((Post) -> Void)?
+    let onReorderPosts: (([Post]) -> Void)?
     let columns = [
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5)
     ]
     
-    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil) {
-        self.posts = posts
+    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil, onReorderPosts: (([Post]) -> Void)? = nil) {
+        self._posts = State(initialValue: posts)
         self.onPostTapped = onPostTapped
         self.onDeletePost = onDeletePost
+        self.onReorderPosts = onReorderPosts
     }
     
     var body: some View {
@@ -363,7 +371,33 @@ struct SingleCardGridView: View {
                             onDeletePost?(post)
                         }
                     }
+                    .draggable(post) {
+                        // ドラッグ中に表示するプレビュー
+                        ProfileSingleCardView(post: post)
+                            .frame(width: 80, height: 80)
+                            .opacity(0.8)
+                    }
+                    .dropDestination(for: Post.self) { droppedPosts, location in
+                        guard let droppedPost = droppedPosts.first,
+                              let fromIndex = posts.firstIndex(where: { $0.id == droppedPost.id }),
+                              let toIndex = posts.firstIndex(where: { $0.id == post.id }) else {
+                            return false
+                        }
+                        
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            posts.move(fromOffsets: IndexSet([fromIndex]), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
+                        }
+                        
+                        onReorderPosts?(posts)
+                        return true
+                    }
                 }
+            }
+        }
+        .onChange(of: posts) { _, newPosts in
+            // 外部からの変更を反映
+            if newPosts.count != posts.count {
+                posts = newPosts
             }
         }
     }
@@ -425,19 +459,21 @@ struct ProfileSingleCardView: View {
 
 // Classic Grid View
 struct GridView: View {
-    let posts: [Post]
+    @State var posts: [Post]
     let onPostTapped: ((Post) -> Void)?
     let onDeletePost: ((Post) -> Void)?
+    let onReorderPosts: (([Post]) -> Void)?
     let columns = [
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5),
         GridItem(.flexible(), spacing: 1.5)
     ]
     
-    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil) {
-        self.posts = posts
+    init(posts: [Post], onPostTapped: ((Post) -> Void)? = nil, onDeletePost: ((Post) -> Void)? = nil, onReorderPosts: (([Post]) -> Void)? = nil) {
+        self._posts = State(initialValue: posts)
         self.onPostTapped = onPostTapped
         self.onDeletePost = onDeletePost
+        self.onReorderPosts = onReorderPosts
     }
     
     var body: some View {
@@ -452,7 +488,33 @@ struct GridView: View {
                             onDeletePost?(post)
                         }
                     }
+                    .draggable(post) {
+                        // ドラッグ中に表示するプレビュー
+                        GridItemView(post: post)
+                            .frame(width: 80, height: 80)
+                            .opacity(0.8)
+                    }
+                    .dropDestination(for: Post.self) { droppedPosts, location in
+                        guard let droppedPost = droppedPosts.first,
+                              let fromIndex = posts.firstIndex(where: { $0.id == droppedPost.id }),
+                              let toIndex = posts.firstIndex(where: { $0.id == post.id }) else {
+                            return false
+                        }
+                        
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            posts.move(fromOffsets: IndexSet([fromIndex]), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
+                        }
+                        
+                        onReorderPosts?(posts)
+                        return true
+                    }
                 }
+            }
+        }
+        .onChange(of: posts) { _, newPosts in
+            // 外部からの変更を反映
+            if newPosts.count != posts.count {
+                posts = newPosts
             }
         }
     }

@@ -3,8 +3,9 @@
 // Path: foodai/Core/DataModels/Post.swift
 //======================================================================
 import Foundation
+import CoreTransferable
 
-struct Post: Identifiable, Codable, Hashable {
+struct Post: Identifiable, Codable, Hashable, Transferable {
     let id: String
     let userId: String
     let mediaUrl: String
@@ -133,6 +134,12 @@ struct Post: Identifiable, Codable, Hashable {
     
     static func == (lhs: Post, rhs: Post) -> Bool {
         return lhs.id == rhs.id
+    }
+    
+    // MARK: - Transferable Implementation
+    
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .data)
     }
 }
 

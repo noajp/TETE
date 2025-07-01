@@ -207,6 +207,23 @@ final class MyPageViewModel: BaseViewModelClass {
         isLoading = false
     }
     
+    // MARK: - Reorder Operations
+    
+    /// Reorders posts
+    func reorderPosts(_ reorderedPosts: [Post]) async {
+        // Update local state immediately for responsive UI
+        userPosts = reorderedPosts
+        
+        // TODO: Here you would typically send the new order to your backend
+        // For now, we'll just update locally
+        print("✅ MyPageViewModel: Posts reordered - \(reorderedPosts.map { $0.id })")
+        
+        // In a real implementation, you might want to:
+        // 1. Send the new order to your backend API
+        // 2. Update a 'display_order' field for each post
+        // 3. Handle any errors and revert changes if needed
+    }
+    
     // MARK: - Refresh
     
     /// Refreshes all user data
