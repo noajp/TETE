@@ -7,6 +7,7 @@ struct CustomTabBar: View {
     let onCreatePost: () -> Void
     let isInSingleView: Bool
     let onBackToGrid: (() -> Void)?
+    let onBackFromProfileSingleView: (() -> Void)?
     
     var body: some View {
         HStack(spacing: 0) {
@@ -129,7 +130,12 @@ struct CustomTabBar: View {
             
             // アカウントボタン
             Button(action: {
-                selectedTab = 4
+                if selectedTab == 4 && onBackFromProfileSingleView != nil {
+                    // プロフィールのシングルビューから戻る
+                    onBackFromProfileSingleView?()
+                } else {
+                    selectedTab = 4
+                }
             }) {
                 Image(systemName: selectedTab == 4 ? "person.fill" : "person")
                     .font(.system(size: 20, weight: .light))

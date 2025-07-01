@@ -9,6 +9,7 @@ import PhotosUI
 struct MyPageView: View {
     @StateObject private var viewModel = MyPageViewModel()
     @EnvironmentObject var authManager: AuthManager
+    @Binding var isInProfileSingleView: Bool
     @State private var showEditProfile = false
     @State private var showSettings = false
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -67,6 +68,19 @@ struct MyPageView: View {
                         initialPost: selectedPost,
                         allPosts: viewModel.userPosts
                     )
+                    .onAppear {
+                        isInProfileSingleView = true
+                    }
+                    .onDisappear {
+                        isInProfileSingleView = false
+                    }
+                }
+            }
+            .onChange(of: isInProfileSingleView) { _, newValue in
+                if !newValue && navigateToSingleView {
+                    // プロフィールボタンが押されたら戻る
+                    navigateToSingleView = false
+                    selectedPost = nil
                 }
             }
     }

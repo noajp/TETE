@@ -204,7 +204,7 @@ struct EnhancedMainTabView: View {
                 .tag(MainTab.createPost)
             
             // Profile
-            MyPageView()
+            MyPageView(isInProfileSingleView: .constant(false))
                 .tabItem {
                     Image(systemName: MainTab.myPage.iconName)
                     Text(MainTab.myPage.title)

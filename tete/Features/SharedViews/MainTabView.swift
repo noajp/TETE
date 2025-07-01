@@ -10,6 +10,7 @@ struct MainTabView: View {
     @State private var showGridMode = false
     @State private var pageSelection = 1  // 0: Camera, 1: Feed
     @State private var isInSingleView = false
+    @State private var isInProfileSingleView = false
     @StateObject private var postStatusManager = PostStatusManager.shared
     
     var body: some View {
@@ -49,7 +50,7 @@ struct MainTabView: View {
                         }
                     case 4:
                         UnifiedNavigationView {
-                            MyPageView()
+                            MyPageView(isInProfileSingleView: $isInProfileSingleView)
                         }
                     default:
                         EmptyView()
@@ -118,6 +119,12 @@ struct MainTabView: View {
                             if isInSingleView {
                                 isInSingleView = false
                                 showGridMode = true
+                            }
+                        },
+                        onBackFromProfileSingleView: {
+                            // プロフィールのシングルビューから戻る
+                            if isInProfileSingleView {
+                                isInProfileSingleView = false
                             }
                         }
                     )
