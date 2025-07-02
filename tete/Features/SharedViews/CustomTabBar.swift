@@ -115,12 +115,12 @@ struct CustomTabBar: View {
             
             // メッセージボタン
             Button(action: {
-                selectedTab = 3
+                selectedTab = 2
             }) {
                 ZStack(alignment: .topTrailing) {
-                    Image(systemName: selectedTab == 3 ? "message.fill" : "message")
+                    Image(systemName: selectedTab == 2 ? "message.fill" : "message")
                         .font(.system(size: 20, weight: .light))
-                        .foregroundColor(selectedTab == 3 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                        .foregroundColor(selectedTab == 2 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                     
                     // 未読メッセージバッジ
                     if unreadMessageCount > 0 {
@@ -135,16 +135,16 @@ struct CustomTabBar: View {
             
             // アカウントボタン
             Button(action: {
-                if selectedTab == 4 && onBackFromProfileSingleView != nil {
+                if selectedTab == 3 && onBackFromProfileSingleView != nil {
                     // プロフィールのシングルビューから戻る
                     onBackFromProfileSingleView?()
                 } else {
-                    selectedTab = 4
+                    selectedTab = 3
                 }
             }) {
-                Image(systemName: selectedTab == 4 ? "person.fill" : "person")
+                Image(systemName: selectedTab == 3 ? "person.fill" : "person")
                     .font(.system(size: 20, weight: .light))
-                    .foregroundColor(selectedTab == 4 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                    .foregroundColor(selectedTab == 3 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
             }
             .frame(maxWidth: .infinity)
         }

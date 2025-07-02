@@ -11,7 +11,6 @@ struct MainTabView: View {
     @State private var pageSelection = 1  // 0: Camera, 1: Feed
     @State private var isInSingleView = false
     @State private var isInProfileSingleView = false
-    @StateObject private var postStatusManager = PostStatusManager.shared
     
     var body: some View {
         ZStack {
@@ -22,84 +21,51 @@ struct MainTabView: View {
                     .tag(0)
                     .ignoresSafeArea()
                 
-                // メインコンテンツ
-                Group {
-                    switch selectedTab {
-                    case 0:
-                        UnifiedNavigationView {
-                            HomeFeedView(
-                                showGridMode: $showGridMode, 
-                                showingCreatePost: $showingCreatePost,
-                                isInSingleView: $isInSingleView,
-                                onBackToGrid: {
-                                    // シングルビューからグリッドビューに戻る
-                                    if isInSingleView {
-                                        isInSingleView = false
-                                        showGridMode = true
-                                    }
+                // メインコンテンツ - 横スワイプで画面遷移
+                // ホーム → アーティクル → メッセージ → プロフィール
+                TabView(selection: $selectedTab) {
+                    // ホームフィード (0)
+                    UnifiedNavigationView {
+                        HomeFeedView(
+                            showGridMode: $showGridMode, 
+                            showingCreatePost: $showingCreatePost,
+                            isInSingleView: $isInSingleView,
+                            onBackToGrid: {
+                                // シングルビューからグリッドビューに戻る
+                                if isInSingleView {
+                                    isInSingleView = false
+                                    showGridMode = true
                                 }
-                            )
-                        }
-                    case 1:
-                        UnifiedNavigationView {
-                            MagazineFeedView()
-                        }
-                    case 3:
-                        UnifiedNavigationView {
-                            MessagesView()
-                        }
-                    case 4:
-                        UnifiedNavigationView {
-                            MyPageView(isInProfileSingleView: $isInProfileSingleView)
-                        }
-                    default:
-                        EmptyView()
+                            }
+                        )
                     }
+                    .tag(0)
+                    
+                    // アーティクル (1)
+                    UnifiedNavigationView {
+                        MagazineFeedView()
+                    }
+                    .tag(1)
+                    
+                    // メッセージ (2) - タブの順序用に2に変更
+                    UnifiedNavigationView {
+                        MessagesView()
+                    }
+                    .tag(2)
+                    
+                    // プロフィール (3) - タブの順序用に3に変更
+                    UnifiedNavigationView {
+                        MyPageView(isInProfileSingleView: $isInProfileSingleView)
+                    }
+                    .tag(3)
                 }
+                .tabViewStyle(.page(indexDisplayMode: .never))
                 .tag(1)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             
-            // Global Status Bar at the top
-            VStack(spacing: 0) {
-                if postStatusManager.showStatus {
-                    VStack(spacing: 0) {
-                        // Status message
-                        HStack {
-                            Text(postStatusManager.statusMessage)
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.primary)
-                            
-                            Spacer()
-                            
-                            Button("×") {
-                                postStatusManager.hideStatus()
-                            }
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(UIColor.systemBackground))
-                        
-                        // Thin progress bar
-                        ZStack(alignment: .leading) {
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 2)
-                            
-                            Rectangle()
-                                .fill(postStatusManager.statusColor)
-                                .frame(width: UIScreen.main.bounds.width * postStatusManager.progress, height: 2)
-                        }
-                    }
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .zIndex(2000)
-                }
-                
-                Spacer()
-            }
+            // Status bar moved to HomeFeedView
             
             // カメラビューの時はタブバーを非表示
             if pageSelection == 1 {

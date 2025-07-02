@@ -158,7 +158,7 @@ class CreatePostViewModel: ObservableObject {
                 }
                 
                 // 1. Upload media
-                await MainActor.run { [weak self] in
+                await MainActor.run {
                     NotificationCenter.default.post(
                         name: .postUploadProgress,
                         object: nil,
@@ -176,7 +176,7 @@ class CreatePostViewModel: ObservableObject {
                 }
                 
                 // 2. Create post record
-                await MainActor.run { [weak self] in
+                await MainActor.run {
                     NotificationCenter.default.post(
                         name: .postUploadProgress,
                         object: nil,
@@ -252,7 +252,7 @@ class CreatePostViewModel: ObservableObject {
                     let createdPost = try JSONDecoder().decode(Post.self, from: response.data)
                     print("🟢 Post created successfully: \(createdPost.id)")
                     
-                    await MainActor.run { [weak self] in
+                    await MainActor.run {
                         NotificationCenter.default.post(
                             name: .postUploadCompleted,
                             object: nil,
@@ -286,7 +286,7 @@ class CreatePostViewModel: ObservableObject {
                     print("🔴 Supabase error hint: \(supabaseError.hint ?? "unknown")")
                 }
                 
-                await MainActor.run { [weak self] in
+                await MainActor.run {
                     NotificationCenter.default.post(
                         name: .postUploadFailed,
                         object: nil,

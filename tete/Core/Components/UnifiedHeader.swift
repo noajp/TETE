@@ -67,7 +67,7 @@ struct UnifiedHeader: View {
             }
             .padding(.horizontal, MinimalDesign.Spacing.sm)
             .padding(.vertical, MinimalDesign.Spacing.xs)
-            .padding(.top, isDarkMode ? 8 : -15)
+            .padding(.top, -4)
             .background(isDarkMode ? Color.black.opacity(0.3) : MinimalDesign.Colors.background)
         }
         .background(isDarkMode ? Color.black.ignoresSafeArea(edges: .top) : MinimalDesign.Colors.background.ignoresSafeArea(edges: .top))
