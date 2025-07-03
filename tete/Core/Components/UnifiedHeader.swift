@@ -54,7 +54,6 @@ struct UnifiedHeader: View {
                 // Right button area
                 if let rightButton = rightButton {
                     Button(action: {
-                        print("🔴 Header button action triggered")
                         rightButton.action()
                     }) {
                         Image(systemName: rightButton.icon)
@@ -68,9 +67,8 @@ struct UnifiedHeader: View {
             .padding(.horizontal, MinimalDesign.Spacing.sm)
             .padding(.vertical, MinimalDesign.Spacing.xs)
             .padding(.top, -4)
-            .background(isDarkMode ? Color.black.opacity(0.3) : MinimalDesign.Colors.background)
+            .background(Color.white)
         }
-        .background(isDarkMode ? Color.black.ignoresSafeArea(edges: .top) : MinimalDesign.Colors.background.ignoresSafeArea(edges: .top))
     }
 }
 

@@ -21,7 +21,7 @@ struct UserProfile: Identifiable, Codable {
     
     // MARK: - 新仕様に基づく表示用ヘルパーメソッド
     
-    /// メッセージ・いいね等で表示するユーザーID
+    /// メッセージ機能で表示するユーザーID
     var userIdForDisplay: String {
         return username
     }

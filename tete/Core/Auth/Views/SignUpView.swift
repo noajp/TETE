@@ -120,6 +120,8 @@ struct SignUpView: View {
                             TextField("", text: $name)
                                 .font(.system(size: 18))
                                 .foregroundColor(.primary)
+                                .autocapitalization(.none)
+                                .autocorrectionDisabled()
                                 .padding(.bottom, 10)
                                 .overlay(
                                     Rectangle()
@@ -261,24 +263,43 @@ struct SignUpView: View {
             // Create account with Supabase
             let userId = try await authManager.signUpWithEmail(email: email, password: password)
             
-            // Create user profile with userid as username and name as display name
-            try await authManager.createUserProfile(
-                userId: userId,
-                username: userid,
-                displayName: name
-            )
+            // Check if user needs email confirmation
+            let needsEmailConfirmation = authManager.currentUser?.id == nil
             
-            print("✅ User profile created successfully")
-            
-            await MainActor.run {
-                // 開発・テスト用: 成功時は直接ディスミス
-                errorMessage = "Account created successfully!"
-                isSuccessMessage = true
-                showError = true
+            if needsEmailConfirmation {
+                // Save user info for later profile creation
+                UserDefaults.standard.set(userid, forKey: "pendingUsername_\(userId)")
+                UserDefaults.standard.set(name, forKey: "pendingDisplayName_\(userId)")
                 
-                // 1秒後に自動的に画面を閉じる
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    dismiss()
+                await MainActor.run {
+                    errorMessage = "アカウント作成が完了しました！メール確認後にログインしてください。"
+                    isSuccessMessage = true
+                    showError = true
+                    
+                    // 3秒後に自動的に画面を閉じる
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        dismiss()
+                    }
+                }
+            } else {
+                // User is already authenticated, create profile
+                try await authManager.createUserProfile(
+                    userId: userId,
+                    username: userid,
+                    displayName: name
+                )
+                
+                print("✅ User profile created successfully")
+                
+                await MainActor.run {
+                    errorMessage = "アカウント作成が完了しました！"
+                    isSuccessMessage = true
+                    showError = true
+                    
+                    // 1秒後に自動的に画面を閉じる
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        dismiss()
+                    }
                 }
             }
         } catch {
@@ -321,7 +342,11 @@ struct SignUpView: View {
     private func handleSignUpError(_ error: Error) -> String {
         let errorDescription = error.localizedDescription.lowercased()
         
-        if errorDescription.contains("confirmation link") {
+        if errorDescription.contains("row-level security policy") || errorDescription.contains("rls") {
+            return "アカウント作成に失敗しました。しばらく待ってから再度お試しください。"
+        } else if errorDescription.contains("duplicate key") || errorDescription.contains("unique constraint") {
+            return "このユーザーIDは既に使用されています"
+        } else if errorDescription.contains("confirmation link") {
             return "Account created! Please check your email and click the confirmation link to complete registration."
         } else if errorDescription.contains("user already registered") {
             return "This email address is already registered"

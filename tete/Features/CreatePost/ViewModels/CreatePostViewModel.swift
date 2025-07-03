@@ -140,7 +140,7 @@ class CreatePostViewModel: ObservableObject {
                 // Check if user profile exists
                 print("🔵 Checking if user profile exists...")
                 let profileCheck = try await supabase
-                    .from("profiles")
+                    .from("user_profiles")
                     .select("id", head: true, count: .exact)
                     .eq("id", value: userId)
                     .execute()

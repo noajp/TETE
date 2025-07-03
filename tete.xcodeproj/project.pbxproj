@@ -429,7 +429,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Couleur;
+				INFOPLIST_KEY_CFBundleDisplayName = TETE;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to take photos for sharing with other users. Camera access is required to capture and share your moments.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "場所情報を共有するために、位置情報へのアクセスが必要です。";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app may use the microphone for video recording features.";
@@ -466,7 +466,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = tete/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Couleur;
+				INFOPLIST_KEY_CFBundleDisplayName = TETE;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to take photos for sharing with other users. Camera access is required to capture and share your moments.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "場所情報を共有するために、位置情報へのアクセスが必要です。";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app may use the microphone for video recording features.";

@@ -9,6 +9,7 @@ struct MessagesView: View {
     @StateObject private var viewModel = MessagesViewModel()
     @State private var showNewMessage = false
     @State private var selectedConversationId: String?
+    @State private var isNavigatingToNewMessage = false
     @EnvironmentObject var authManager: AuthManager
     
     var body: some View {
@@ -16,7 +17,7 @@ struct MessagesView: View {
             title: "Messages",
             rightButton: HeaderButton(
                 icon: "square.and.pencil",
-                action: { showNewMessage = true }
+                action: { isNavigatingToNewMessage = true }
             )
         ) {
             if viewModel.isLoading {
@@ -56,17 +57,23 @@ struct MessagesView: View {
             }
         }
         .refreshable {
-                await viewModel.loadConversations()
+                await viewModel.refreshConversations()
             }
             .onAppear {
                 Task {
-                    await viewModel.loadConversationsIfNeeded()
+                    // 初回読み込みでない場合はサイレント更新を使用
+                    if viewModel.conversations.isEmpty {
+                        await viewModel.refreshConversations()
+                    } else {
+                        await viewModel.silentRefreshConversations()
+                    }
                 }
             }
-            .sheet(isPresented: $showNewMessage) {
+            .navigationDestination(isPresented: $isNavigatingToNewMessage) {
                 NewMessageView { userId in
                     Task {
                         if let conversationId = await viewModel.createNewConversation(with: userId) {
+                            isNavigatingToNewMessage = false
                             // Navigate directly to the conversation
                             selectedConversationId = conversationId
                         }
@@ -79,6 +86,14 @@ struct MessagesView: View {
             )) { destination in
                 if let conversation = viewModel.conversations.first(where: { $0.id == destination.id }) {
                     ConversationView(conversationId: destination.id, conversation: conversation)
+                }
+            }
+            .onChange(of: selectedConversationId) { oldValue, newValue in
+                // チャットルームから戻った時（selectedConversationIdがnilになった時）にサイレント更新
+                if oldValue != nil && newValue == nil {
+                    Task {
+                        await viewModel.silentRefreshConversations()
+                    }
                 }
             }
         .accentColor(MinimalDesign.Colors.accentRed)
@@ -130,7 +145,7 @@ struct ConversationRow: View {
                         .foregroundColor(MinimalDesign.Colors.secondary)
                 }
                 
-                Text(conversation.lastMessagePreview ?? "Start a conversation")
+                Text(conversation.displayLastMessagePreview)
                     .font(.system(size: 14))
                     .foregroundColor(hasUnread ? MinimalDesign.Colors.primary : MinimalDesign.Colors.secondary)
                     .lineLimit(1)
@@ -175,77 +190,91 @@ struct NewMessageView: View {
     let onSelectUser: (String) -> Void
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                    TextField("Search users...", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .onChange(of: searchText) { _, newValue in
-                            Task {
-                                await viewModel.searchUsers(query: newValue)
-                            }
-                        }
-                }
-                .padding()
+        VStack(spacing: 0) {
+            // ミニマルな検索バー
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray.opacity(0.6))
+                    .font(.system(size: 16))
                 
-                // User list
-                if viewModel.isLoading {
-                    ProgressView("Searching...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.users.isEmpty && !searchText.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "person.crop.circle.badge.questionmark")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray)
-                        Text("No users found")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if searchText.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "person.2")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray)
-                        Text("Search for users to start a conversation")
-                            .font(.body)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    List(viewModel.users, id: \.id) { user in
-                        UserRowView(user: user) {
-                            onSelectUser(user.id)
-                            dismiss()
+                TextField("Search users", text: $searchText)
+                    .font(.system(size: 16))
+                    .onChange(of: searchText) { _, newValue in
+                        Task {
+                            await viewModel.searchUsers(query: newValue)
                         }
+                    }
+                
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray.opacity(0.6))
+                            .font(.system(size: 16))
                     }
                 }
             }
-            .navigationTitle("New Message")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(MinimalDesign.Colors.accentRed)
-                }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(12)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("All Users") {
-                        Task {
-                            await viewModel.getAllUsers()
+            // User list
+            if viewModel.isLoading {
+                VStack {
+                    Spacer()
+                    ProgressView()
+                    Text("Searching...")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .padding(.top, 8)
+                    Spacer()
+                }
+            } else if viewModel.users.isEmpty && !searchText.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer()
+                    Image(systemName: "person.crop.circle.badge.questionmark")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray.opacity(0.6))
+                    Text("No users found")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                    Spacer()
+                }
+            } else if searchText.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer()
+                    Image(systemName: "person.2")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray.opacity(0.6))
+                    Text("Search for users to start a conversation")
+                        .font(.system(size: 16))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                    Spacer()
+                }
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(viewModel.users, id: \.id) { user in
+                            UserRowView(user: user) {
+                                onSelectUser(user.id)
+                                dismiss()
+                            }
+                            
+                            if user.id != viewModel.users.last?.id {
+                                Divider()
+                                    .padding(.leading, 70)
+                            }
                         }
                     }
-                    .font(.caption)
-                    .foregroundColor(MinimalDesign.Colors.accentRed)
+                    .padding(.top, 16)
                 }
             }
         }
+        .navigationTitle("New Message")
+        .navigationBarTitleDisplayMode(.inline)
         .accentColor(MinimalDesign.Colors.accentRed)
     }
 }
@@ -256,44 +285,51 @@ struct UserRowView: View {
     
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 12) {
-                // Profile image
+            HStack(spacing: 16) {
+                // Profile image - より洗練されたデザイン
                 if let avatarUrl = user.avatarUrl {
                     RemoteImageView(imageURL: avatarUrl)
-                        .frame(width: 50, height: 50)
-                        .clipShape(Rectangle())
+                        .frame(width: 48, height: 48)
+                        .clipShape(Circle())
                 } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 50, height: 50)
+                    Circle()
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 48, height: 48)
                         .overlay(
-                            Image(systemName: "person.fill")
+                            Text(String(user.profileDisplayName.prefix(1)).uppercased())
+                                .font(.system(size: 18, weight: .medium))
                                 .foregroundColor(.gray)
                         )
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(user.userIdForDisplay)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.black)
+                VStack(alignment: .leading, spacing: 2) {
+                    // 表示名を最初に表示
+                    Text(user.profileDisplayName)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MinimalDesign.Colors.primary)
                     
-                    if let displayName = user.displayName, !displayName.isEmpty {
-                        Text(displayName)
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray)
-                    }
+                    // ユーザーIDを小さい文字で表示
+                    Text("@\(user.username)")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray.opacity(0.7))
                     
                     if let bio = user.bio, !bio.isEmpty {
                         Text(bio)
-                            .font(.system(size: 12))
-                            .foregroundColor(.gray)
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray.opacity(0.8))
                             .lineLimit(1)
                     }
                 }
                 
                 Spacer()
+                
+                // 選択インジケーター
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray.opacity(0.5))
             }
-            .padding(.vertical, 8)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
         }
         .buttonStyle(PlainButtonStyle())
     }

@@ -46,10 +46,10 @@ struct CustomTabBar: View {
                                         .frame(width: 8, height: 8)
                                 } else {
                                     Rectangle()
-                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .stroke(.white, lineWidth: 1)
                                         .frame(width: 8, height: 8)
                                     Rectangle()
-                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .stroke(.white, lineWidth: 1)
                                         .frame(width: 8, height: 8)
                                 }
                             }
@@ -63,10 +63,10 @@ struct CustomTabBar: View {
                                         .frame(width: 8, height: 8)
                                 } else {
                                     Rectangle()
-                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .stroke(.white, lineWidth: 1)
                                         .frame(width: 8, height: 8)
                                     Rectangle()
-                                        .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                        .stroke(.white, lineWidth: 1)
                                         .frame(width: 8, height: 8)
                                 }
                             }
@@ -77,6 +77,7 @@ struct CustomTabBar: View {
                             Rectangle()
                                 .fill(MinimalDesign.Colors.accentRed)
                                 .frame(width: 20, height: 20)
+                                .shadow(color: .black.opacity(0.8), radius: 2, x: 1, y: 1)
                         } else {
                             Rectangle()
                                 .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
@@ -150,6 +151,6 @@ struct CustomTabBar: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
-        .background(MinimalDesign.Colors.background)
+        .background(Color.white)
     }
 }

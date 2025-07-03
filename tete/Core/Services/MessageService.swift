@@ -242,7 +242,7 @@ class MessageService: ObservableObject {
         // Verify both users exist in user_profiles table using count instead of full object
         do {
             let currentUserCount = try await supabase
-                .from("profiles")
+                .from("user_profiles")
                 .select("id", head: true, count: .exact)
                 .eq("id", value: currentUserId)
                 .execute()
@@ -257,7 +257,7 @@ class MessageService: ObservableObject {
         
         do {
             let targetUserCount = try await supabase
-                .from("profiles")
+                .from("user_profiles")
                 .select("id", head: true, count: .exact)
                 .eq("id", value: userId)
                 .execute()
@@ -285,12 +285,10 @@ class MessageService: ObservableObject {
                 throw NSError(domain: "MessageService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid user ID format"])
             }
             
-            print("🔵 CREATE CONVERSATION: Calling RPC with other_user_id: \(userId)")
             let conversationId: String = try await supabase
                 .rpc("get_or_create_direct_conversation", params: ["other_user_id": AnyJSON.string(userId)])
                 .execute()
                 .value
-            print("✅ CREATE CONVERSATION: Got conversation ID: \(conversationId)")
             return conversationId
         } catch {
             print("❌ CREATE CONVERSATION: RPC failed: \(error)")
@@ -371,11 +369,6 @@ class MessageService: ObservableObject {
             throw NSError(domain: "MessageService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
         }
         
-        print("🔵 SEND MESSAGE: Starting to send message")
-        print("🔵 SEND MESSAGE: Conversation ID: \(conversationId)")
-        print("🔵 SEND MESSAGE: Sender ID: \(userId)")
-        print("🔵 SEND MESSAGE: Content: \(content)")
-        
         let messageData = [
             "conversation_id": conversationId,
             "sender_id": userId,
@@ -393,14 +386,11 @@ class MessageService: ObservableObject {
             .execute()
             .value
         
-        print("✅ SEND MESSAGE: Successfully sent message with ID: \(message.id)")
-        
         // Mark conversation as read after sending
         do {
             try await markConversationAsRead(conversationId)
-            print("🔵 SEND MESSAGE: Marked conversation as read")
         } catch {
-            print("⚠️ SEND MESSAGE: Failed to mark as read: \(error)")
+            // Silently handle error
         }
         
         // Update unread count for all users (sender's count might decrease, receiver's might increase)

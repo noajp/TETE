@@ -161,14 +161,12 @@ struct Post: Identifiable, Codable, Hashable, Transferable {
     var shouldDisplayAsLandscape: Bool {
         guard let ratio = aspectRatio else {
             // アスペクト比が不明な場合は正方形表示
-            print("⚠️ Post \(id): No aspect ratio data, defaulting to square display")
             return false
         }
         
         // アスペクト比が1.3以上（横:縦 = 1.3:1以上）を横長とする
         // 例: 1600x1200 = 1.33, 1920x1080 = 1.78
         let isLandscape = ratio >= 1.3
-        print("🔍 Post \(id): Aspect ratio \(String(format: "%.2f", ratio)) -> \(isLandscape ? "landscape" : "square") display")
         return isLandscape
     }
     

@@ -52,7 +52,6 @@ class PostService: @unchecked Sendable {
         }
         
         // 本番モード
-        print("🔵 PostService: フィード投稿を取得開始")
         
         do {
             // Check if the task is cancelled before making network request
@@ -67,7 +66,6 @@ class PostService: @unchecked Sendable {
                 .execute()
                 .value
             
-            print("✅ PostService: \(posts.count)件の投稿を取得")
             
             // Check cancellation after each major operation
             try Task.checkCancellation()
@@ -80,7 +78,6 @@ class PostService: @unchecked Sendable {
                             postId: posts[i].id,
                             userId: userId
                         )
-                        print("✅ いいね状態取得: Post \(posts[i].id) - \(posts[i].isLikedByMe)")
                     } catch {
                         print("⚠️ いいね状態取得エラー: \(error)")
                         posts[i].isLikedByMe = false
@@ -90,33 +87,26 @@ class PostService: @unchecked Sendable {
             
             // 投稿のユーザーIDを集めて一度にユーザー情報を取得
             let userIds = Array(Set(posts.map { $0.userId })) // 重複を除去
-            print("🔍 PostService: \(userIds.count)名のユーザー情報を取得中...")
-            print("🔍 PostService: ユーザーID一覧: \(userIds)")
             
             var userMap: [String: UserProfile] = [:]
             
             if !userIds.isEmpty {
                 do {
                     let userProfiles: [UserProfile] = try await client
-                        .from("profiles")
+                        .from("user_profiles")
                         .select("*")
                         .in("id", values: userIds)
                         .execute()
                         .value
                     
-                    print("🔍 PostService: 取得されたユーザー: \(userProfiles.map { "\($0.id): \($0.username)" })")
                     
                     for user in userProfiles {
                         userMap[user.id] = user
                     }
-                    print("✅ PostService: \(userProfiles.count)名のユーザー情報を取得")
                     
                     // どのユーザーIDが見つからなかったかをチェック
                     let foundUserIds = Set(userProfiles.map { $0.id })
-                    let missingUserIds = Set(userIds).subtracting(foundUserIds)
-                    if !missingUserIds.isEmpty {
-                        print("⚠️ PostService: 見つからなかったユーザーID: \(Array(missingUserIds))")
-                    }
+                    _ = Set(userIds).subtracting(foundUserIds)
                 } catch {
                     print("❌ ユーザー情報一括取得エラー: \(error)")
                 }
@@ -126,7 +116,6 @@ class PostService: @unchecked Sendable {
             for i in 0..<posts.count {
                 if let user = userMap[posts[i].userId] {
                     posts[i].user = user
-                    print("✅ ユーザー情報設定: Post \(posts[i].id) -> \(user.username)")
                 } else {
                     print("⚠️ ユーザー情報が見つかりません: Post \(posts[i].id), User ID \(posts[i].userId)")
                     // ダミーユーザーを作成
@@ -353,16 +342,13 @@ class PostService: @unchecked Sendable {
             let isCurrentlyLiked = await PostService.mockLikedPostsManager.contains(postId)
             if isCurrentlyLiked {
                 await PostService.mockLikedPostsManager.remove(postId)
-                print("✅ PostService (Mock): Post \(postId) unliked")
                 return false
             } else {
                 await PostService.mockLikedPostsManager.insert(postId)
-                print("✅ PostService (Mock): Post \(postId) liked")
                 return true
             }
         } else {
             let isNowLiked = try await likeService.toggleLike(postId: postId, userId: userId)
-            print("✅ PostService: Post \(postId) like toggled. Now liked: \(isNowLiked)")
             return isNowLiked
         }
     }
@@ -380,7 +366,6 @@ class PostService: @unchecked Sendable {
     func deletePost(postId: String, userId: String) async throws -> Bool {
         if PostService.useMockData {
             // モックデータでは削除をシミュレート（実際には削除しない）
-            print("✅ PostService (Mock): Post \(postId) delete simulated")
             return true
         } else {
             // 実際のデータベースから削除
@@ -391,7 +376,6 @@ class PostService: @unchecked Sendable {
                 .eq("user_id", value: userId) // 自分の投稿のみ削除可能
                 .execute()
             
-            print("✅ PostService: Post \(postId) deleted successfully")
             return true
         }
     }

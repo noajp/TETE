@@ -11,9 +11,16 @@ struct MainTabView: View {
     @State private var pageSelection = 1  // 0: Camera, 1: Feed
     @State private var isInSingleView = false
     @State private var isInProfileSingleView = false
+    @State private var tabBarOffset: CGFloat = 0
+    @State private var headerOffset: CGFloat = 0
+    @State private var lastScrollOffset: CGFloat = 0
     
     var body: some View {
         ZStack {
+            // セーフエリアを黄色にして確認
+            Color.yellow
+                .ignoresSafeArea(.all)
+            
             // TabViewでカメラとフィードをスワイプで切り替え
             TabView(selection: $pageSelection) {
                 // カメラビュー
@@ -30,12 +37,16 @@ struct MainTabView: View {
                             showGridMode: $showGridMode, 
                             showingCreatePost: $showingCreatePost,
                             isInSingleView: $isInSingleView,
+                            headerOffset: $headerOffset,
                             onBackToGrid: {
                                 // シングルビューからグリッドビューに戻る
                                 if isInSingleView {
                                     isInSingleView = false
                                     showGridMode = true
                                 }
+                            },
+                            onScrollChanged: { scrollOffset in
+                                updateUIForScroll(scrollOffset: scrollOffset)
                             }
                         )
                     }
@@ -95,13 +106,43 @@ struct MainTabView: View {
                         }
                     )
                 }
+                .offset(y: tabBarOffset)
+                .animation(.easeInOut(duration: 0.25), value: tabBarOffset)
+                .clipped() // 背景も含めて完全に隠すためにクリッピング
             }
         }
-        .ignoresSafeArea(.keyboard)
+        .ignoresSafeArea(.all)
         .accentColor(MinimalDesign.Colors.accentRed)
         .fullScreenCover(isPresented: $showingCreatePost) {
             CreatePostNavigationView()
                 .transition(.move(edge: .bottom))
+        }
+    }
+    
+    private func updateUIForScroll(scrollOffset: CGFloat) {
+        let deltaY = lastScrollOffset - scrollOffset // HomeFeedViewと同じ計算方法に統一
+        lastScrollOffset = scrollOffset
+        
+        // タブバーの実際の高さ（アイコン20pt + 縦パディング16pt + セーフエリア考慮）
+        let tabBarHeight: CGFloat = 120 // 背景も含めて完全に隠すためにさらに大きく
+        
+        // 下にスクロールした場合（deltaY > 3）
+        if deltaY > 3 {
+            // タブバーを隠す
+            if tabBarOffset != tabBarHeight {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    tabBarOffset = tabBarHeight
+                }
+            }
+        }
+        // 上にスクロールした場合（deltaY < -1）または上端付近
+        else if deltaY < -1 || scrollOffset > -20 {
+            // タブバーを表示
+            if tabBarOffset != 0 {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    tabBarOffset = 0
+                }
+            }
         }
     }
 }

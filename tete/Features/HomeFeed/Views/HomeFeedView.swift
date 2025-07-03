@@ -13,10 +13,12 @@ struct HomeFeedView: View {
     @Binding var showGridMode: Bool
     @Binding var showingCreatePost: Bool
     @Binding var isInSingleView: Bool
+    @Binding var headerOffset: CGFloat
     let onBackToGrid: (() -> Void)?
-    @State private var headerOffset: CGFloat = 0
+    let onScrollChanged: ((CGFloat) -> Void)?
     @State private var selectedPost: Post?
     @State private var navigateToSingleView: Bool = false
+    @State private var lastScrollY: CGFloat = 0
     @Environment(\.dismiss) private var dismiss
     
     private let headerHeight: CGFloat = 56
@@ -31,7 +33,7 @@ struct HomeFeedView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onChange(of: geometry.frame(in: .named("scroll")).minY) { _, newValue in
-                                    updateHeaderOffset(scrollOffset: newValue)
+                                    updateScrollOffset(scrollOffset: newValue)
                                 }
                         }
                         .frame(height: 1)
@@ -63,6 +65,7 @@ struct HomeFeedView: View {
                         if showGridMode {
                             // Custom Grid View with alternating layout
                             CustomGridView(posts: viewModel.posts, showGridMode: $showGridMode, selectedPost: $selectedPost, navigateToSingleView: $navigateToSingleView)
+                                .ignoresSafeArea(.all)
                         } else {
                             // List View (default)
                             if let selectedPost = selectedPost {
@@ -73,6 +76,7 @@ struct HomeFeedView: View {
                                     }
                                 })
                                 .id(selectedPost.id)
+                                .ignoresSafeArea(.all)
                                 
                                 // Show other posts below
                                 ForEach(viewModel.posts.filter { $0.id != selectedPost.id }) { post in
@@ -81,6 +85,7 @@ struct HomeFeedView: View {
                                             await viewModel.toggleLike(for: post)
                                         }
                                     })
+                                    .ignoresSafeArea(.all)
                                 }
                             } else {
                                 // Show all posts
@@ -90,6 +95,7 @@ struct HomeFeedView: View {
                                             await viewModel.toggleLike(for: post)
                                         }
                                     })
+                                    .ignoresSafeArea(.all)
                                 }
                             }
                         }
@@ -97,6 +103,7 @@ struct HomeFeedView: View {
                 }
             }
             .coordinateSpace(name: "scroll")
+            .ignoresSafeArea(.all)
             .refreshable {
                 await viewModel.forceRefreshPosts()
             }
@@ -148,7 +155,7 @@ struct HomeFeedView: View {
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(Color(UIColor.systemBackground))
+                        .background(Color.white)
                         
                         // Thin progress bar
                         ZStack(alignment: .leading) {
@@ -165,17 +172,16 @@ struct HomeFeedView: View {
                 }
             }
             .offset(y: headerOffset)
+            .animation(.easeInOut(duration: 0.25), value: headerOffset)
             .zIndex(1000)
         }
-        .ignoresSafeArea(.container, edges: [])
+        .ignoresSafeArea(.all)
         .onAppear {
-            print("🟢 HomeFeedView appeared")
             Task {
                 await viewModel.loadPostsIfNeeded()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("PostCreated"))) { _ in
-            print("🔄 Post created notification received - refreshing feed")
             Task {
                 await viewModel.forceRefreshPosts()
             }
@@ -197,16 +203,30 @@ struct HomeFeedView: View {
         // HomeFeedViewでの通知受信は無効化（MainTabViewで処理）
     }
     
-    private func updateHeaderOffset(scrollOffset: CGFloat) {
-        // シンプルな方法: 負の値（上にスクロール）に応じてヘッダーを隠す
-        if scrollOffset < 0 {
-            // 下にスクロールした場合（scrollOffsetが負の値）
-            let scrollDistance = abs(scrollOffset)
-            headerOffset = -min(scrollDistance, headerHeight)
-        } else {
-            // 上端付近
-            headerOffset = 0
+    private func updateScrollOffset(scrollOffset: CGFloat) {
+        // スクロールの変化量を計算
+        let deltaY = lastScrollY - scrollOffset
+        lastScrollY = scrollOffset
+        
+        // ヘッダーの表示/非表示を制御
+        if deltaY > 3 {
+            // 下にスクロール: ヘッダーを隠す
+            if headerOffset != -headerHeight {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    headerOffset = -headerHeight
+                }
+            }
+        } else if deltaY < -1 || scrollOffset > -20 {
+            // 上にスクロール: ヘッダーを表示（または上端付近）
+            if headerOffset != 0 {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    headerOffset = 0
+                }
+            }
         }
+        
+        // タブバーの制御のためにコールバックを呼び出す
+        onScrollChanged?(scrollOffset)
     }
 }
 
@@ -296,8 +316,9 @@ struct PostCardView: View {
                         .fill(Color(.tertiarySystemBackground))
                 }
             }
-            .frame(maxHeight: 400)
+            .frame(maxWidth: .infinity, maxHeight: 400)
             .clipped()
+            .ignoresSafeArea(.all)
             
             // Actions
             HStack(spacing: 16) {
@@ -339,7 +360,7 @@ struct PostCardView: View {
                 .padding(.bottom, 12)
             }
         }
-        .background(Color(.systemBackground))
+        .background(Color.clear)
     }
     
     private func timeAgoString(from date: Date) -> String {
@@ -379,9 +400,6 @@ struct CustomGridView: View {
                         selectedPost = post
                         navigateToSingleView = true
                     }
-                    .onAppear {
-                        print("🎨 Using OddRowView for group \(groupIndex) with \(group.count) posts")
-                    }
                 } else {
                     // 偶数段: 正方形写真6枚
                     EvenRowView(
@@ -395,13 +413,10 @@ struct CustomGridView: View {
                         selectedPost = post
                         navigateToSingleView = true
                     }
-                    .onAppear {
-                        print("🎨 Using EvenRowView for group \(groupIndex) with \(group.count) posts")
-                    }
                 }
             }
         }
-        .background(Color(UIColor.systemBackground))
+        .background(Color.clear)
     }
     
     private var groupedPosts: [[Post]] {
@@ -422,7 +437,6 @@ struct CustomGridView: View {
     
     /// 新しい仕様に基づいてグリッドレイアウトを生成
     private func createOptimalGrid(from posts: [Post]) -> [[Post]] {
-        print("🔍 CustomGridView: Creating grid for \(posts.count) posts")
         
         var groups: [[Post]] = []
         var blockNumber = 1 // ブロック番号（1から開始）
@@ -439,7 +453,6 @@ struct CustomGridView: View {
             }
         }
         
-        print("🔍 Total posts: \(posts.count), Landscape: \(landscapePosts.count), Square: \(squarePosts.count)")
         
         var landscapeIndex = 0
         var squareIndex = 0
@@ -470,7 +483,6 @@ struct CustomGridView: View {
                 }
                 
                 if !block.isEmpty {
-                    print("🔍 Created odd block #\(blockNumber) with \(block.count) posts")
                     groups.append(block)
                 }
             } else {
@@ -491,7 +503,6 @@ struct CustomGridView: View {
                 }
                 
                 if !block.isEmpty {
-                    print("🔍 Created even block #\(blockNumber) with \(block.count) posts")
                     groups.append(block)
                 }
             }
@@ -504,7 +515,6 @@ struct CustomGridView: View {
             }
         }
         
-        print("🔵 Grid creation complete with \(groups.count) blocks")
         return groups
     }
 }
@@ -535,9 +545,6 @@ struct OddRowView: View {
                     }
                     .frame(width: rectangleWidth, height: squareSize)
                     .clipped()
-                    .onAppear {
-                        print("🎨 OddRowView: First post \(firstPost.id.prefix(8)) isLandscape=\(isLandscape)")
-                    }
                 } else {
                     // 横長でない写真は正方形で表示
                     GridImageView(
@@ -550,9 +557,6 @@ struct OddRowView: View {
                     .frame(width: squareSize, height: squareSize)
                     .clipped()
                     .aspectRatio(1, contentMode: .fill)
-                    .onAppear {
-                        print("🎨 OddRowView: First post \(firstPost.id.prefix(8)) isLandscape=\(isLandscape)")
-                    }
                 }
             }
             
@@ -570,9 +574,6 @@ struct OddRowView: View {
                 .frame(width: secondaryWidth, height: squareSize)
                 .clipped()
                 .aspectRatio(1, contentMode: .fill)
-                .onAppear {
-                    print("🎨 OddRowView: Second post width=\(secondaryWidth)")
-                }
             }
         }
         .frame(height: squareSize)
@@ -623,16 +624,10 @@ struct EvenRowView: View {
                         .frame(width: squareSize, height: squareSize)
                         .clipped()
                         .aspectRatio(1, contentMode: .fill)
-                        .onAppear {
-                            print("🎨 EvenRowView: Top row index \(index) - Post \(posts[index].id.prefix(8))")
-                        }
                     } else {
                         Rectangle()
                             .fill(Color(.tertiarySystemBackground))
                             .frame(width: squareSize, height: squareSize)
-                            .onAppear {
-                                print("🎨 EvenRowView: Top row index \(index) - Empty placeholder")
-                            }
                     }
                 }
             }
@@ -651,24 +646,15 @@ struct EvenRowView: View {
                         .frame(width: squareSize, height: squareSize)
                         .clipped()
                         .aspectRatio(1, contentMode: .fill)
-                        .onAppear {
-                            print("🎨 EvenRowView: Bottom row index \(index) - Post \(posts[index].id.prefix(8))")
-                        }
                     } else {
                         Rectangle()
                             .fill(Color(.tertiarySystemBackground))
                             .frame(width: squareSize, height: squareSize)
-                            .onAppear {
-                                print("🎨 EvenRowView: Bottom row index \(index) - Empty placeholder")
-                            }
                     }
                 }
             }
         }
         .frame(height: totalHeight)
-        .onAppear {
-            print("🎨 EvenRowView: Displaying \(posts.count) posts total")
-        }
     }
     
     private var screenWidth: CGFloat {
@@ -782,7 +768,9 @@ struct HomeFeedView_Previews: PreviewProvider {
             showGridMode: .constant(false), 
             showingCreatePost: .constant(false),
             isInSingleView: .constant(false),
-            onBackToGrid: nil
+            headerOffset: .constant(0),
+            onBackToGrid: nil,
+            onScrollChanged: nil
         )
     }
 }

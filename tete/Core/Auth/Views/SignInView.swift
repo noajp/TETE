@@ -185,7 +185,7 @@ struct SignInView: View {
         } message: {
             Text(errorMessage)
         }
-        .sheet(isPresented: $showSignUp) {
+        .fullScreenCover(isPresented: $showSignUp) {
             SignUpView()
                 .environmentObject(authManager)
         }

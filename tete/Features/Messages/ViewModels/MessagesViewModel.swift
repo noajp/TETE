@@ -31,7 +31,6 @@ class MessagesViewModel: ObservableObject {
         NotificationCenter.default.publisher(for: .authStateChanged)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                print("🔵 [DEBUG] Auth state changed - resetting hasLoadedInitially flag")
                 self?.hasLoadedInitially = false
                 self?.conversations = []
                 Task {
@@ -50,12 +49,10 @@ class MessagesViewModel: ObservableObject {
                       let conversationId = notification.object as? String else { return }
                 
                 // Update the specific conversation's unread count to 0
-                print("🔵 Received notification to mark conversation \(conversationId) as read")
                 if let index = self.conversations.firstIndex(where: { $0.id == conversationId }) {
                     self.conversations[index].unreadCount = 0
                     // Force UI update
                     self.objectWillChange.send()
-                } else {
                 }
             }
             .store(in: &cancellables)
@@ -72,30 +69,45 @@ class MessagesViewModel: ObservableObject {
     }
     
     func loadConversationsIfNeeded() async {
-        print("🔵 [DEBUG] loadConversationsIfNeeded() CALLED - hasLoadedInitially: \(hasLoadedInitially)")
         // 既に読み込み済みの場合はスキップ
         guard !hasLoadedInitially else { 
-            print("🔵 [DEBUG] Skipping load - already loaded initially")
             return 
         }
         await loadConversations()
     }
     
     func loadConversations() async {
-        print("🔵 [DEBUG] loadConversations() CALLED - starting fetch")
         isLoading = true
         errorMessage = nil
         
         do {
             conversations = try await messageService.fetchConversations()
-            print("🔵 [DEBUG] Successfully fetched \(conversations.count) conversations")
             hasLoadedInitially = true
         } catch {
-            print("🔴 [DEBUG] Failed to fetch conversations: \(error)")
             errorMessage = "Failed to load conversations: \(error.localizedDescription)"
         }
         
         isLoading = false
+    }
+    
+    // 会話リストを強制的に更新（チャットルームから戻った時など）
+    func refreshConversations() async {
+        await loadConversations()
+    }
+    
+    // サイレント更新（ローディング表示なし、チラつき防止）
+    func silentRefreshConversations() async {
+        // ローディング表示をせずにバックグラウンドで更新
+        do {
+            let newConversations = try await messageService.fetchConversations()
+            
+            // UIの更新はメインスレッドで、アニメーション付きで行う
+            withAnimation(.easeInOut(duration: 0.2)) {
+                conversations = newConversations
+            }
+        } catch {
+            // エラーの場合はサイレントに失敗（UIは既存データを保持）
+        }
     }
     
     func createNewConversation(with userId: String) async -> String? {

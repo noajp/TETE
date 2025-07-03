@@ -238,9 +238,9 @@ struct MessageBubble: View {
             }
             
             VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: 4) {
-                // 相手のメッセージの場合はユーザーIDを表示
+                // 相手のメッセージの場合は表示名を表示
                 if !isCurrentUser, let sender = message.sender {
-                    Text(sender.userIdForDisplay)
+                    Text(sender.profileDisplayName)
                         .font(.caption)
                         .foregroundColor(.gray)
                         .padding(.horizontal, 16)
@@ -303,7 +303,7 @@ struct MessageInputView: View {
             
             // Spacer to account for custom tab bar
             Rectangle()
-                .fill(Color(.systemBackground))
+                .fill(Color.clear)
                 .frame(height: 60) // Height to clear the custom tab bar
         }
     }

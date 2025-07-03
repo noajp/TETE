@@ -58,18 +58,11 @@ struct Conversation: Identifiable, Codable {
         // Get the other participant (supports both direct messages and group chats)
         guard let participants = participants,
               let currentUserId = currentUserId else { 
-            print("🔵 otherParticipant: participants=\(participants?.count ?? 0), currentUserId=\(currentUserId ?? "nil")")
             return nil 
         }
         
-        print("🔵 otherParticipant: Total participants=\(participants.count), currentUserId=\(currentUserId)")
-        for (index, participant) in participants.enumerated() {
-            print("🔵 Participant \(index): userId=\(participant.userId), user=\(participant.user?.username ?? "nil")")
-        }
-        
-        // Find first participant that is not the current user
-        let otherParticipant = participants.first { $0.userId != currentUserId }
-        print("🔵 otherParticipant found: \(otherParticipant?.user?.username ?? "nil")")
+        // Find first participant that is not the current user (case-insensitive comparison)
+        let otherParticipant = participants.first { $0.userId.lowercased() != currentUserId.lowercased() }
         return otherParticipant?.user
     }
     
@@ -78,9 +71,8 @@ struct Conversation: Identifiable, Codable {
             return "Unknown"
         }
         
-        // Filter out current user from participants
-        let otherParticipants = participants.filter { $0.userId != currentUserId }
-        
+        // Filter out current user from participants (case-insensitive comparison)
+        let otherParticipants = participants.filter { $0.userId.lowercased() != currentUserId.lowercased() }
         
         if otherParticipants.isEmpty {
             return "Unknown"
@@ -89,7 +81,8 @@ struct Conversation: Identifiable, Codable {
         // For direct messages (1 other participant)
         if otherParticipants.count == 1 {
             if let otherUser = otherParticipants.first?.user {
-                return otherUser.userIdForDisplay
+                // 表示名のみを表示（display_nameがあればそれを、なければusernameを使用）
+                return otherUser.profileDisplayName
             } else {
                 return "User-\(String(otherParticipants.first!.userId.prefix(8)))"
             }
@@ -97,7 +90,7 @@ struct Conversation: Identifiable, Codable {
         
         // For group chats (multiple other participants)
         let participantNames = otherParticipants.compactMap { participant in
-            participant.user?.userIdForDisplay ?? "User-\(String(participant.userId.prefix(8)))"
+            participant.user?.profileDisplayName ?? "User-\(String(participant.userId.prefix(8)))"
         }
         
         if participantNames.count <= 3 {
@@ -120,10 +113,23 @@ struct Conversation: Identifiable, Codable {
             return nil
         }
         
-        let otherParticipants = participants.filter { $0.userId != currentUserId }
+        let otherParticipants = participants.filter { $0.userId.lowercased() != currentUserId.lowercased() }
         
         // Return the first other participant's avatar
         return otherParticipants.first?.user?.avatarUrl
+    }
+    
+    // 最後のメッセージプレビューを15文字に制限して表示
+    var displayLastMessagePreview: String {
+        guard let preview = lastMessagePreview else {
+            return "Start a conversation"
+        }
+        
+        if preview.count <= 15 {
+            return preview
+        } else {
+            return String(preview.prefix(15)) + "..."
+        }
     }
 }
 

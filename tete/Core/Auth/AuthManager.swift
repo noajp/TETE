@@ -337,6 +337,8 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     // MARK: - Profile Management
     
     func createUserProfile(userId: String, username: String, displayName: String, bio: String? = nil) async throws {
+        print("📝 Creating user profile for userId: \(userId), username: \(username)")
+        
         let profileData: [String: AnyJSON] = [
             "id": AnyJSON.string(userId),
             "username": AnyJSON.string(username),
@@ -344,10 +346,26 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             "bio": AnyJSON.string(bio ?? "Hello, I'm \(displayName)!")
         ]
         
-        try await client
-            .from("profiles")
-            .insert(profileData)
-            .execute()
+        do {
+            let response = try await client
+                .from("user_profiles")
+                .insert(profileData)
+                .execute()
+            
+            print("✅ Profile created successfully: \(response)")
+        } catch {
+            print("❌ Profile creation failed: \(error)")
+            print("❌ Error type: \(type(of: error))")
+            print("❌ Error details: \(error.localizedDescription)")
+            
+            // Check if it's an RLS policy error
+            if error.localizedDescription.contains("row-level security policy") {
+                print("❌ RLS Policy Error - the user may not have permission to create their profile")
+                print("💡 Tip: Make sure the profiles table has an INSERT policy for authenticated users")
+            }
+            
+            throw error
+        }
         
         print("✅ User profile created: \(username)")
     }
@@ -355,7 +373,7 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     func checkUsernameAvailability(username: String) async throws -> Bool {
         do {
             let response = try await client
-                .from("profiles")
+                .from("user_profiles")
                 .select("username")
                 .eq("username", value: username)
                 .execute()
@@ -499,40 +517,62 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
             
             // Check if profile already exists
             let profileCount = try await client
-                .from("profiles")
+                .from("user_profiles")
                 .select("id", head: true, count: .exact)
                 .eq("id", value: user.id.uuidString)
                 .execute()
                 .count ?? 0
             
             if profileCount == 0 {
-                print("🔵 Creating user profile for OAuth user: \(user.id.uuidString)")
+                print("🔵 Creating user profile for user: \(user.id.uuidString)")
                 
-                // Generate valid username from email (must match [a-z0-9_-]{3,30})
-                let baseUsername = user.email?.components(separatedBy: "@").first?
-                    .lowercased()
-                    .replacingOccurrences(of: ".", with: "_")
-                    .replacingOccurrences(of: "+", with: "_")
-                    .filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" } ?? ""
+                // Check if we have saved user info from signup
+                let userId = user.id.uuidString
+                let savedUsername = UserDefaults.standard.string(forKey: "pendingUsername_\(userId)")
+                let savedDisplayName = UserDefaults.standard.string(forKey: "pendingDisplayName_\(userId)")
                 
-                // Ensure username meets constraints
-                let username = if baseUsername.count >= 3 && baseUsername.count <= 30 {
-                    String(baseUsername)
+                let username: String
+                let displayName: String
+                
+                if let savedUsername = savedUsername, let savedDisplayName = savedDisplayName {
+                    // Use saved info from signup
+                    username = savedUsername
+                    displayName = savedDisplayName
+                    
+                    // Clean up saved data
+                    UserDefaults.standard.removeObject(forKey: "pendingUsername_\(userId)")
+                    UserDefaults.standard.removeObject(forKey: "pendingDisplayName_\(userId)")
+                    
+                    print("🔵 Using saved signup info: username=\(username), displayName=\(displayName)")
                 } else {
-                    "user\(String(user.id.uuidString.lowercased().replacingOccurrences(of: "-", with: "").prefix(8)))"
+                    // Generate username from email for OAuth users
+                    let baseUsername = user.email?.components(separatedBy: "@").first?
+                        .lowercased()
+                        .replacingOccurrences(of: ".", with: "_")
+                        .replacingOccurrences(of: "+", with: "_")
+                        .filter { $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" } ?? ""
+                    
+                    // Ensure username meets constraints
+                    username = if baseUsername.count >= 3 && baseUsername.count <= 30 {
+                        String(baseUsername)
+                    } else {
+                        "user\(String(user.id.uuidString.lowercased().replacingOccurrences(of: "-", with: "").prefix(8)))"
+                    }
+                    
+                    // For OAuth users, use email as display name initially
+                    displayName = user.email ?? username
+                    
+                    print("🔵 Generated username from email: username=\(username), displayName=\(displayName)")
                 }
                 
-                // For OAuth users, use email as display name initially
-                let displayName = user.email ?? username
-                
                 try await createUserProfile(
-                    userId: user.id.uuidString,
+                    userId: userId,
                     username: username,
                     displayName: displayName,
                     bio: "New to TETE!"
                 )
                 
-                print("✅ User profile created for OAuth user: \(username)")
+                print("✅ User profile created: \(username)")
             } else {
                 print("🔵 User profile already exists for: \(user.id.uuidString)")
             }
@@ -547,8 +587,8 @@ class AuthManager: ObservableObject, AuthManagerProtocol {
     private func ensureProfilesTableExists() async {
         // For now, just log that we need to create the table manually
         // The table should be created through Supabase Dashboard or CLI
-        print("⚠️ Profiles table needs to be created manually in Supabase Dashboard")
-        print("🔍 Please run the migration: /Users/nakanotakanori/Dev/TETE/supabase/migrations/20250614_create_profiles.sql")
+        print("⚠️ User_profiles table needs to be created manually in Supabase Dashboard")
+        print("🔍 Please run the migration for user_profiles table")
     }
     
     // MARK: - Protocol Compliance
