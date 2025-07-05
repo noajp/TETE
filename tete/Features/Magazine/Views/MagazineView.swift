@@ -100,7 +100,7 @@ struct MagazineFeedView: View {
             }
         }
         .fullScreenCover(isPresented: $showingCreatePost) {
-            ArticleTypeSelectionView()
+            StoryStyleEditorView()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ArticleCreated"))) { _ in
             Task {

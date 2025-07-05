@@ -124,17 +124,19 @@ struct ArticleTypeSelectionView: View {
             }
             .navigationTitle("新しい記事")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("キャンセル") {
                         dismiss()
                     }
                 }
-            }
+            })
         }
         .fullScreenCover(isPresented: $showingEditor) {
-            if let selectedType = selectedType {
-                StoryStyleEditorView(articleType: selectedType)
+            if selectedType == .newspaper {
+                NewspaperEditorView()
+            } else {
+                MagazineEditorView()
             }
         }
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: selectedType)

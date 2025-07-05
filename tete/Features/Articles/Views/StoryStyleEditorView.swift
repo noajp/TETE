@@ -8,7 +8,7 @@ import SwiftUI
 struct StoryStyleEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = StoryStyleEditorViewModel()
-    let articleType: ArticleType
+    let articleType: ArticleType = .magazine // 雑誌記事に固定
     
     @State private var showingTextEditor = false
     @State private var showingColorPicker = false
@@ -76,24 +76,62 @@ struct StoryStyleEditorView: View {
     // MARK: - Background
     
     private var backgroundGradient: some View {
-        LinearGradient(
-            colors: articleType == .newspaper 
-                ? [Color.blue.opacity(0.8), Color.indigo.opacity(0.9), Color.purple.opacity(0.8)]
-                : [Color.purple.opacity(0.8), Color.pink.opacity(0.9), Color.orange.opacity(0.8)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .overlay(
-            // Subtle pattern overlay
-            Rectangle()
-                .fill(Color.white.opacity(0.05))
-                .background(
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 200))
-                        .foregroundColor(.white.opacity(0.02))
-                        .offset(x: 100, y: -100)
-                )
-        )
+        ZStack {
+            // メインの動的グラデーション
+            LinearGradient(
+                colors: [
+                    Color.purple.opacity(0.9),
+                    Color.pink.opacity(0.85),
+                    Color.orange.opacity(0.8),
+                    Color.red.opacity(0.7)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            // レイヤード効果
+            RadialGradient(
+                colors: [
+                    Color.white.opacity(0.1),
+                    Color.clear
+                ],
+                center: .topTrailing,
+                startRadius: 50,
+                endRadius: 400
+            )
+            
+            // 雑誌的なパターンオーバーレイ
+            ZStack {
+                // 散らばった星のパターン
+                ForEach(0..<8, id: \.self) { index in
+                    Image(systemName: "sparkle")
+                        .font(.system(size: CGFloat.random(in: 15...30)))
+                        .foregroundColor(.white.opacity(Double.random(in: 0.02...0.08)))
+                        .position(
+                            x: CGFloat.random(in: 50...350),
+                            y: CGFloat.random(in: 100...700)
+                        )
+                }
+                
+                // グラデーションドット
+                ForEach(0..<5, id: \.self) { index in
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.white.opacity(0.1), Color.clear],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 30
+                            )
+                        )
+                        .frame(width: CGFloat.random(in: 40...80))
+                        .position(
+                            x: CGFloat.random(in: 50...350),
+                            y: CGFloat.random(in: 150...600)
+                        )
+                }
+            }
+        }
     }
     
     // MARK: - Top Toolbar
@@ -112,35 +150,57 @@ struct StoryStyleEditorView: View {
             
             Spacer()
             
-            // Article type indicator
+            // Magazine indicator with stylish design
             HStack(spacing: 8) {
-                Image(systemName: articleType == .newspaper ? "newspaper" : "magazine")
+                Image(systemName: "sparkles")
                     .font(.system(size: 14, weight: .medium))
-                Text(articleType == .newspaper ? "新聞" : "雑誌")
-                    .font(.system(size: 14, weight: .medium))
+                Text("MAGAZINE")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .tracking(1)
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color.black.opacity(0.3))
-            .cornerRadius(16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                LinearGradient(
+                    colors: [Color.white.opacity(0.2), Color.white.opacity(0.1)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+            )
             
             Spacer()
             
-            // Publish button
+            // Stylish publish button
             Button(action: {
                 Task {
                     await viewModel.publishArticle(type: articleType)
                     dismiss()
                 }
             }) {
-                Text("公開")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 8)
-                    .background(Color.white)
-                    .cornerRadius(20)
+                HStack(spacing: 6) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 14))
+                    Text("公開")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.black)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(
+                    LinearGradient(
+                        colors: [Color.white, Color.white.opacity(0.9)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(25)
+                .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
             }
         }
         .padding(.horizontal, 20)
@@ -154,88 +214,134 @@ struct StoryStyleEditorView: View {
         let paperWidth = min(geometry.size.width * 0.85, paperHeight * 0.7)
         
         return ZStack {
-            // Paper background with article type styling
-            RoundedRectangle(cornerRadius: articleType == .newspaper ? 8 : 16)
-                .fill(articleType == .newspaper ? Color.white : Color.white)
+            // 雑誌風ペーパー背景
+            RoundedRectangle(cornerRadius: 20)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white, Color.white.opacity(0.98)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .frame(width: paperWidth, height: paperHeight)
                 .overlay(
-                    // Newspaper grid lines or magazine texture
-                    articleType == .newspaper 
-                        ? AnyView(
-                            VStack(spacing: 20) {
-                                ForEach(0..<15, id: \.self) { _ in
-                                    Rectangle()
-                                        .fill(Color.blue.opacity(0.1))
-                                        .frame(height: 1)
-                                }
+                    // 雑誌風のサブトルテクスチャ
+                    ZStack {
+                        // ソフトグラデーションエフェクト
+                        LinearGradient(
+                            colors: [Color.clear, Color.purple.opacity(0.03), Color.clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        
+                        // エレガントなコーナーアクセント
+                        VStack {
+                            HStack {
+                                Circle()
+                                    .fill(Color.purple.opacity(0.05))
+                                    .frame(width: 40, height: 40)
+                                Spacer()
+                                Circle()
+                                    .fill(Color.pink.opacity(0.05))
+                                    .frame(width: 30, height: 30)
                             }
-                            .padding(.horizontal, 24)
-                        )
-                        : AnyView(
-                            LinearGradient(
-                                colors: [Color.clear, Color.purple.opacity(0.02), Color.clear],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                            Spacer()
+                            HStack {
+                                Circle()
+                                    .fill(Color.orange.opacity(0.05))
+                                    .frame(width: 35, height: 35)
+                                Spacer()
+                                Circle()
+                                    .fill(Color.red.opacity(0.05))
+                                    .frame(width: 25, height: 25)
+                            }
+                        }
+                        .padding(30)
+                    }
                 )
-                .shadow(color: .black.opacity(0.3), radius: 20, y: 10)
+                .shadow(color: .black.opacity(0.15), radius: 30, y: 15)
+                .shadow(color: .purple.opacity(0.1), radius: 50, y: 25)
             
             // Paper content
             VStack(alignment: .leading, spacing: 16) {
-                // Title area
-                VStack(alignment: .leading, spacing: 8) {
+                // タイトルエリア（雑誌風）
+                VStack(alignment: .leading, spacing: 12) {
+                    // カテゴリータグ
+                    if !viewModel.category.isEmpty {
+                        Text(viewModel.category.uppercased())
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 4)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.purple, Color.pink],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                            .tracking(1.5)
+                    }
+                    
+                    // メインタイトル
                     if viewModel.title.isEmpty {
-                        Text("タイトルをタップして入力")
-                            .font(.system(size: 24, weight: .bold, design: articleType == .newspaper ? .serif : .rounded))
-                            .foregroundColor(.gray.opacity(0.5))
+                        Text("素敵なタイトルを入力してください")
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
+                            .foregroundColor(.gray.opacity(0.4))
                             .onTapGesture {
                                 viewModel.editingField = .title
                                 showingTextEditor = true
                             }
                     } else {
                         Text(viewModel.title)
-                            .font(.system(size: 24, weight: .bold, design: articleType == .newspaper ? .serif : .rounded))
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
                             .foregroundColor(.black)
+                            .lineSpacing(4)
                             .multilineTextAlignment(.leading)
                             .onTapGesture {
                                 viewModel.editingField = .title
                                 showingTextEditor = true
                             }
                     }
-                    
-                    // Subtitle/category
-                    if !viewModel.category.isEmpty {
-                        Text(viewModel.category.uppercased())
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(articleType == .newspaper ? .blue : .purple)
-                            .tracking(1)
+                }
+                
+                // エレガントな区切り線
+                if !viewModel.title.isEmpty {
+                    HStack {
+                        Rectangle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.clear, Color.purple.opacity(0.3), Color.pink.opacity(0.3), Color.clear],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(height: 1)
                     }
                 }
                 
-                // Divider
-                if !viewModel.title.isEmpty {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 1)
-                }
-                
-                // Content area
+                // コンテンツエリア（雑誌風）
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 16) {
                         if viewModel.content.isEmpty {
-                            Text("記事の内容を書いてください...")
-                                .font(.system(size: 16, design: articleType == .newspaper ? .serif : .default))
-                                .foregroundColor(.gray.opacity(0.5))
-                                .onTapGesture {
-                                    viewModel.editingField = .content
-                                    showingTextEditor = true
-                                }
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("あなたのストーリーを")
+                                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                                    .foregroundColor(.gray.opacity(0.6))
+                                Text("美しく綴ってください...")
+                                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                                    .foregroundColor(.gray.opacity(0.4))
+                            }
+                            .onTapGesture {
+                                viewModel.editingField = .content
+                                showingTextEditor = true
+                            }
                         } else {
                             Text(viewModel.content)
-                                .font(.system(size: 16, design: articleType == .newspaper ? .serif : .default))
-                                .foregroundColor(.black)
-                                .lineSpacing(6)
+                                .font(.system(size: 17, weight: .regular, design: .rounded))
+                                .foregroundColor(.black.opacity(0.85))
+                                .lineSpacing(8)
                                 .onTapGesture {
                                     viewModel.editingField = .content
                                     showingTextEditor = true
@@ -254,40 +360,44 @@ struct StoryStyleEditorView: View {
     // MARK: - Bottom Toolbar
     
     private var bottomToolbar: some View {
-        HStack(spacing: 24) {
-            // Text tool
-            ToolButton(
+        HStack(spacing: 20) {
+            // Text editing tool
+            MagazineToolButton(
                 icon: "textformat",
+                label: "テキスト",
                 isActive: false,
-                color: .white
+                gradient: [Color.blue, Color.purple]
             ) {
                 viewModel.editingField = .content
                 showingTextEditor = true
             }
             
-            // Add image tool
-            ToolButton(
-                icon: "photo",
+            // Image tool
+            MagazineToolButton(
+                icon: "photo.on.rectangle",
+                label: "画像",
                 isActive: false,
-                color: .white
+                gradient: [Color.green, Color.blue]
             ) {
                 // TODO: Implement image picker
             }
             
-            // Color picker
-            ToolButton(
-                icon: "paintpalette",
+            // Style/Color picker
+            MagazineToolButton(
+                icon: "paintpalette.fill",
+                label: "スタイル",
                 isActive: showingColorPicker,
-                color: .white
+                gradient: [Color.pink, Color.orange]
             ) {
                 showingColorPicker.toggle()
             }
             
             // Category/tags
-            ToolButton(
-                icon: "tag",
+            MagazineToolButton(
+                icon: "tag.fill",
+                label: "タグ",
                 isActive: false,
-                color: .white
+                gradient: [Color.orange, Color.red]
             ) {
                 viewModel.editingField = .category
                 showingTextEditor = true
@@ -300,15 +410,26 @@ struct StoryStyleEditorView: View {
                 showingPreview = true
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "eye")
+                    Image(systemName: "eye.fill")
+                        .font(.system(size: 16))
                     Text("プレビュー")
+                        .font(.system(size: 15, weight: .semibold))
                 }
-                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(Color.white.opacity(0.2))
-                .cornerRadius(20)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(
+                        colors: [Color.black.opacity(0.3), Color.black.opacity(0.4)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(25)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 25)
+                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                )
             }
         }
         .padding(.horizontal, 20)
@@ -448,38 +569,53 @@ struct StoryStyleEditorView: View {
                 // Preview content
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        // Article type badge
+                        // Magazine badge
                         HStack {
-                            Text(articleType == .newspaper ? "NEWS" : "MAGAZINE")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundColor(articleType == .newspaper ? .blue : .purple)
-                                .tracking(2)
-                            
-                            Rectangle()
-                                .fill(articleType == .newspaper ? Color.blue : Color.purple)
-                                .frame(height: 1)
+                            HStack(spacing: 8) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 12))
+                                Text("MAGAZINE")
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    .tracking(2)
+                            }
+                            .foregroundColor(.purple)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.purple.opacity(0.1), Color.pink.opacity(0.1)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(15)
                             
                             Spacer()
                         }
                         
                         // Title
                         Text(viewModel.title.isEmpty ? "無題の記事" : viewModel.title)
-                            .font(.system(size: 28, weight: .bold, design: articleType == .newspaper ? .serif : .rounded))
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
+                            .lineSpacing(4)
                         
                         // Category
                         if !viewModel.category.isEmpty {
                             Text(viewModel.category.uppercased())
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(articleType == .newspaper ? .blue : .purple)
-                                .tracking(1)
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundColor(.pink)
+                                .tracking(1.5)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 4)
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(10)
                         }
                         
                         // Content
                         Text(viewModel.content.isEmpty ? "内容が入力されていません。" : viewModel.content)
-                            .font(.system(size: 16, design: articleType == .newspaper ? .serif : .default))
+                            .font(.system(size: 17, weight: .regular, design: .rounded))
                             .foregroundColor(.white.opacity(0.9))
-                            .lineSpacing(6)
+                            .lineSpacing(8)
                         
                         // Meta info
                         HStack {
@@ -502,22 +638,37 @@ struct StoryStyleEditorView: View {
     }
 }
 
-// MARK: - Tool Button
+// MARK: - Magazine Tool Button
 
-struct ToolButton: View {
+struct MagazineToolButton: View {
     let icon: String
+    let label: String
     let isActive: Bool
-    let color: Color
+    let gradient: [Color]
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 22))
-                .foregroundColor(color)
-                .frame(width: 44, height: 44)
-                .background(isActive ? Color.white.opacity(0.3) : Color.clear)
-                .clipShape(Circle())
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        isActive 
+                            ? LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                            : LinearGradient(colors: [Color.white.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(isActive ? 0.5 : 0.2), lineWidth: 1)
+                    )
+                
+                Text(label)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white.opacity(0.8))
+            }
         }
     }
 }
@@ -580,5 +731,5 @@ class StoryStyleEditorViewModel: ObservableObject {
 }
 
 #Preview {
-    StoryStyleEditorView(articleType: .newspaper)
+    StoryStyleEditorView()
 }
