@@ -17,7 +17,7 @@ struct ScrollableHeaderView<Content: View>: View {
     @State private var headerOffset: CGFloat = 0
     @State private var lastScrollOffset: CGFloat = 0
     
-    private let headerHeight: CGFloat = 56
+    private let headerHeight: CGFloat = 105 // HomeFeedViewと統一
     
     init(
         title: String,
@@ -38,9 +38,9 @@ struct ScrollableHeaderView<Content: View>: View {
             // Main ScrollView
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    // Header space - 短くして写真表示を上に
+                    // Header space
                     Color.clear
-                        .frame(height: headerHeight - 15)
+                        .frame(height: headerHeight - 50) // 補正分を考慮
                     
                     // Content
                     content
@@ -65,8 +65,8 @@ struct ScrollableHeaderView<Content: View>: View {
                 rightButton: rightButton,
                 onBack: onBack
             )
-            .offset(y: headerOffset)
-            .animation(.easeInOut(duration: 0.3), value: headerOffset)
+            .offset(y: headerOffset - 50) // UnifiedHeaderのpadding-top(50pt)を完全に補正
+            .animation(.easeInOut(duration: 0.5), value: headerOffset)
             .zIndex(1000)
         }
         .clipped()
@@ -79,7 +79,7 @@ struct ScrollableHeaderView<Content: View>: View {
         // 一番上にいる場合（上端）
         if currentOffset >= 0 {
             if headerOffset != 0 {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     headerOffset = 0
                 }
             }
@@ -96,14 +96,14 @@ struct ScrollableHeaderView<Content: View>: View {
         if deltaY < 0 {
             // 下にスクロール（content上移動）→ ヘッダーを隠す
             if headerOffset != -headerHeight {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     headerOffset = -headerHeight
                 }
             }
         } else {
             // 上にスクロール（content下移動）→ ヘッダーを表示
             if headerOffset != 0 {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     headerOffset = 0
                 }
             }

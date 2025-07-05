@@ -228,22 +228,22 @@ struct ModernPostsTabSection: View {
         VStack(spacing: 0) {
             // Tab Bar
             HStack(spacing: 0) {
-                TabButton(
-                    icon: "square.grid.3x3.fill",
+                ProfileTabButton(
+                    selectedIcon: "square.grid.3x3.fill",
+                    unselectedIcon: "square.grid.3x3",
                     isSelected: selectedTab == 0,
                     action: { selectedTab = 0 }
                 )
                 
-                TabButton(
-                    icon: "book.fill",
+                ProfileTabButton(
+                    selectedIcon: "book.fill",
+                    unselectedIcon: "book",
                     isSelected: selectedTab == 1,
                     action: { selectedTab = 1 }
                 )
             }
             .padding(.horizontal, MinimalDesign.Spacing.sm)
-            
-            Divider()
-                .padding(.top, MinimalDesign.Spacing.xs)
+            .padding(.vertical, 8)
             
             // Content
             Group {
@@ -288,24 +288,19 @@ struct ModernPostsTabSection: View {
     }
 }
 
-struct TabButton: View {
-    let icon: String
+struct ProfileTabButton: View {
+    let selectedIcon: String
+    let unselectedIcon: String
     let isSelected: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(isSelected ? MinimalDesign.Colors.primary : MinimalDesign.Colors.tertiary)
-                
-                Rectangle()
-                    .fill(isSelected ? MinimalDesign.Colors.primary : Color.clear)
-                    .frame(height: 1)
-            }
-            .frame(maxWidth: .infinity)
+            Image(systemName: isSelected ? selectedIcon : unselectedIcon)
+                .font(.system(size: 20, weight: .light))
+                .foregroundColor(isSelected ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
         }
+        .frame(maxWidth: .infinity)
         .buttonStyle(PlainButtonStyle())
     }
 }

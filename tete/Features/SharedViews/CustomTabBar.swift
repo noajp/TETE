@@ -34,40 +34,21 @@ struct CustomTabBar: View {
                             .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
                             .frame(width: 20, height: 20)
                     } else if showGridMode && selectedTab == 0 {
-                        // グリッドモード時は4つの小さな正方形（選択時は塗りつぶし、非選択時は枠線のみ）
-                        VStack(spacing: 2) {
-                            HStack(spacing: 2) {
-                                if selectedTab == 0 {
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
-                                } else {
-                                    Rectangle()
-                                        .stroke(.white, lineWidth: 1)
-                                        .frame(width: 8, height: 8)
-                                    Rectangle()
-                                        .stroke(.white, lineWidth: 1)
-                                        .frame(width: 8, height: 8)
-                                }
-                            }
-                            HStack(spacing: 2) {
-                                if selectedTab == 0 {
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
-                                    Rectangle()
-                                        .fill(MinimalDesign.Colors.accentRed)
-                                        .frame(width: 8, height: 8)
-                                } else {
-                                    Rectangle()
-                                        .stroke(.white, lineWidth: 1)
-                                        .frame(width: 8, height: 8)
-                                    Rectangle()
-                                        .stroke(.white, lineWidth: 1)
-                                        .frame(width: 8, height: 8)
+                        // グリッドモード時は9つの小さな正方形（3x3）
+                        VStack(spacing: 1.5) {
+                            ForEach(0..<3) { _ in
+                                HStack(spacing: 1.5) {
+                                    ForEach(0..<3) { _ in
+                                        if selectedTab == 0 {
+                                            Rectangle()
+                                                .fill(MinimalDesign.Colors.accentRed)
+                                                .frame(width: 5.5, height: 5.5)
+                                        } else {
+                                            Rectangle()
+                                                .stroke(.white, lineWidth: 0.8)
+                                                .frame(width: 5.5, height: 5.5)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -77,7 +58,6 @@ struct CustomTabBar: View {
                             Rectangle()
                                 .fill(MinimalDesign.Colors.accentRed)
                                 .frame(width: 20, height: 20)
-                                .shadow(color: .black.opacity(0.8), radius: 2, x: 1, y: 1)
                         } else {
                             Rectangle()
                                 .stroke(MinimalDesign.Colors.primary, lineWidth: 1)

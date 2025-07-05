@@ -21,7 +21,7 @@ struct HomeFeedView: View {
     @State private var lastScrollY: CGFloat = 0
     @Environment(\.dismiss) private var dismiss
     
-    private let headerHeight: CGFloat = 90 // ヘッダーの高さを増やす
+    private let headerHeight: CGFloat = 105 // ヘッダーの高さを少し増やす
     
     var body: some View {
         ZStack(alignment: .top) {
