@@ -133,10 +133,8 @@ struct ArticleTypeSelectionView: View {
             }
         }
         .fullScreenCover(isPresented: $showingEditor) {
-            if selectedType == .newspaper {
-                NewspaperEditorView()
-            } else {
-                MagazineEditorView()
+            if let selectedType = selectedType {
+                StoryStyleEditorView(articleType: selectedType)
             }
         }
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: selectedType)
