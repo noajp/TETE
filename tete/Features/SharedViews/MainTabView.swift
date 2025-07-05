@@ -17,10 +17,6 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack {
-            // セーフエリアを黄色にして確認
-            Color.yellow
-                .ignoresSafeArea(.all)
-            
             // TabViewでカメラとフィードをスワイプで切り替え
             TabView(selection: $pageSelection) {
                 // カメラビュー
@@ -71,6 +67,8 @@ struct MainTabView: View {
                     .tag(3)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
+                .background(Color.clear)
+                .ignoresSafeArea(.all)
                 .tag(1)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -107,10 +105,11 @@ struct MainTabView: View {
                     )
                 }
                 .offset(y: tabBarOffset)
-                .animation(.easeInOut(duration: 0.25), value: tabBarOffset)
+                .animation(.easeInOut(duration: 0.5), value: tabBarOffset)
                 .clipped() // 背景も含めて完全に隠すためにクリッピング
             }
         }
+        .background(Color.clear)
         .ignoresSafeArea(.all)
         .accentColor(MinimalDesign.Colors.accentRed)
         .fullScreenCover(isPresented: $showingCreatePost) {
@@ -120,26 +119,26 @@ struct MainTabView: View {
     }
     
     private func updateUIForScroll(scrollOffset: CGFloat) {
-        let deltaY = lastScrollOffset - scrollOffset // HomeFeedViewと同じ計算方法に統一
+        let deltaY = lastScrollOffset - scrollOffset
         lastScrollOffset = scrollOffset
         
         // タブバーの実際の高さ（アイコン20pt + 縦パディング16pt + セーフエリア考慮）
         let tabBarHeight: CGFloat = 120 // 背景も含めて完全に隠すためにさらに大きく
         
-        // 下にスクロールした場合（deltaY > 3）
+        // スクロールの変化に応じてタブバーを表示/非表示
         if deltaY > 3 {
-            // タブバーを隠す
+            // 下にスクロール: タブバーを隠す
             if tabBarOffset != tabBarHeight {
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     tabBarOffset = tabBarHeight
                 }
             }
         }
         // 上にスクロールした場合（deltaY < -1）または上端付近
-        else if deltaY < -1 || scrollOffset > -20 {
+        else if deltaY < -0.5 || scrollOffset > -50 {
             // タブバーを表示
             if tabBarOffset != 0 {
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     tabBarOffset = 0
                 }
             }

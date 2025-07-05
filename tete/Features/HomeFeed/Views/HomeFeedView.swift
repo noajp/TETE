@@ -21,7 +21,7 @@ struct HomeFeedView: View {
     @State private var lastScrollY: CGFloat = 0
     @Environment(\.dismiss) private var dismiss
     
-    private let headerHeight: CGFloat = 56
+    private let headerHeight: CGFloat = 90 // ヘッダーの高さを増やす
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -41,6 +41,7 @@ struct HomeFeedView: View {
                     // Header space
                     Color.clear
                         .frame(height: headerHeight - 8)
+                        .frame(width: UIScreen.main.bounds.width)
                     
                     if viewModel.isLoading {
                         ProgressView("Loading...")
@@ -65,7 +66,6 @@ struct HomeFeedView: View {
                         if showGridMode {
                             // Custom Grid View with alternating layout
                             CustomGridView(posts: viewModel.posts, showGridMode: $showGridMode, selectedPost: $selectedPost, navigateToSingleView: $navigateToSingleView)
-                                .ignoresSafeArea(.all)
                         } else {
                             // List View (default)
                             if let selectedPost = selectedPost {
@@ -76,7 +76,6 @@ struct HomeFeedView: View {
                                     }
                                 })
                                 .id(selectedPost.id)
-                                .ignoresSafeArea(.all)
                                 
                                 // Show other posts below
                                 ForEach(viewModel.posts.filter { $0.id != selectedPost.id }) { post in
@@ -85,8 +84,7 @@ struct HomeFeedView: View {
                                             await viewModel.toggleLike(for: post)
                                         }
                                     })
-                                    .ignoresSafeArea(.all)
-                                }
+                                    }
                             } else {
                                 // Show all posts
                                 ForEach(viewModel.posts) { post in
@@ -95,14 +93,19 @@ struct HomeFeedView: View {
                                             await viewModel.toggleLike(for: post)
                                         }
                                     })
-                                    .ignoresSafeArea(.all)
-                                }
+                                    }
                             }
                         }
                     }
+                    
+                    // タブバー用の下部余白（タブバーの位置に合わせて調整）
+                    Color.clear
+                        .frame(height: 110)
                 }
+                .frame(width: UIScreen.main.bounds.width)
             }
             .coordinateSpace(name: "scroll")
+            .background(Color.clear)
             .ignoresSafeArea(.all)
             .refreshable {
                 await viewModel.forceRefreshPosts()
@@ -155,7 +158,7 @@ struct HomeFeedView: View {
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(Color.white)
+                        .background(Color.clear)
                         
                         // Thin progress bar
                         ZStack(alignment: .leading) {
@@ -172,7 +175,7 @@ struct HomeFeedView: View {
                 }
             }
             .offset(y: headerOffset)
-            .animation(.easeInOut(duration: 0.25), value: headerOffset)
+            .animation(.easeInOut(duration: 0.5), value: headerOffset)
             .zIndex(1000)
         }
         .ignoresSafeArea(.all)
@@ -212,14 +215,14 @@ struct HomeFeedView: View {
         if deltaY > 3 {
             // 下にスクロール: ヘッダーを隠す
             if headerOffset != -headerHeight {
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     headerOffset = -headerHeight
                 }
             }
-        } else if deltaY < -1 || scrollOffset > -20 {
+        } else if deltaY < -0.5 || scrollOffset > -50 {
             // 上にスクロール: ヘッダーを表示（または上端付近）
             if headerOffset != 0 {
-                withAnimation(.easeInOut(duration: 0.25)) {
+                withAnimation(.easeInOut(duration: 0.5)) {
                     headerOffset = 0
                 }
             }
@@ -317,8 +320,8 @@ struct PostCardView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: 400)
+            .frame(width: UIScreen.main.bounds.width)
             .clipped()
-            .ignoresSafeArea(.all)
             
             // Actions
             HStack(spacing: 16) {
@@ -588,7 +591,7 @@ struct OddRowView: View {
     }
     
     private var availableWidth: CGFloat {
-        screenWidth - spacing // 中間のスペースのみ
+        screenWidth // 画面全体の幅を使用
     }
     
     private var squareSize: CGFloat {
@@ -666,7 +669,7 @@ struct EvenRowView: View {
     }
     
     private var availableWidth: CGFloat {
-        screenWidth - (spacing * 2) // 中間のスペース2箇所のみ
+        screenWidth // 画面全体の幅を使用
     }
     
     private var squareSize: CGFloat {

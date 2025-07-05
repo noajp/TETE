@@ -151,6 +151,7 @@ struct CustomTabBar: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
+        .padding(.bottom, 30) // タブバーを上に移動
         .background(Color.white)
     }
 }
