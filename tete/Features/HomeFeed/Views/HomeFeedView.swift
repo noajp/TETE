@@ -130,7 +130,7 @@ struct HomeFeedView: View {
             // Floating Header with Status Bar
             VStack(spacing: 0) {
                 UnifiedHeader(
-                    title: "TETE",
+                    title: "STILL",
                     rightButton: HeaderButton(
                         icon: "plus",
                         action: {
@@ -163,7 +163,7 @@ struct HomeFeedView: View {
                         // Thin progress bar
                         ZStack(alignment: .leading) {
                             Rectangle()
-                                .fill(Color.gray.opacity(0.2))
+                                .fill(Color(.tertiarySystemBackground))
                                 .frame(height: 2)
                             
                             Rectangle()
@@ -178,6 +178,7 @@ struct HomeFeedView: View {
             .animation(.easeInOut(duration: 0.5), value: headerOffset)
             .zIndex(1000)
         }
+        .background(Color(.systemBackground))
         .ignoresSafeArea(.all)
         .onAppear {
             Task {
@@ -303,17 +304,8 @@ struct PostCardView: View {
                         )
                 case .empty:
                     // 読み込み中のスケルトン表示
-                    ZStack {
-                        if colorScheme == .dark {
-                            // ダークモード: 濃いダークグレーの塗りつぶし
-                            Rectangle()
-                                .fill(Color(white: 0.15))
-                        } else {
-                            // 通常モード: グレーの塗りつぶし
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.15))
-                        }
-                    }
+                    Rectangle()
+                        .fill(Color(.tertiarySystemBackground))
                 @unknown default:
                     Rectangle()
                         .fill(Color(.tertiarySystemBackground))
@@ -363,7 +355,7 @@ struct PostCardView: View {
                 .padding(.bottom, 12)
             }
         }
-        .background(Color.clear)
+        .background(Color(.systemBackground))
     }
     
     private func timeAgoString(from date: Date) -> String {
@@ -419,7 +411,7 @@ struct CustomGridView: View {
                 }
             }
         }
-        .background(Color.clear)
+        .background(Color(.systemBackground))
     }
     
     private var groupedPosts: [[Post]] {
@@ -714,17 +706,8 @@ struct GridImageView: View {
                                 .transition(.opacity)
                         } else {
                             // コンテンツをまだ表示しない場合はスケルトンを表示
-                            ZStack {
-                                if colorScheme == .dark {
-                                    // ダークモード: 濃いダークグレーの塗りつぶし
-                                    Rectangle()
-                                        .fill(Color(white: 0.15))
-                                } else {
-                                    // 通常モード: グレーの塗りつぶし
-                                    Rectangle()
-                                        .fill(Color.gray.opacity(0.15))
-                                }
-                            }
+                            Rectangle()
+                                .fill(Color(.tertiarySystemBackground))
                         }
                     }
                     // 画像が読み込まれたことを通知
@@ -744,17 +727,8 @@ struct GridImageView: View {
                         )
                 case .empty:
                     // 読み込み中のスケルトン表示
-                    ZStack {
-                        if colorScheme == .dark {
-                            // ダークモード: 濃いダークグレーの塗りつぶし
-                            Rectangle()
-                                .fill(Color(white: 0.15))
-                        } else {
-                            // 通常モード: グレーの塗りつぶし
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.15))
-                        }
-                    }
+                    Rectangle()
+                        .fill(Color(.tertiarySystemBackground))
                 @unknown default:
                     Rectangle()
                         .fill(Color(.tertiarySystemBackground))

@@ -39,9 +39,11 @@ struct PhotoPickerView: View {
     @State private var imageOffset: CGSize = .zero // 画像のドラッグオフセット
     @State private var currentImageOffset: CGSize = .zero // 現在の画像位置を保存
 
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea()
             
             GeometryReader { geometry in
                 VStack(spacing: 0) {
@@ -55,10 +57,41 @@ struct PhotoPickerView: View {
                         selectedPhotoView
                             .frame(height: getPreviewHeight(geometry: geometry))
                         
+                        // 分離セクション
+                        VStack(spacing: 0) {
+                            // 上部スペース
+                            Rectangle()
+                                .fill(colorScheme == .dark ? Color.black : Color.white)
+                                .frame(height: 20)
+                            
+                            // 仕切り線（ヘッダーと同じ色）
+                            Rectangle()
+                                .fill(colorScheme == .dark ? Color(white: 0.15) : Color(white: 0.85))
+                                .frame(height: 1)
+                            
+                            // Library タイトル
+                            HStack {
+                                Text("Library")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(colorScheme == .dark ? .white : .black)
+                                    .padding(.leading, 16)
+                                
+                                Spacer()
+                            }
+                            .frame(height: 40)
+                            .background(colorScheme == .dark ? Color.black : Color.white)
+                            
+                            // 下部スペース
+                            Rectangle()
+                                .fill(colorScheme == .dark ? Color.black : Color.white)
+                                .frame(height: 12)
+                        }
+                        
                         // セクション3: カメラロール（残り領域）
                         ScrollView(showsIndicators: false) {
                             thumbnailGridView
                         }
+                        .background(colorScheme == .dark ? Color.black : Color.white)
                     }
                 }
             }
@@ -123,14 +156,14 @@ struct PhotoPickerView: View {
             Button(action: { dismiss() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
             }
             
             Spacer()
             
             Text("New Post")
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.white)
+                .foregroundColor(colorScheme == .dark ? .white : .black)
             
             Spacer()
             
@@ -177,7 +210,7 @@ struct PhotoPickerView: View {
         .padding(.vertical, 12)
         .background(
             Rectangle()
-                .fill(Color(white: 0.15))
+                .fill(colorScheme == .dark ? Color(white: 0.15) : Color(white: 0.85))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -189,7 +222,7 @@ struct PhotoPickerView: View {
             ZStack {
                 // 背景（ビューポートの範囲を示す）
                 Rectangle()
-                    .fill(Color.black)
+                    .fill(colorScheme == .dark ? Color.black : Color.white)
                 
                 if let image = selectedImage {
                     // ビューポート（クリッピング領域）を画面中央に配置
@@ -200,22 +233,8 @@ struct PhotoPickerView: View {
                         
                         Image(uiImage: image)
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: calculateImageSize(image: image, in: geometry).width,
-                                   height: calculateImageSize(image: image, in: geometry).height)
-                            .offset(x: imageOffset.width + currentImageOffset.width,
-                                   y: imageOffset.height + currentImageOffset.height)
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        imageOffset = value.translation
-                                    }
-                                    .onEnded { value in
-                                        currentImageOffset.width += value.translation.width
-                                        currentImageOffset.height += value.translation.height
-                                        imageOffset = .zero
-                                    }
-                            )
+                            .aspectRatio(contentMode: .fit) // 全画面縮小表示
+                            .frame(width: geometry.size.width * 0.85, height: getPreviewHeight(geometry: geometry))
                     }
                     .frame(width: geometry.size.width * 0.85, height: getPreviewHeight(geometry: geometry))
                     .clipped()
@@ -225,37 +244,13 @@ struct PhotoPickerView: View {
                     VStack(spacing: 10) {
                         Image(systemName: "photo.on.rectangle.angled")
                             .font(.system(size: 40))
-                            .foregroundColor(.gray)
+                            .foregroundColor(colorScheme == .dark ? .gray : .gray)
                         Text("写真を選択")
-                            .foregroundColor(.gray)
+                            .foregroundColor(colorScheme == .dark ? .gray : .gray)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 
-                // アスペクト比切り替えボタン（左下に配置）
-                if selectedImage != nil {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    isSquareMode.toggle()
-                                    // モード切り替え時にオフセットをリセット
-                                    resetImagePosition()
-                                }
-                            }) {
-                                Image(systemName: isSquareMode ? "crop" : "arrow.up.left.and.arrow.down.right")
-                                    .font(.system(size: 20, weight: .medium))
-                                    .foregroundColor(.white)
-                                    .padding(10)
-                                    .background(Color.black.opacity(0.6))
-                                    .clipShape(Circle())
-                            }
-                            Spacer()
-                        }
-                    }
-                    .padding(16)
-                }
             }
         }
     }
@@ -327,7 +322,7 @@ struct PhotoPickerView: View {
             if isLoadingPhotos {
                 ForEach(0..<12, id: \.self) { _ in
                     Rectangle()
-                        .fill(Color(white: 0.1))
+                        .fill(Color(.tertiarySystemBackground))
                         .aspectRatio(1, contentMode: .fit)
                         .shimmer()
                 }

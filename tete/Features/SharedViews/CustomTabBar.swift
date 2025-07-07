@@ -14,6 +14,8 @@ struct CustomTabBar: View {
     let onBackToGrid: (() -> Void)?
     let onBackFromProfileSingleView: (() -> Void)?
     
+    @Environment(\.colorScheme) var colorScheme
+    
     var body: some View {
         HStack(spacing: 0) {
             // フィードボタン（正方形）
@@ -31,7 +33,7 @@ struct CustomTabBar: View {
                     if isInSingleView {
                         // シングルビュー表示中は1つの大きな正方形（常に塗りつぶし）
                         Rectangle()
-                            .fill(selectedTab == 0 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                            .fill(selectedTab == 0 ? Color(red: 0.949, green: 0.098, blue: 0.020) : (colorScheme == .dark ? .white : .black))
                             .frame(width: 20, height: 20)
                     } else if showGridMode && selectedTab == 0 {
                         // グリッドモード時は9つの小さな正方形（3x3）
@@ -41,11 +43,11 @@ struct CustomTabBar: View {
                                     ForEach(0..<3) { _ in
                                         if selectedTab == 0 {
                                             Rectangle()
-                                                .fill(MinimalDesign.Colors.accentRed)
+                                                .fill(Color(red: 0.949, green: 0.098, blue: 0.020))
                                                 .frame(width: 5.5, height: 5.5)
                                         } else {
                                             Rectangle()
-                                                .stroke(.white, lineWidth: 0.8)
+                                                .stroke(colorScheme == .dark ? .white : .black, lineWidth: 0.8)
                                                 .frame(width: 5.5, height: 5.5)
                                         }
                                     }
@@ -56,11 +58,11 @@ struct CustomTabBar: View {
                         // シングルモード時は1つの大きな正方形（選択時は塗りつぶし、非選択時は枠線のみ）
                         if selectedTab == 0 {
                             Rectangle()
-                                .fill(MinimalDesign.Colors.accentRed)
+                                .fill(Color(red: 0.949, green: 0.098, blue: 0.020))
                                 .frame(width: 20, height: 20)
                         } else {
                             Rectangle()
-                                .stroke(MinimalDesign.Colors.primary, lineWidth: 1)
+                                .stroke(colorScheme == .dark ? .white : .black, lineWidth: 1)
                                 .frame(width: 20, height: 20)
                         }
                     }
@@ -74,7 +76,7 @@ struct CustomTabBar: View {
             }) {
                 Image(systemName: selectedTab == 1 ? "book.fill" : "book")
                     .font(.system(size: 20, weight: .light))
-                    .foregroundColor(selectedTab == 1 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                    .foregroundColor(selectedTab == 1 ? Color(red: 0.949, green: 0.098, blue: 0.020) : (colorScheme == .dark ? .white : .black))
             }
             .frame(maxWidth: .infinity)
             
@@ -101,12 +103,12 @@ struct CustomTabBar: View {
                 ZStack(alignment: .topTrailing) {
                     Image(systemName: selectedTab == 2 ? "message.fill" : "message")
                         .font(.system(size: 20, weight: .light))
-                        .foregroundColor(selectedTab == 2 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                        .foregroundColor(selectedTab == 2 ? Color(red: 0.949, green: 0.098, blue: 0.020) : (colorScheme == .dark ? .white : .black))
                     
                     // 未読メッセージバッジ
                     if unreadMessageCount > 0 {
                         Circle()
-                            .fill(MinimalDesign.Colors.accentRed)
+                            .fill(Color(red: 0.949, green: 0.098, blue: 0.020))
                             .frame(width: 8, height: 8)
                             .offset(x: 8, y: -4)
                     }
@@ -125,13 +127,13 @@ struct CustomTabBar: View {
             }) {
                 Image(systemName: selectedTab == 3 ? "person.fill" : "person")
                     .font(.system(size: 20, weight: .light))
-                    .foregroundColor(selectedTab == 3 ? MinimalDesign.Colors.accentRed : MinimalDesign.Colors.primary)
+                    .foregroundColor(selectedTab == 3 ? Color(red: 0.949, green: 0.098, blue: 0.020) : (colorScheme == .dark ? .white : .black))
             }
             .frame(maxWidth: .infinity)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
         .padding(.bottom, 30) // タブバーを上に移動
-        .background(Color.white)
+        .background(colorScheme == .dark ? Color.black : Color.white)
     }
 }

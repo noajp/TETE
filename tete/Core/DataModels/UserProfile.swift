@@ -10,12 +10,16 @@ struct UserProfile: Identifiable, Codable {
     var displayName: String?    // 表示名: プロフィール詳細でのみ表示
     var avatarUrl: String?
     var bio: String?
+    var followersCount: Int?    // フォロワー数
+    var followingCount: Int?    // フォロー数
     let createdAt: Date?
     
     enum CodingKeys: String, CodingKey {
         case id, username, bio
         case displayName = "display_name"
         case avatarUrl = "avatar_url"
+        case followersCount = "followers_count"
+        case followingCount = "following_count"
         case createdAt = "created_at"
     }
     

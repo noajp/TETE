@@ -181,6 +181,14 @@ struct ModernProfileSection: View {
             }
             .padding(.horizontal, MinimalDesign.Spacing.sm)
             
+            // Stats Section (Posts, Followers, Following)
+            HStack(spacing: 32) {
+                StatItem(value: postsCount, label: "Posts")
+                StatItem(value: followersCount, label: "Followers")
+                StatItem(value: profile?.followingCount ?? 0, label: "Following")
+            }
+            .padding(.horizontal, MinimalDesign.Spacing.sm)
+            
             // Bio Section
             if let bio = profile?.bio, !bio.isEmpty {
                 Text(bio)

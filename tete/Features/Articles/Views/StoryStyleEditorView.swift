@@ -7,6 +7,7 @@ import SwiftUI
 
 struct StoryStyleEditorView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @StateObject private var viewModel = StoryStyleEditorViewModel()
     let articleType: ArticleType = .magazine // 雑誌記事に固定
     
@@ -142,9 +143,9 @@ struct StoryStyleEditorView: View {
             Button(action: { dismiss() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(colorScheme == .dark ? .white : .black)
                     .frame(width: 44, height: 44)
-                    .background(Color.black.opacity(0.3))
+                    .background(colorScheme == .dark ? Color.black.opacity(0.3) : Color.white.opacity(0.8))
                     .clipShape(Circle())
             }
             
@@ -420,7 +421,7 @@ struct StoryStyleEditorView: View {
                 .padding(.vertical, 12)
                 .background(
                     LinearGradient(
-                        colors: [Color.black.opacity(0.3), Color.black.opacity(0.4)],
+                        colors: colorScheme == .dark ? [Color.black.opacity(0.3), Color.black.opacity(0.4)] : [Color.white.opacity(0.8), Color.white.opacity(0.9)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -440,7 +441,7 @@ struct StoryStyleEditorView: View {
     
     private var textEditorOverlay: some View {
         ZStack {
-            Color.black.opacity(0.8)
+            (colorScheme == .dark ? Color.black.opacity(0.8) : Color.white.opacity(0.95))
                 .ignoresSafeArea()
                 .onTapGesture {
                     showingTextEditor = false
@@ -524,7 +525,7 @@ struct StoryStyleEditorView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color.black.opacity(0.5))
+            .background(colorScheme == .dark ? Color.black.opacity(0.5) : Color.white.opacity(0.9))
             .cornerRadius(25)
             .padding(.horizontal, 20)
             .padding(.bottom, 120)
@@ -535,7 +536,7 @@ struct StoryStyleEditorView: View {
     
     private var previewOverlay: some View {
         ZStack {
-            Color.black.opacity(0.95)
+            (colorScheme == .dark ? Color.black.opacity(0.95) : Color.white.opacity(0.98))
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {

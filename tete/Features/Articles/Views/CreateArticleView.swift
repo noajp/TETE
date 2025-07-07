@@ -105,41 +105,80 @@ struct CreateArticleView: View {
     
 @MainActor
     private var coverImageSection: some View {
-        let imageUrl = coverImageUrl // ローカルコピーでmain actor isolationを回避
-        
-        return PhotosPicker(selection: $coverImageItem, matching: .images) {
-            if let imageUrl = imageUrl {
+        VStack(spacing: 0) {
+            // 写真表示画面
+            if let imageUrl = coverImageUrl {
                 AsyncImage(url: URL(string: imageUrl)) { image in
                     image
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .aspectRatio(contentMode: .fit) // 全画面縮小表示
                 } placeholder: {
                     Rectangle()
-                        .fill(Color.gray.opacity(0.3))
+                        .fill(Color.gray.opacity(0.1))
                         .overlay(
                             ProgressView()
+                                .tint(.gray)
                         )
                 }
-                .frame(height: 200)
-                .clipped()
-                .cornerRadius(12)
+                .frame(maxWidth: .infinity, maxHeight: 300) // 全画面表示
+                .background(Color.black.opacity(0.05))
             } else {
                 Rectangle()
-                    .fill(Color.gray.opacity(0.1))
-                    .frame(height: 200)
+                    .fill(Color.gray.opacity(0.05))
+                    .frame(height: 300)
                     .overlay(
-                        VStack(spacing: 8) {
-                            Image(systemName: "photo.badge.plus")
-                                .font(.system(size: 40))
+                        VStack(spacing: 12) {
+                            Image(systemName: "photo")
+                                .font(.system(size: 48))
                                 .foregroundColor(.gray)
-                            Text("カバー画像を選択")
-                                .font(.caption)
+                            Text("写真が選択されていません")
+                                .font(.body)
                                 .foregroundColor(.gray)
                         }
                     )
-                    .cornerRadius(12)
             }
+            
+            // 仕切り線
+            Rectangle()
+                .fill(Color.gray.opacity(0.5))
+                .frame(height: 2)
+            
+            // 追加の視覚的分離
+            Rectangle()
+                .fill(Color.gray.opacity(0.1))
+                .frame(height: 8)
+            
+            // カメラロール選択部分
+            PhotosPicker(selection: $coverImageItem, matching: .images) {
+                HStack(spacing: 12) {
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.system(size: 24))
+                        .foregroundColor(.blue)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("写真を選択")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.primary)
+                        Text("カメラロールから写真を選んでください")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(maxWidth: .infinity)
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                }
+                .padding(16)
+                .background(Color(.systemBackground))
+            }
+            .buttonStyle(PlainButtonStyle())
         }
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
         .padding(.horizontal, 16)
     }
     

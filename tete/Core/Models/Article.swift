@@ -23,7 +23,7 @@ struct BlogArticle: Identifiable, Codable, Hashable {
     let isPremium: Bool
     let coverImageUrl: String?
     let status: ArticleStatus
-    let articleType: ArticleType // 新聞記事 vs 雑誌記事
+    let articleType: ArticleType? // 新聞記事 vs 雑誌記事（オプショナル）
     let publishedAt: Date?
     let createdAt: Date
     let updatedAt: Date

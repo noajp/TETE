@@ -19,24 +19,27 @@ struct ArticleListView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(viewModel.articles) { article in
+                LazyVStack(spacing: 0) {
+                    ForEach(Array(viewModel.articles.enumerated()), id: \.element.id) { index, article in
                         NavigationLink(destination: ArticleDetailView(article: article)) {
-                            ArticleCardView(article: article)
+                            if index % 2 == 0 {
+                                NewspaperStyleArticleView(article: article)
+                            } else {
+                                MagazineStyleArticleView(article: article)
+                            }
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
             }
-            .navigationTitle("記事")
+            .navigationTitle("Articles")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingCreateArticle = true }) {
-                        Image(systemName: "plus")
+                        Image(systemName: "plus.circle.fill")
                             .font(.title2)
+                            .foregroundColor(.primary)
                     }
                 }
             }
@@ -58,14 +61,14 @@ struct ArticleListView: View {
     }
 }
 
-// MARK: - Article Card View
+// MARK: - Newspaper Style Article View (奇数段: 新聞記事スタイル)
 
-struct ArticleCardView: View {
+struct NewspaperStyleArticleView: View {
     let article: BlogArticle
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Cover Image
+        VStack(alignment: .leading, spacing: 0) {
+            // Large Cover Image
             if let coverImageUrl = article.coverImageUrl {
                 AsyncImage(url: URL(string: coverImageUrl)) { image in
                     image
@@ -73,134 +76,155 @@ struct ArticleCardView: View {
                         .aspectRatio(contentMode: .fill)
                 } placeholder: {
                     Rectangle()
-                        .fill(Color.gray.opacity(0.2))
+                        .fill(Color.gray.opacity(0.1))
                         .overlay(
                             ProgressView()
+                                .tint(.gray)
                         )
                 }
-                .frame(height: 200)
+                .frame(height: 280)
                 .clipped()
-                .cornerRadius(12)
             }
             
-            // Article Info
-            VStack(alignment: .leading, spacing: 8) {
-                // Category and Premium Badge
-                HStack {
-                    if let category = article.category,
-                       let categoryEnum = ArticleCategory(rawValue: category) {
-                        HStack(spacing: 4) {
-                            Image(systemName: categoryEnum.icon)
-                                .font(.caption2)
-                            Text(categoryEnum.displayName)
-                                .font(.caption2)
+            // Content
+            VStack(alignment: .leading, spacing: 16) {
+                // Title
+                Text(article.title)
+                    .font(.system(size: 28, weight: .bold, design: .serif))
+                    .foregroundColor(.primary)
+                    .lineLimit(3)
+                
+                // Author Info
+                if let user = article.user {
+                    HStack(spacing: 12) {
+                        AsyncImage(url: URL(string: user.avatarUrl ?? "")) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            Circle()
+                                .fill(Color.gray.opacity(0.2))
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.blue.opacity(0.1))
-                        .foregroundColor(.blue)
-                        .cornerRadius(8)
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(user.username)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.primary)
+                            
+                            if let publishedAt = article.publishedAt {
+                                Text(timeAgoString(from: publishedAt))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Spacer()
                     }
-                    
-                    
-                    Spacer()
+                }
+            }
+            .padding(20)
+        }
+        .background(Color(.systemBackground))
+        .overlay(
+            Rectangle()
+                .fill(Color.gray.opacity(0.1))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+    
+    private func timeAgoString(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
+
+// MARK: - Magazine Style Article View (偶数段: 雑誌スタイル)
+
+struct MagazineStyleArticleView: View {
+    let article: BlogArticle
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            // Vertical Image
+            if let coverImageUrl = article.coverImageUrl {
+                AsyncImage(url: URL(string: coverImageUrl)) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.1))
+                        .overlay(
+                            ProgressView()
+                                .tint(.gray)
+                        )
+                }
+                .frame(width: 140, height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            
+            // Content
+            VStack(alignment: .leading, spacing: 12) {
+                // Category
+                if let category = article.category,
+                   let categoryEnum = ArticleCategory(rawValue: category) {
+                    Text(categoryEnum.displayName.uppercased())
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .tracking(1.2)
                 }
                 
                 // Title
                 Text(article.title)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .lineLimit(2)
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundColor(.primary)
+                    .lineLimit(3)
                 
-                // Summary or Content Preview
-                if let summary = article.summary {
-                    Text(summary)
-                        .font(.body)
-                        .lineLimit(3)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text(article.content)
-                        .font(.body)
-                        .lineLimit(3)
-                        .foregroundColor(.secondary)
-                }
+                Spacer()
                 
-                // Tags
-                if !article.tags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(article.tags.prefix(3), id: \.self) { tag in
-                                Text("#\(tag)")
-                                    .font(.caption2)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.gray.opacity(0.1))
-                                    .foregroundColor(.secondary)
-                                    .cornerRadius(4)
-                            }
+                // Author Info
+                if let user = article.user {
+                    HStack(spacing: 10) {
+                        AsyncImage(url: URL(string: user.avatarUrl ?? "")) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            Circle()
+                                .fill(Color.gray.opacity(0.2))
                         }
-                        .padding(.horizontal, 2)
-                    }
-                }
-                
-                // Author and Stats
-                HStack {
-                    // Author
-                    if let user = article.user {
-                        HStack(spacing: 8) {
-                            AsyncImage(url: URL(string: user.avatarUrl ?? "")) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                            }
-                            .frame(width: 24, height: 24)
-                            .clipShape(Circle())
-                            
-                            Text(user.username)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    // Stats
-                    HStack(spacing: 12) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "heart")
-                                .font(.caption)
-                            Text("\(article.likeCount)")
-                                .font(.caption)
-                        }
-                        .foregroundColor(.secondary)
+                        .frame(width: 32, height: 32)
+                        .clipShape(Circle())
                         
-                        HStack(spacing: 4) {
-                            Image(systemName: "eye")
-                                .font(.caption)
-                            Text("\(article.viewCount)")
-                                .font(.caption)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(user.username)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.primary)
+                            
+                            if let publishedAt = article.publishedAt {
+                                Text(timeAgoString(from: publishedAt))
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
                         }
-                        .foregroundColor(.secondary)
                     }
-                }
-                
-                // Published Date
-                if let publishedAt = article.publishedAt {
-                    Text(timeAgoString(from: publishedAt))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
                 }
             }
-            .padding(.horizontal, 4)
+            
+            Spacer()
         }
-        .padding(16)
+        .padding(20)
         .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .overlay(
+            Rectangle()
+                .fill(Color.gray.opacity(0.1))
+                .frame(height: 1),
+            alignment: .bottom
+        )
     }
     
     private func timeAgoString(from date: Date) -> String {

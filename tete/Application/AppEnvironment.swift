@@ -5,6 +5,9 @@
 //======================================================================
 import SwiftUI
 
+// Import MinimalDesignSystem if it's in a separate module
+// If it's in the same module, ensure it's included in the target
+
 struct AppEnvironment {
     
     // MARK: - Fonts (Bridged to MinimalDesign)
@@ -17,12 +20,12 @@ struct AppEnvironment {
             primary(size: size, weight: .bold)
         }
         
-        // Standard sizes using MinimalDesign typography
-        static let title = MinimalDesign.Typography.title
-        static let headline = MinimalDesign.Typography.headline
-        static let body = MinimalDesign.Typography.body
-        static let caption = MinimalDesign.Typography.caption
-        static let small = MinimalDesign.Typography.small
+        // Standard sizes - define directly to avoid dependency issues
+        static let title = Font.system(size: 24, weight: .bold, design: .default)
+        static let headline = Font.system(size: 18, weight: .semibold, design: .default)
+        static let body = Font.system(size: 16, weight: .regular, design: .default)
+        static let caption = Font.system(size: 12, weight: .medium, design: .default)
+        static let small = Font.system(size: 10, weight: .regular, design: .default)
     }
 }
 

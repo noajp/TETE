@@ -15,7 +15,7 @@ struct SignUpView: View {
     @State private var isSuccessMessage = false
     
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var authManager: AuthManager
+    @ObservedObject private var authManager = AuthManager.shared
     
     var body: some View {
         NavigationView {
@@ -51,7 +51,7 @@ struct SignUpView: View {
                             TextField("", text: $email)
                                 .font(.system(size: 18))
                                 .foregroundColor(.primary)
-                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                                 .keyboardType(.emailAddress)
                                 .textContentType(.emailAddress)
@@ -91,7 +91,7 @@ struct SignUpView: View {
                             TextField("", text: $userid)
                                 .font(.system(size: 18))
                                 .foregroundColor(.primary)
-                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                                 .onChange(of: userid) { oldValue, newValue in
                                     // Allow only lowercase letters, numbers, underscore, and hyphen (as per DB constraint)
@@ -120,7 +120,7 @@ struct SignUpView: View {
                             TextField("", text: $name)
                                 .font(.system(size: 18))
                                 .foregroundColor(.primary)
-                                .autocapitalization(.none)
+                                .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                                 .padding(.bottom, 10)
                                 .overlay(
@@ -136,7 +136,7 @@ struct SignUpView: View {
                             Button(action: { newsletter.toggle() }) {
                                 Rectangle()
                                     .frame(width: 20, height: 20)
-                                    .foregroundColor(newsletter ? MinimalDesign.Colors.accentRed : .clear)
+                                    .foregroundColor(newsletter ? Color(red: 0.949, green: 0.098, blue: 0.020) : .clear)
                                     .overlay(
                                         Rectangle()
                                             .stroke(Color.primary, lineWidth: 1)
@@ -191,7 +191,7 @@ struct SignUpView: View {
                             .background(
                                 Rectangle()
                                     .stroke(Color.primary.opacity(0.3), lineWidth: 1)
-                                    .background(Color(.systemBackground))
+                                    .background(Color(UIColor.systemBackground))
                             )
                         }
                         .disabled(authManager.isLoading)
@@ -215,7 +215,7 @@ struct SignUpView: View {
                             .background(
                                 Rectangle()
                                     .stroke(Color.primary.opacity(0.3), lineWidth: 1)
-                                    .background(Color(.systemBackground))
+                                    .background(Color(UIColor.systemBackground))
                             )
                         }
                         .disabled(authManager.isLoading)
@@ -235,7 +235,7 @@ struct SignUpView: View {
                             .background(
                                 Rectangle()
                                     .stroke(Color.primary, lineWidth: 1)
-                                    .background(Color(.systemBackground))
+                                    .background(Color(UIColor.systemBackground))
                             )
                     }
                     .disabled(email.isEmpty || password.isEmpty || userid.isEmpty || name.isEmpty || authManager.isLoading)
@@ -244,7 +244,7 @@ struct SignUpView: View {
                 
                 Spacer()
             }
-            .background(Color(.systemBackground))
+            .background(Color(UIColor.systemBackground))
             .navigationBarHidden(true)
             .alert(isSuccessMessage ? "Success" : "Error", isPresented: $showError) {
                 Button("OK") { }

@@ -50,7 +50,7 @@ struct MainTabView: View {
                     
                     // アーティクル (1)
                     UnifiedNavigationView {
-                        MagazineFeedView()
+                        ArticleListView()
                     }
                     .tag(1)
                     
@@ -125,8 +125,17 @@ struct MainTabView: View {
         // タブバーの実際の高さ（アイコン20pt + 縦パディング16pt + セーフエリア考慮）
         let tabBarHeight: CGFloat = 120 // 背景も含めて完全に隠すためにさらに大きく
         
-        // スクロールの変化に応じてタブバーを表示/非表示
-        if deltaY > 3 {
+        // 上にスクロールした場合（わずかでも上方向）
+        if deltaY < -0.5 {
+            // 上スクロール: タブバーを表示
+            if tabBarOffset != 0 {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    tabBarOffset = 0
+                }
+            }
+        }
+        // 下にスクロールした場合
+        else if deltaY > 3 {
             // 下にスクロール: タブバーを隠す
             if tabBarOffset != tabBarHeight {
                 withAnimation(.easeInOut(duration: 0.5)) {
@@ -134,11 +143,10 @@ struct MainTabView: View {
                 }
             }
         }
-        // 上にスクロールした場合（deltaY < -1）または上端付近
-        else if deltaY < -0.5 || scrollOffset > -50 {
-            // タブバーを表示
+        // 上端付近にいる場合は常に表示
+        else if scrollOffset > -50 {
             if tabBarOffset != 0 {
-                withAnimation(.easeInOut(duration: 0.5)) {
+                withAnimation(.easeInOut(duration: 0.3)) {
                     tabBarOffset = 0
                 }
             }
