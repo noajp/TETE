@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>TETE</string>
+	<string>STILL</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -20,10 +20,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.takanorinakano.tete.oauth</string>
+			<string>com.takanorinakano.still.oauth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.takanorinakano.tete</string>
+				<string>com.takanorinakano.still</string>
 			</array>
 		</dict>
 	</array>
